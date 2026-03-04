@@ -636,16 +636,16 @@ body {
   </div>
 
   <!-- Real-Time Status Banner -->
-  <div class="panel realtime-status status-active" id="realtimeStatus">
+  <div class="panel realtime-status status-calm" id="realtimeStatus">
     <div class="realtime-header">
-      <span class="realtime-label">מצב נוכחי</span>
+      <span class="realtime-label">מצב נוכחי (לפי פיקוד העורף)</span>
       <span class="realtime-update" id="realtimeUpdate">מתעדכן...</span>
     </div>
     <div class="realtime-body">
-      <div class="realtime-icon" id="realtimeIcon">🟠</div>
+      <div class="realtime-icon" id="realtimeIcon">🟢</div>
       <div>
-        <div class="realtime-title" id="realtimeTitle">טוען מידע...</div>
-        <div class="realtime-desc" id="realtimeDesc">מחשב מצב בזמן אמת...</div>
+        <div class="realtime-title" id="realtimeTitle">בודק מצב...</div>
+        <div class="realtime-desc" id="realtimeDesc">מתחבר לפיקוד העורף...</div>
       </div>
     </div>
     <div class="realtime-stats-row">
@@ -1388,19 +1388,26 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
 // ==================== REAL-TIME HELPERS ====================
 
 function getMinutesSinceLastAlert() {
-  if (alertsLog.length === 0) return 999;
+  // רק אזעקות חיות (live) מפיקוד העורף — לא seed היסטוריות
+  var liveAlerts = alertsLog.filter(function(a) { return a.live === true; });
+  if (liveAlerts.length === 0) return 999;
   var now = new Date();
-  var parts = alertsLog[0].time.split(':');
+  var parts = liveAlerts[0].time.split(':');
   var alertMinutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
   var nowMinutes = now.getHours() * 60 + now.getMinutes();
-  return Math.max(0, nowMinutes - alertMinutes);
+  var diff = nowMinutes - alertMinutes;
+  // אם ההפרש שלילי — האזעקה מאתמול (יותר מ-24 שעות)
+  if (diff < 0) return 999;
+  return diff;
 }
 
 function getRecentAlertRate(windowMinutes) {
+  // רק אזעקות חיות
+  var liveAlerts = alertsLog.filter(function(a) { return a.live === true; });
   var now = new Date();
   var nowMinutes = now.getHours() * 60 + now.getMinutes();
   var count = 0;
-  alertsLog.forEach(function(a) {
+  liveAlerts.forEach(function(a) {
     var parts = a.time.split(':');
     var alertMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
     if (nowMinutes - alertMin <= windowMinutes && nowMinutes - alertMin >= 0) count++;
@@ -1786,53 +1793,6 @@ function renderTimeline() {
 
 // ==================== LIVE ALERTS ====================
 
-var AREA_NAMES = [
-  'תל אביב - מזרח', 'תל אביב - מערב', 'תל אביב - דרום', 'רמת גן', 'גבעתיים',
-  'בני ברק', 'חולון', 'בת ים', 'ראשון לציון', 'פתח תקווה', 'הרצליה', 'נתניה',
-  'אשקלון - צפון', 'אשקלון - דרום', 'אשדוד - א', 'אשדוד - ב',
-  'באר שבע - צפון', 'באר שבע - מערב', 'באר שבע - מזרח',
-  'חיפה - כרמל', 'חיפה - מפרץ', 'חיפה - קריות',
-  'עכו', 'נהריה', 'שלומי', 'מטולה', 'קריית שמונה', 'צפת', 'כרמיאל', 'טבריה',
-  'ירושלים - מזרח', 'ירושלים - מערב', 'מעלה אדומים',
-  'אילת', 'רחובות', 'נס ציונה', 'חדרה', 'עפולה', 'יבנה', 'גדרה',
-  'קריית גת', 'קריית מלאכי', 'דימונה', 'בית שמש', 'הוד השרון', 'כפר סבא',
-  'לוד', 'ראש העין', 'רמלה', 'רעננה'
-];
-
-function addFakeAlert(force) {
-  var now = new Date();
-  var hour = now.getHours();
-  var prob = HOURLY_DISTRIBUTION[hour];
-
-  if (!force && Math.random() > prob * 0.35) return;
-
-  var area = AREA_NAMES[Math.floor(Math.random() * AREA_NAMES.length)];
-  var typeRand = Math.random();
-  var type;
-  // War pattern: mostly ballistic missiles from Iran, rockets from Hezbollah
-  if (typeRand < 0.55) type = 'missile';
-  else if (typeRand < 0.75) type = 'rocket';
-  else if (typeRand < 0.93) type = 'uav';
-  else type = 'cruise';
-
-  var timeStr = String(now.getHours()).padStart(2, '0') + ':' +
-                String(now.getMinutes()).padStart(2, '0') + ':' +
-                String(now.getSeconds()).padStart(2, '0');
-
-  var source = (type === 'rocket') ? 'lebanon' : 'iran';
-  alertsLog.unshift({ time: timeStr, area: area, type: type, source: source });
-  if (alertsLog.length > 50) alertsLog.pop();
-
-  todayAlertCount++;
-  $('todayCount').textContent = todayAlertCount;
-  saveAlerts();
-
-  renderAlertLog();
-  flashScreen();
-  recalculate();
-  updateRealtimeStatus();
-  updateRealtimeGauge();
-}
 
 // ==================== ALERT SOUND ====================
 var audioCtx = null;
@@ -1879,46 +1839,71 @@ function flashScreen() {
 }
 
 async function tryFetchLiveAlerts() {
+  var orefUrl = 'https://www.oref.org.il/WarningMessages/alert/alerts.json';
   var endpoints = [
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.oref.org.il/WarningMessages/alert/alerts.json'),
-    'https://corsproxy.io/?' + encodeURIComponent('https://www.oref.org.il/WarningMessages/alert/alerts.json')
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(orefUrl),
+    'https://corsproxy.io/?' + encodeURIComponent(orefUrl),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(orefUrl)
   ];
 
   for (var i = 0; i < endpoints.length; i++) {
     try {
       var res = await fetch(endpoints[i], {
         headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(6000)
       });
       if (!res.ok) continue;
       var text = await res.text();
-      if (text && text.trim().length > 2) {
-        var data = JSON.parse(text);
-        if (Array.isArray(data) && data.length > 0) {
-          data.forEach(function(alert) {
-            var now = new Date();
-            var timeStr = String(now.getHours()).padStart(2, '0') + ':' +
-                          String(now.getMinutes()).padStart(2, '0') + ':' +
-                          String(now.getSeconds()).padStart(2, '0');
-            var type = 'missile';
-            if (alert.cat === '6' || alert.category === 6) type = 'uav';
-            var area = alert.data || alert.title || 'אזור לא ידוע';
-            var exists = alertsLog.length > 0 && alertsLog[0].area === area && alertsLog[0].time === timeStr;
-            if (!exists) {
-              alertsLog.unshift({ time: timeStr, area: area, type: type });
-              todayAlertCount++;
-              flashScreen();
-            }
-          });
-          if (alertsLog.length > 50) alertsLog.length = 50;
-          $('todayCount').textContent = todayAlertCount;
-          saveAlerts();
-          renderAlertLog();
-          recalculate();
-          return;
+      if (!text || text.trim().length < 3) continue;
+      // oref API may return object or array
+      var parsed = JSON.parse(text);
+      var alerts = Array.isArray(parsed) ? parsed : [parsed];
+      if (alerts.length === 0 || !alerts[0].data) continue;
+
+      var newAlerts = false;
+      alerts.forEach(function(a) {
+        // זמן מה-API (alertDate: "2026-03-04 22:32:00") או זמן נוכחי כ-fallback
+        var timeStr;
+        if (a.alertDate) {
+          var parts = a.alertDate.split(' ');
+          timeStr = parts.length > 1 ? parts[1] : parts[0];
+        } else {
+          var now = new Date();
+          timeStr = String(now.getHours()).padStart(2, '0') + ':' +
+                    String(now.getMinutes()).padStart(2, '0') + ':' +
+                    String(now.getSeconds()).padStart(2, '0');
         }
+        // סוג: category 1=טילים/רקטות, 6=כטב"מ/חדירת כלי טיס
+        var cat = parseInt(a.category || a.cat || '1');
+        var type = (cat === 6) ? 'uav' : 'missile';
+        var area = a.data || a.title || 'אזור לא ידוע';
+        var source = 'unknown';
+        // ניחוש מקור לפי כותרת
+        if (a.title) {
+          if (a.title.indexOf('כלי טיס') !== -1 || a.title.indexOf('חדירת') !== -1) { type = 'uav'; }
+          if (a.title.indexOf('רקטות') !== -1 || a.title.indexOf('טילים') !== -1) { type = 'missile'; }
+        }
+        // בדיקת כפילויות — השוואה לכל הלוג (לא רק הראשון)
+        var isDuplicate = alertsLog.some(function(existing) {
+          return existing.area === area && existing.time === timeStr;
+        });
+        if (!isDuplicate) {
+          alertsLog.unshift({ time: timeStr, area: area, type: type, source: source, live: true });
+          todayAlertCount++;
+          newAlerts = true;
+        }
+      });
+
+      if (newAlerts) {
+        flashScreen();
+        if (alertsLog.length > 50) alertsLog.length = 50;
+        $('todayCount').textContent = todayAlertCount;
+        saveAlerts();
+        renderAlertLog();
+        recalculate();
       }
-    } catch (e) { /* try next */ }
+      return;
+    } catch (e) { /* try next endpoint */ }
   }
 }
 
@@ -1984,7 +1969,7 @@ function init() {
   renderAlertLog();
 
   setInterval(updateClock, 1000);
-  setInterval(function() { addFakeAlert(false); }, 12000);
+  // אזעקות בזמן אמת מפיקוד העורף בלבד (ללא סימולציה)
   setInterval(tryFetchLiveAlerts, 15000);
   setInterval(function() {
     updateRealtimeGauge();
