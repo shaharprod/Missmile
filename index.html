@@ -470,23 +470,72 @@ body {
 }
 .flash-overlay.active { opacity: 1; }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .header h1 { font-size: 1.5rem; }
-  .meter-value { font-size: 52px; }
-  .meter-value .pct { font-size: 22px; }
-  .activities-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
-  .activity-card { padding: 10px 6px; }
-  .activity-card .act-icon { font-size: 1.4rem; }
-  .stats-row { grid-template-columns: 1fr 1fr; }
+/* Responsive — Mobile First */
+@media (max-width: 768px) {
+  .container { padding: 10px 8px 30px; }
+  .header { padding: 20px 10px 14px; }
+  .header h1 { font-size: 1.3rem; }
+  .header .subtitle { font-size: 0.78rem; }
+  .meter-value { font-size: 48px; }
+  .meter-value .pct { font-size: 20px; }
+  .panel { padding: 14px 12px; margin-bottom: 10px; }
+  .activities-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .activity-card { padding: 10px 4px; }
+  .activity-card .act-icon { font-size: 1.3rem; }
+  .activity-card .act-name { font-size: 0.72rem; }
+  .activity-card .act-pct { font-size: 0.95rem; }
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 12px 6px; }
+  .stat-val { font-size: 1.2rem; }
+  .stat-label { font-size: 0.62rem; }
   .day-heatmap { grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  .day-cell { padding: 10px 4px; font-size: 0.75rem; }
-  .settings-row { grid-template-columns: 1fr; }
-  .live-bar { justify-content: center; }
-  .hour-chart { height: 90px; }
+  .day-cell { padding: 8px 2px; font-size: 0.7rem; }
+  .day-cell .day-val { font-size: 0.65rem; }
+  .settings-row { grid-template-columns: 1fr; gap: 10px; }
+  .live-bar { justify-content: center; padding: 10px 12px; gap: 10px; }
+  .live-indicator { font-size: 0.8rem; }
+  .alert-count { font-size: 0.8rem; }
+  .live-clock { font-size: 0.8rem; }
+  .hour-chart { height: 80px; gap: 2px; }
+  .hour-label { font-size: 0.45rem; }
   .threat-grid { grid-template-columns: 1fr; }
-  .daily-table { font-size: 0.75rem; }
-  .daily-table th, .daily-table td { padding: 8px 6px; }
+  .threat-card { padding: 12px; }
+  .reco-box { padding: 14px 12px; gap: 10px; }
+  .reco-icon { font-size: 1.6rem; }
+  .reco-title { font-size: 0.95rem; }
+  .reco-desc { font-size: 0.78rem; }
+  .meter-panel { padding: 20px 14px; }
+  .meter-desc { font-size: 0.72rem; }
+
+  /* Daily table — horizontal scroll on mobile */
+  .daily-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .daily-table { font-size: 0.7rem; min-width: 600px; }
+  .daily-table th, .daily-table td { padding: 6px 5px; white-space: nowrap; }
+
+  /* Timeline */
+  .timeline-panel { padding: 14px 12px; }
+  .tl-entry { font-size: 0.78rem; gap: 8px; }
+  .tl-date { font-size: 0.68rem; min-width: 70px; }
+  .timeline-filter button { font-size: 0.7rem; padding: 4px 10px; }
+
+  /* Alerts log */
+  .alerts-log { max-height: 200px; }
+  .alert-entry { padding: 6px 8px; gap: 6px; }
+  .alert-entry .alert-time { font-size: 0.72rem; }
+  .alert-entry .alert-area { font-size: 0.78rem; }
+  .alert-badge { font-size: 0.6rem; padding: 2px 6px; }
+
+  /* Footer */
+  .footer { padding: 16px 10px; }
+  .footer .warning-box { font-size: 0.78rem; padding: 12px 14px; }
+  .footer .sources { font-size: 0.62rem; }
+}
+
+@media (max-width: 380px) {
+  .header h1 { font-size: 1.1rem; }
+  .activities-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .meter-value { font-size: 40px; }
 }
 </style>
 </head>
@@ -541,6 +590,7 @@ body {
   <!-- Daily Summary Table -->
   <div class="panel">
     <div class="chart-title">סיכום יומי — שיגורים ואזעקות מ-28.2.2026</div>
+    <div class="daily-table-wrap">
     <table class="daily-table" id="dailyTable">
       <thead>
         <tr>
@@ -551,12 +601,13 @@ body {
           <th>טילים בליסטיים</th>
           <th>כטב"מים</th>
           <th>הרוגים</th>
-          <th>פצועים</th>
+          <th>פצועים (מצטבר)</th>
           <th>אירועים מרכזיים</th>
         </tr>
       </thead>
       <tbody id="dailyTableBody"></tbody>
     </table>
+    </div>
   </div>
 
   <!-- Recommendation -->
@@ -679,9 +730,9 @@ const DAILY_DATA = [
   },
   {
     date: '2026-03-02', dayName: 'שני',
-    iranWaves: 24, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 0, iranInjured: '19+',
+    iranWaves: 25, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 0, iranInjured: '720+',
     lebWaves: 10, lebRockets: '6+ טילים, 3 כטב"מים',
-    events: 'סה"כ מצטבר: 112 גלי תקיפה מאיראן (אלמ"א). חיזבאללה נכנס רשמית — 10 אירועי תקיפה: 6 שיגורים לחיפה/עכו/דאלית אל-כרמל/עתלית, 3 כטב"מים (1 יורט ע"י "אור איתן"). בסיסי רמת דוד, מירון ומחנה יצחק הותקפו. 19 פצועים מפגיעה בשכונה בבאר שבע. ישראל תוקפת ביירות — 31 הרוגים, 149 פצועים בלבנון. ראש מודיעין חיזבאללה חוסאין מכלד חוסל.'
+    events: 'סה"כ מצטבר: 112 גלי תקיפה מאיראן (אלמ"א). חיזבאללה נכנס רשמית — 10 אירועי תקיפה: 6 שיגורים לחיפה/עכו/דאלית אל-כרמל/עתלית, 3 כטב"מים (1 יורט ע"י "אור איתן"). בסיסי רמת דוד, מירון ומחנה יצחק הותקפו. 19 פצועים חדשים מפגיעה בשכונה בבאר שבע. ישראל תוקפת ביירות — 31 הרוגים, 149 פצועים בלבנון. ראש מודיעין חיזבאללה חוסאין מכלד חוסל.'
   },
   {
     date: '2026-03-03', dayName: 'שלישי',
@@ -691,7 +742,7 @@ const DAILY_DATA = [
   },
   {
     date: '2026-03-04', dayName: 'רביעי',
-    iranWaves: 'מתעדכן', iranMissiles: 'ירידה נוספת של 23%', iranUAVs: 'מטפטף', iranKilled: 0, iranInjured: '8+',
+    iranWaves: 'מתעדכן', iranMissiles: 'ירידה נוספת של 23%', iranUAVs: 'מטפטף', iranKilled: 0, iranInjured: '1,008+',
     lebWaves: 'מתעדכן', lebRockets: 'מספר שיגורים',
     events: 'יום 5 למלחמה. 2 מטחי טילים בליסטיים מאיראן ומחיזבאללה בו-זמנית — יורטו מעל ירושלים ות"א. אזעקות באילת, חיפה, מרכז. טיל נ"ט חיזבאללה במרגליות — 7 פצועים, הרוג אזרח הודי. מצב חירום מוארך עד 12.3. צבא ישראל פועל בדרום לבנון. מד"א: אין נפגעים מהמטחים האחרונים.'
   }
@@ -713,11 +764,11 @@ const HOURLY_DISTRIBUTION = [
 ];
 
 // Day of week — based on Alma Center verified wave counts
-// שבת 28.2 = 25 waves, ראשון 1.3 = 62 waves (peak), שני 2.3 = 24+10, שלישי 3.3 = 7+14
+// שבת 28.2 = 25 waves, ראשון 1.3 = 62 waves (peak), שני 2.3 = 25+10, שלישי 3.3 = 7+14
 // US Joint Chiefs: 86% drop in ballistic fire by day 4, 23% additional drop day 5
 const DAY_MULTIPLIER = [
   1.00,  // ראשון — 1.3 = 62 גלי תקיפה מאיראן (שיא מוחלט)
-  0.55,  // שני — 2.3 = 24 גלים מאיראן + 10 מחיזבאללה = 34 סה"כ
+  0.55,  // שני — 2.3 = 25 גלים מאיראן + 10 מחיזבאללה = 35 סה"כ
   0.34,  // שלישי — 3.3 = 7 גלים מאיראן + 14 מחיזבאללה = 21 סה"כ
   0.20,  // רביעי — 4.3 = ירידה נוספת 23% (US Joint Chiefs). מטחים בודדים
   0.18,  // חמישי — הערכה: המשך ירידה, ארסנל מצטמצם
@@ -786,7 +837,7 @@ const LAUNCHES_TIMELINE = [
 
   // === 2 MARCH 2026 (שני) — Day 3 — Hezbollah enters ===
   { date: '2026-03-02', time: 'לילה', source: 'lebanon', count: '6+ טילים, 3 כטב"מים', desc: 'חיזבאללה נכנס רשמית למלחמה. שיגורים לחיפה, עכו, דאלית אל-כרמל, עתלית. 3 כטב"מים — 1 יורט ע"י "אור איתן". תקיפת בסיסי רמת דוד, מירון ומחנה יצחק.' },
-  { date: '2026-03-02', time: '—', source: 'iran', count: '24 גלים', desc: '24 גלי תקיפה מאיראן (אלמ"א). סה"כ מצטבר: 112 גלים (דו"ח 2.3). שינוי בדפוס: מטחים מתואמים יותר, 9-30 טילים בגל.' },
+  { date: '2026-03-02', time: '—', source: 'iran', count: '25 גלים', desc: '25 גלי תקיפה מאיראן (אלמ"א). סה"כ מצטבר: 112 גלים (דו"ח 2.3). שינוי בדפוס: מטחים מתואמים יותר, 9-30 טילים בגל.' },
   { date: '2026-03-02', time: '~14:30', source: 'iran', count: '—', desc: 'פגיעת טיל בשכונה בבאר שבע. 19 פצועים פונו לסורוקה. מצב קל-בינוני.' },
   { date: '2026-03-02', time: '—', source: 'lebanon', count: '10 תקיפות', desc: 'סה"כ חיזבאללה: 10 אירועי תקיפה (אלמ"א). ישראל תוקפת ביירות ודהייה — 31 הרוגים, 149 פצועים בלבנון. חוסאין מכלד (ראש מודיעין חיזבאללה) חוסל.' },
   { date: '2026-03-02', time: '—', source: 'iran', count: '—', desc: 'סיכום אלמ"א (19:00): 112 גלים מצטבר מאיראן. 11 הרוגים, 700+ פצועים בישראל.' },
@@ -821,6 +872,32 @@ let todayAlertCount = 0;
 let alertsLog = [];
 let selectedActivity = null;
 let timelineFilter = 'all';
+
+// ==================== PERSISTENCE ====================
+function getTodayKey() {
+  var d = new Date();
+  return 'safetime_' + d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function saveAlerts() {
+  try {
+    var data = { count: todayAlertCount, log: alertsLog.slice(0, 50) };
+    localStorage.setItem(getTodayKey(), JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadAlerts() {
+  try {
+    var stored = localStorage.getItem(getTodayKey());
+    if (stored) {
+      var data = JSON.parse(stored);
+      alertsLog = data.log || [];
+      todayAlertCount = data.count || alertsLog.length;
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
 
 // ==================== SEED TODAY'S ALERTS ====================
 // Based on actual data: March 4, 2026 (Day 5) has ~15-25 alerts throughout the day
@@ -876,23 +953,47 @@ var TODAY_SEED_ALERTS = [
 ];
 
 function seedTodayAlerts() {
+  // Try loading persisted alerts first
+  if (loadAlerts()) {
+    // Merge any new seed alerts that weren't in the stored data
+    var now = new Date();
+    var currentTimeStr = String(now.getHours()).padStart(2, '0') + ':' +
+                         String(now.getMinutes()).padStart(2, '0');
+    var seeded = TODAY_SEED_ALERTS.filter(function(a) {
+      return a.time <= currentTimeStr;
+    });
+    // Check for seed alerts missing from stored log
+    seeded.forEach(function(a) {
+      var exists = alertsLog.some(function(stored) {
+        return stored.time === a.time && stored.area === a.area;
+      });
+      if (!exists) {
+        alertsLog.push({ time: a.time, area: a.area, type: a.type });
+        todayAlertCount++;
+      }
+    });
+    // Sort: newest first (alerts with HH:MM:SS before HH:MM)
+    alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
+    if (alertsLog.length > 50) alertsLog.length = 50;
+    $('todayCount').textContent = todayAlertCount;
+    saveAlerts();
+    return;
+  }
+
+  // No stored data — seed from scratch
   var now = new Date();
   var currentTimeStr = String(now.getHours()).padStart(2, '0') + ':' +
                        String(now.getMinutes()).padStart(2, '0');
-
-  // Add all alerts that happened before the current time
   var seeded = TODAY_SEED_ALERTS.filter(function(a) {
     return a.time <= currentTimeStr;
   });
-
-  // Add in reverse chronological order (newest first)
   seeded.reverse().forEach(function(a) {
     alertsLog.push({ time: a.time, area: a.area, type: a.type });
   });
-
   todayAlertCount = seeded.length;
   if (alertsLog.length > 50) alertsLog.length = 50;
   $('todayCount').textContent = todayAlertCount;
+  saveAlerts();
 }
 
 // ==================== DOM REFS ====================
@@ -1211,10 +1312,10 @@ function addFakeAlert(force) {
   var area = AREA_NAMES[Math.floor(Math.random() * AREA_NAMES.length)];
   var typeRand = Math.random();
   var type;
-  // War pattern: mostly ballistic missiles and UAVs
-  if (typeRand < 0.45) type = 'missile';
-  else if (typeRand < 0.80) type = 'uav';
-  else if (typeRand < 0.92) type = 'rocket';
+  // War pattern: mostly ballistic missiles from Iran, rockets from Hezbollah
+  if (typeRand < 0.55) type = 'missile';
+  else if (typeRand < 0.75) type = 'rocket';
+  else if (typeRand < 0.93) type = 'uav';
   else type = 'cruise';
 
   var timeStr = String(now.getHours()).padStart(2, '0') + ':' +
@@ -1226,15 +1327,54 @@ function addFakeAlert(force) {
 
   todayAlertCount++;
   $('todayCount').textContent = todayAlertCount;
+  saveAlerts();
 
   renderAlertLog();
-  if (type === 'missile') flashScreen();
+  flashScreen();
   recalculate();
+}
+
+// ==================== ALERT SOUND ====================
+var audioCtx = null;
+function playAlertSound() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Siren-like tone: two alternating frequencies
+    var now = audioCtx.currentTime;
+    var osc1 = audioCtx.createOscillator();
+    var osc2 = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+
+    osc1.type = 'sine';
+    osc2.type = 'sine';
+    osc1.frequency.setValueAtTime(880, now);
+    osc2.frequency.setValueAtTime(660, now);
+
+    // Alternate between high and low (siren effect)
+    for (var i = 0; i < 4; i++) {
+      osc1.frequency.setValueAtTime(880, now + i * 0.3);
+      osc1.frequency.setValueAtTime(660, now + i * 0.3 + 0.15);
+    }
+
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.linearRampToValueAtTime(0.15, now + 0.6);
+    gain.gain.linearRampToValueAtTime(0, now + 1.2);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc1.start(now);
+    osc2.start(now + 0.15);
+    osc1.stop(now + 1.2);
+    osc2.stop(now + 1.2);
+  } catch(e) {}
 }
 
 function flashScreen() {
   var overlay = $('flashOverlay');
   overlay.classList.add('active');
+  playAlertSound();
   setTimeout(function() { overlay.classList.remove('active'); }, 400);
 }
 
@@ -1262,17 +1402,17 @@ async function tryFetchLiveAlerts() {
                           String(now.getSeconds()).padStart(2, '0');
             var type = 'missile';
             if (alert.cat === '6' || alert.category === 6) type = 'uav';
-            else if (alert.cat === '1' || alert.category === 1) type = 'rocket';
             var area = alert.data || alert.title || 'אזור לא ידוע';
             var exists = alertsLog.length > 0 && alertsLog[0].area === area && alertsLog[0].time === timeStr;
             if (!exists) {
               alertsLog.unshift({ time: timeStr, area: area, type: type });
               todayAlertCount++;
-              if (type === 'missile') flashScreen();
+              flashScreen();
             }
           });
           if (alertsLog.length > 50) alertsLog.length = 50;
           $('todayCount').textContent = todayAlertCount;
+          saveAlerts();
           renderAlertLog();
           recalculate();
           return;
