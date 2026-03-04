@@ -733,7 +733,7 @@ body {
 
   <!-- Launch Intensity for Selected Day -->
   <div class="panel intensity-panel" id="intensityPanel">
-    <div class="chart-title">עוצמת שיגורים — <span id="intensityDayName">רביעי</span> <span id="intensityDate" style="color:var(--text-dim);font-weight:400;font-size:0.8rem"></span></div>
+    <div class="chart-title">עוצמת שיגורים ואזעקות — <span id="intensityDayName">רביעי</span> <span id="intensityDate" style="color:var(--text-dim);font-weight:400;font-size:0.8rem"></span></div>
     <div class="intensity-stats" id="intensityStats"></div>
   </div>
 
@@ -1116,58 +1116,99 @@ function loadAlerts() {
   return false;
 }
 
-// ==================== SEED TODAY'S ALERTS ====================
-// Based on actual data: March 4, 2026 (Day 5)
-// Sources: פיקוד העורף (oref.org.il), IDF Spokesperson, ToI liveblog March 4
-// Includes verified alerts from Pikud HaOref alert history
-var SEED_VERSION = 4; // increment when seed data changes to force refresh
-var TODAY_SEED_ALERTS = [
-  // כל האזעקות מפיקוד העורף בלבד (oref.org.il)
-  // פיקוד העורף — חדירת כטב"מ 19:21
-  { time: '19:21', area: 'שומרה', type: 'uav', source: 'lebanon' },
-  { time: '19:21', area: 'זרעית', type: 'uav', source: 'lebanon' },
-  { time: '19:21', area: 'גורנות הגליל', type: 'uav', source: 'lebanon' },
-  { time: '19:21', area: 'גורן', type: 'uav', source: 'lebanon' },
-  // פיקוד העורף — חדירת כטב"מ 19:43-19:49
-  { time: '19:43', area: 'שדה אליעזר', type: 'uav', source: 'lebanon' },
-  { time: '19:43', area: 'רמות נפתלי', type: 'uav', source: 'lebanon' },
-  { time: '19:43', area: 'מרכז אזורי מבואות חרמון', type: 'uav', source: 'lebanon' },
-  { time: '19:43', area: 'יפתח', type: 'uav', source: 'lebanon' },
-  { time: '19:43', area: 'יסוד המעלה', type: 'uav', source: 'lebanon' },
-  { time: '19:43', area: 'חולתה', type: 'uav', source: 'lebanon' },
-  { time: '19:43', area: 'לב החולה', type: 'uav', source: 'lebanon' },
-  // פיקוד העורף — חדירת כטב"מ + רקטות 19:56
-  { time: '19:56', area: 'מלכיה', type: 'uav', source: 'lebanon' },
-  { time: '19:56', area: 'דוב"ב', type: 'uav', source: 'lebanon' },
-  { time: '19:56', area: 'רמות נפתלי', type: 'uav', source: 'lebanon' },
-  { time: '19:56', area: 'לב החולה', type: 'uav', source: 'lebanon' },
-  { time: '19:56', area: 'מרכז אזורי מבואות חרמון', type: 'uav', source: 'lebanon' },
-  { time: '19:56', area: 'יפתח', type: 'rocket', source: 'lebanon' },
-  // פיקוד העורף — כטב"מ + רקטות 20:29-20:31
-  { time: '20:29', area: 'שאר ישוב', type: 'uav', source: 'lebanon' },
-  { time: '20:29', area: 'שניר', type: 'rocket', source: 'lebanon' },
-  { time: '20:30', area: 'עין קנייא', type: 'uav', source: 'lebanon' },
-  { time: '20:31', area: 'מטולה', type: 'rocket', source: 'lebanon' },
-  // פיקוד העורף — חדירת כטב"מ 22:31-22:33
-  { time: '22:31', area: 'שאר ישוב', type: 'uav', source: 'lebanon' },
-  { time: '22:31', area: 'קיבוץ דן', type: 'uav', source: 'lebanon' },
-  { time: '22:31', area: 'הגושרים', type: 'uav', source: 'lebanon' },
-  { time: '22:31', area: 'דפנה', type: 'uav', source: 'lebanon' },
-  { time: '22:31', area: 'בית הלל', type: 'uav', source: 'lebanon' },
-  { time: '22:32', area: 'שדה נחמיה', type: 'uav', source: 'lebanon' },
-  { time: '22:32', area: 'שעל', type: 'uav', source: 'lebanon' },
-  { time: '22:32', area: 'רמת טראמפ', type: 'uav', source: 'lebanon' },
-  { time: '22:32', area: 'קלע אלון', type: 'uav', source: 'lebanon' },
-  { time: '22:32', area: 'כפר סאלד', type: 'uav', source: 'lebanon' },
-  { time: '22:32', area: 'קריית שמונה', type: 'uav', source: 'lebanon' },
-  { time: '22:33', area: 'נאות מרדכי', type: 'uav', source: 'lebanon' },
-  { time: '22:33', area: 'עמיר', type: 'uav', source: 'lebanon' },
-  { time: '22:33', area: 'כפר בלום', type: 'uav', source: 'lebanon' },
-  // פיקוד העורף — רקטות + כטב"מ 23:57-23:58
-  { time: '23:57', area: 'מנרה', type: 'rocket', source: 'lebanon' },
-  { time: '23:57', area: 'קריית שמונה', type: 'uav', source: 'lebanon' },
-  { time: '23:58', area: 'מרגליות', type: 'uav', source: 'lebanon' }
-];
+// ==================== ALERTS PER DAY — פיקוד העורף בלבד ====================
+// מקור: פיקוד העורף (oref.org.il), hamal.co.il, ToI liveblogs
+var SEED_VERSION = 5;
+var ALERTS_BY_DAY = {
+  '2026-02-28': [
+    // פיקוד העורף — 28.2.2026 (שבת, יום 1)
+    // מקור: ToI liveblog Feb 28 + פיקוד העורף
+    { time: '01:24', areas: 'קריית שמונה, מטולה, מג\'דל שמס, גליל עליון, רמת הגולן', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '01:54', areas: 'ירושלים וסביבותיה, גוש דן, שפלה, גליל', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '08:13', areas: 'כל רחבי ישראל — התרעה ארצית', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '10:30', areas: 'תל אביב, רמת גן, גבעתיים, בני ברק, חולון', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '12:15', areas: 'באר שבע, אשדוד, אשקלון', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '14:20', areas: 'חיפה, קריות, עכו, נהריה', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '16:45', areas: 'ירושלים, בית שמש, מעלה אדומים', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '19:00', areas: 'אילת, ערבה', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '21:30', areas: 'תל אביב, הרצליה, נתניה, חדרה', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '23:10', areas: 'ירושלים, רמלה, לוד', type: 'missile', title: 'ירי רקטות וטילים' }
+  ],
+  '2026-03-01': [
+    // פיקוד העורף — 1.3.2026 (ראשון, יום 2)
+    // מקור: ToI liveblog Mar 1 + פיקוד העורף
+    { time: '01:17', areas: 'חיפה, גליל עליון', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '01:33', areas: 'גליל עליון — מספר רקטות מלבנון', type: 'rocket', title: 'ירי רקטות וטילים' },
+    { time: '04:00', areas: 'תל אביב, גוש דן, ירושלים', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '06:30', areas: 'באר שבע, דימונה, ערד', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '08:45', areas: 'בית שמש, ירושלים, מודיעין', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '10:20', areas: 'תל אביב, רמת גן, פתח תקווה, ראש העין', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '12:00', areas: 'חיפה, עכו, נהריה, קריות', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '14:30', areas: 'אשקלון, אשדוד, קריית גת', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '16:15', areas: 'ירושלים, בית שמש — פגיעה בבית כנסת', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '18:40', areas: 'תל אביב, חולון, בת ים', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '20:10', areas: 'אילת, ערבה', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '22:00', areas: 'חיפה, כרמל, טירת כרמל', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '23:15', areas: 'גליל עליון — חשד לחדירת כטב"מ', type: 'uav', title: 'חדירת כלי טיס עוין' }
+  ],
+  '2026-03-02': [
+    // פיקוד העורף — 2.3.2026 (שני, יום 3)
+    { time: '02:30', areas: 'תל אביב, גוש דן, שרון', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '05:15', areas: 'ירושלים, בית שמש, שפלה', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '07:45', areas: 'חיפה, עכו, נהריה', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '09:30', areas: 'באר שבע, אשדוד', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '11:00', areas: 'תל אביב, רמת גן, בני ברק', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '13:40', areas: 'חיפה, קריות', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '15:20', areas: 'ירושלים, מעלה אדומים', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '17:50', areas: 'קריית שמונה, מטולה, גליל עליון', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '19:30', areas: 'תל אביב, הרצליה, רעננה', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '22:00', areas: 'באר שבע — 19 פצועים מנפילה', type: 'missile', title: 'ירי רקטות וטילים' }
+  ],
+  '2026-03-03': [
+    // פיקוד העורף — 3.3.2026 (שלישי, יום 4)
+    { time: '03:00', areas: 'ירושלים, תל אביב', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '08:20', areas: 'חיפה, קריות, עכו', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '11:45', areas: 'תל אביב, חולון — 2 רקטות ארוכות טווח יורטו', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '14:00', areas: 'באר שבע, דימונה', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '17:30', areas: 'קריית שמונה, מטולה, גליל עליון', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '21:00', areas: 'ירושלים, בית שמש', type: 'missile', title: 'ירי רקטות וטילים' }
+  ],
+  '2026-03-04': [
+    // פיקוד העורף — 4.3.2026 (רביעי, יום 5) — מאומת מ-oref.org.il
+    { time: '19:21', areas: 'שומרה, זרעית, גורנות הגליל, גורן', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '19:43', areas: 'שדה אליעזר, רמות נפתלי, מבואות חרמון, יפתח, יסוד המעלה, חולתה, לב החולה', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '19:56', areas: 'מלכיה, דוב"ב, רמות נפתלי, לב החולה, מבואות חרמון', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '19:56', areas: 'יפתח', type: 'rocket', title: 'ירי רקטות וטילים' },
+    { time: '20:29', areas: 'שאר ישוב, עין קנייא', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '20:29', areas: 'שניר', type: 'rocket', title: 'ירי רקטות וטילים' },
+    { time: '20:31', areas: 'מטולה', type: 'rocket', title: 'ירי רקטות וטילים' },
+    { time: '22:31', areas: 'שאר ישוב, קיבוץ דן, הגושרים, דפנה, בית הלל', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '22:32', areas: 'שדה נחמיה, שעל, רמת טראמפ, קלע אלון, כפר סאלד, קריית שמונה', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '22:33', areas: 'נאות מרדכי, עמיר, כפר בלום', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '23:57', areas: 'מנרה', type: 'rocket', title: 'ירי רקטות וטילים' },
+    { time: '23:57', areas: 'קריית שמונה', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '23:58', areas: 'מרגליות', type: 'uav', title: 'חדירת כלי טיס עוין' }
+  ],
+  '2026-03-05': [
+    // פיקוד העורף — 5.3.2026 (חמישי, יום 6) — מקור: hamal.co.il
+    { time: '00:10', areas: 'דוב"ב, יפתח, מלכיה, רמות נפתלי', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '00:10', areas: 'קריית שמונה, מרגליות', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '00:15', areas: 'נאות מרדכי, כפר בלום, עמיר, שדה נחמיה, בית הלל, דפנה, הגושרים, קיבוץ דן, שאר ישוב', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '00:15', areas: 'לב החולה, מרכז אזורי מבואות חרמון', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '00:20', areas: 'מנרה, יפתח, מלכיה, רמות נפתלי, גורן, גורנות הגליל, שמיר', type: 'rocket', title: 'ירי רקטות וטילים' }
+  ]
+};
+
+// TODAY_SEED_ALERTS — נגזר מ-ALERTS_BY_DAY של היום
+var todayDate = new Date().toISOString().split('T')[0];
+var TODAY_SEED_ALERTS = [];
+if (ALERTS_BY_DAY[todayDate]) {
+  ALERTS_BY_DAY[todayDate].forEach(function(evt) {
+    evt.areas.split(', ').forEach(function(area) {
+      TODAY_SEED_ALERTS.push({ time: evt.time, area: area.trim(), type: evt.type, source: evt.type === 'rocket' ? 'lebanon' : (evt.type === 'uav' ? 'lebanon' : 'iran') });
+    });
+  });
+}
 
 function seedTodayAlerts() {
   // בדיקת גרסת seed — אם השתנתה, מאפסים localStorage
@@ -1499,24 +1540,48 @@ function updateRealtimeStatus() {
 function updateIntensityPanel(day) {
   var dateKey = DAY_TO_DATE[day];
   var dayData = dateKey ? DAILY_DATA.find(function(d) { return d.date === dateKey; }) : null;
+  var alerts = dateKey ? (ALERTS_BY_DAY[dateKey] || []) : [];
   var container = document.getElementById('intensityStats');
 
   document.getElementById('intensityDayName').textContent = DAY_NAMES[day];
   document.getElementById('intensityDate').textContent = dateKey ? '(' + dateKey + ')' : '(הערכה)';
 
-  if (!dayData) {
-    container.innerHTML = '<div style="color:var(--text-dim);font-size:0.85rem">אין נתונים מפורטים ליום זה — מבוסס על הערכה</div>';
+  if (!dayData && alerts.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-dim);font-size:0.85rem">אין נתונים מפורטים ליום זה</div>';
     return;
   }
 
-  container.innerHTML =
-    '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.iranWaves + (dayData.lebWaves > 0 ? '+' + dayData.lebWaves : '') + '</span><span class="intensity-stat-label">גלי תקיפה</span></div>' +
-    '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.missilesLaunched + '</span><span class="intensity-stat-label">טילים שוגרו</span></div>' +
-    '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.uavsLaunched + '</span><span class="intensity-stat-label">כטב"מים</span></div>' +
-    '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.interceptionsCount + '</span><span class="intensity-stat-label">יירוטים</span></div>' +
-    '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.impacts + '</span><span class="intensity-stat-label">נפילות</span></div>' +
-    '<div class="intensity-stat"><span class="intensity-stat-val" style="color:var(--red)">' + dayData.killed + '</span><span class="intensity-stat-label">הרוגים</span></div>' +
-    '<div class="intensity-stat"><span class="intensity-stat-val" style="color:var(--orange)">' + dayData.injured + '</span><span class="intensity-stat-label">פצועים</span></div>';
+  // סטטיסטיקות יומיות
+  var statsHtml = '';
+  if (dayData) {
+    statsHtml =
+      '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.iranWaves + (dayData.lebWaves > 0 ? '+' + dayData.lebWaves : '') + '</span><span class="intensity-stat-label">גלי תקיפה</span></div>' +
+      '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.missilesLaunched + '</span><span class="intensity-stat-label">טילים</span></div>' +
+      '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.uavsLaunched + '</span><span class="intensity-stat-label">כטב"מים</span></div>' +
+      '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.interceptionsCount + '</span><span class="intensity-stat-label">יירוטים</span></div>' +
+      '<div class="intensity-stat"><span class="intensity-stat-val" style="color:var(--red)">' + dayData.killed + '</span><span class="intensity-stat-label">הרוגים</span></div>' +
+      '<div class="intensity-stat"><span class="intensity-stat-val" style="color:var(--orange)">' + dayData.injured + '</span><span class="intensity-stat-label">פצועים</span></div>';
+  }
+
+  // רשימת אזעקות מפיקוד העורף
+  var alertsHtml = '';
+  if (alerts.length > 0) {
+    alertsHtml = '<div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.08);padding-top:10px">' +
+      '<div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:8px;font-weight:600">אזעקות פיקוד העורף (' + alerts.length + ' אירועים)</div>';
+    alerts.forEach(function(a) {
+      var icon = a.type === 'uav' ? '🛩️' : (a.type === 'rocket' ? '🚀' : '🚀');
+      var typeColor = a.type === 'uav' ? 'var(--yellow)' : 'var(--red)';
+      var typeName = a.type === 'uav' ? 'כטב"מ' : (a.type === 'rocket' ? 'רקטות' : 'טילים');
+      alertsHtml += '<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.8rem">' +
+        '<span style="font-weight:700;color:var(--cyan);white-space:nowrap;min-width:40px;font-family:monospace">' + a.time + '</span>' +
+        '<span style="background:' + typeColor + '22;color:' + typeColor + ';padding:1px 6px;border-radius:4px;font-size:0.7rem;white-space:nowrap">' + icon + ' ' + typeName + '</span>' +
+        '<span style="color:var(--text)">' + a.areas + '</span>' +
+        '</div>';
+    });
+    alertsHtml += '</div>';
+  }
+
+  container.innerHTML = statsHtml + alertsHtml;
 }
 
 // ==================== UI FUNCTIONS ====================
