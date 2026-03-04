@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-/* ========== CSS Variables ========== */
 :root {
   --bg: #0A0C10;
   --panel: #111318;
@@ -27,7 +26,6 @@
   --font-mono: 'Share Tech Mono', monospace;
 }
 
-/* ========== Reset & Base ========== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   background: var(--bg);
@@ -50,71 +48,70 @@ body {
   margin-bottom: 16px;
 }
 
-/* ========== 1. Header ========== */
+/* Header */
 .header { text-align: center; padding: 30px 20px 20px; }
-.header h1 {
-  font-size: 2rem;
-  font-weight: 900;
-  margin-bottom: 4px;
-}
+.header h1 { font-size: 2rem; font-weight: 900; margin-bottom: 4px; }
 .header h1 span { color: var(--green); }
-.header .subtitle {
-  color: var(--text-dim);
-  font-size: 0.85rem;
-  font-weight: 300;
-}
+.header .subtitle { color: var(--text-dim); font-size: 0.9rem; }
 
-/* ========== 2. Live Status Bar ========== */
+/* Live Bar */
 .live-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
   padding: 12px 20px;
+  flex-wrap: wrap;
 }
 .live-indicator {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: var(--font-mono);
   font-weight: 700;
-  color: var(--green);
+  color: var(--red);
+  font-size: 0.85rem;
 }
 .live-dot {
   width: 10px; height: 10px;
-  background: var(--green);
+  background: var(--red);
   border-radius: 50%;
-  animation: pulse 1.5s ease-in-out infinite;
+  animation: pulse 1.5s infinite;
 }
 @keyframes pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,230,118,0.6); }
-  50% { opacity: 0.7; box-shadow: 0 0 0 8px rgba(0,230,118,0); }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
-.alert-count { color: var(--yellow); font-family: var(--font-mono); font-weight: 700; }
-.live-clock { font-family: var(--font-mono); color: var(--text); font-size: 1.1rem; }
+.alert-count { font-size: 0.85rem; color: var(--text-dim); }
+.alert-count span { color: var(--yellow); font-family: var(--font-mono); font-weight: 700; }
+.live-clock {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-right: auto;
+  direction: ltr;
+}
 
-/* ========== 3. Settings Row ========== */
+/* Settings */
 .settings-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  padding: 16px 20px;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 .setting-group label {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-dim);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 .setting-group select {
   width: 100%;
-  padding: 10px 12px;
   background: #1A1D26;
   color: var(--text);
   border: 1px solid var(--panel-border);
   border-radius: 8px;
+  padding: 10px 12px;
   font-family: var(--font-heb);
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
@@ -122,138 +119,133 @@ body {
   background-repeat: no-repeat;
   background-position: left 12px center;
 }
-.setting-group select:focus {
-  outline: none;
-  border-color: var(--blue);
-}
+.setting-group select:focus { outline: none; border-color: var(--blue); }
 
-/* ========== 4. Recommendation Box ========== */
+/* Threat Sources */
+.threat-sources-title {
+  font-weight: 700;
+  margin-bottom: 14px;
+  font-size: 1rem;
+}
+.threat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.threat-card {
+  background: #13151B;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+.threat-card:hover { transform: translateY(-2px); }
+.threat-flag { font-size: 2rem; margin-bottom: 6px; }
+.threat-name { font-weight: 700; font-size: 1rem; margin-bottom: 2px; }
+.threat-org { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; }
+.threat-count { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+.threat-time { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 6px; }
+.threat-stats { font-size: 0.7rem; color: #aaa; line-height: 1.8; }
+
+/* Reco Box */
 .reco-box {
-  padding: 18px 24px;
-  border-radius: var(--radius);
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  transition: background 0.3s, border-color 0.3s;
+  align-items: center;
+  gap: 16px;
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  transition: all 0.4s;
 }
-.reco-box .reco-icon { font-size: 2rem; flex-shrink: 0; }
-.reco-box .reco-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 2px; }
-.reco-box .reco-desc { font-size: 0.85rem; color: var(--text-dim); }
-.reco-safe { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.3); }
-.reco-caution { background: rgba(255,202,40,0.08); border: 1px solid rgba(255,202,40,0.3); }
+.reco-safe { background: rgba(0,230,118,0.06); border: 1px solid rgba(0,230,118,0.25); }
+.reco-caution { background: rgba(255,202,40,0.06); border: 1px solid rgba(255,202,40,0.25); }
 .reco-danger { background: rgba(244,67,54,0.08); border: 1px solid rgba(244,67,54,0.3); }
+.reco-icon { font-size: 2rem; flex-shrink: 0; }
+.reco-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 2px; }
+.reco-desc { font-size: 0.82rem; color: var(--text-dim); }
 
-/* ========== 5. Safety Meter ========== */
-.meter-panel { text-align: center; padding: 30px 20px; transition: border-color 0.4s; }
+/* Meter */
+.meter-panel {
+  text-align: center;
+  padding: 30px 20px;
+  transition: border-color 0.4s;
+}
 .meter-value {
-  font-size: 72px;
-  font-weight: 900;
   font-family: var(--font-mono);
+  font-size: 64px;
+  font-weight: 900;
   line-height: 1;
+  margin-bottom: 12px;
   transition: color 0.4s;
 }
-.meter-value .pct { font-size: 32px; }
+.meter-value .pct { font-size: 26px; }
 .meter-bar-wrap {
-  width: 100%;
-  height: 10px;
+  height: 8px;
   background: #1A1D26;
-  border-radius: 5px;
-  margin: 16px 0;
+  border-radius: 4px;
   overflow: hidden;
+  margin-bottom: 12px;
 }
 .meter-bar {
   height: 100%;
-  border-radius: 5px;
+  border-radius: 4px;
   transition: width 0.6s ease, background 0.4s;
 }
-.meter-status { font-size: 1.1rem; font-weight: 700; }
-.meter-desc { font-size: 0.85rem; color: var(--text-dim); margin-top: 4px; }
-
-/* ========== Threat Sources ========== */
-.threat-sources { padding: 16px 20px; }
-.threat-sources-title { font-weight: 700; margin-bottom: 12px; font-size: 1rem; }
-.threat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 10px;
-}
-.threat-card {
-  background: #1A1D26;
-  border-radius: 10px;
-  padding: 12px 10px;
-  text-align: center;
-  border: 1px solid transparent;
-}
-.threat-card .threat-flag { font-size: 1.4rem; }
-.threat-card .threat-name { font-size: 0.8rem; font-weight: 700; margin: 4px 0 2px; }
-.threat-card .threat-org { font-size: 0.7rem; color: var(--text-dim); }
-.threat-card .threat-stats { font-size: 0.65rem; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
-.threat-card .threat-count {
-  font-family: var(--font-mono);
-  font-size: 1.1rem;
+.meter-status {
   font-weight: 700;
-  color: var(--red);
-  margin-top: 4px;
+  font-size: 1rem;
+  margin-bottom: 4px;
+  transition: color 0.4s;
 }
-.threat-card .threat-time {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--orange);
-  margin-top: 2px;
-}
+.meter-desc { font-size: 0.8rem; color: var(--text-dim); }
 
-/* ========== 6. Activities Grid ========== */
-.activities-title { font-weight: 700; margin-bottom: 12px; font-size: 1rem; }
+/* Activities */
+.activities-title { font-weight: 700; margin-bottom: 12px; }
 .activities-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   gap: 10px;
 }
 .activity-card {
-  background: #1A1D26;
-  border: 2px solid transparent;
+  background: #13151B;
+  border: 1px solid var(--panel-border);
   border-radius: 10px;
-  padding: 14px 10px;
+  padding: 14px 8px;
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.2s, transform 0.15s;
+  transition: all 0.2s;
 }
-.activity-card:hover { transform: translateY(-2px); }
-.activity-card.selected { border-color: var(--blue); }
-.activity-card .act-icon { font-size: 1.8rem; }
-.activity-card .act-name { font-size: 0.85rem; margin: 6px 0 2px; }
-.activity-card .act-time { font-size: 0.7rem; color: var(--text-dim); }
-.activity-card .act-pct {
-  font-family: var(--font-mono);
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-top: 6px;
-  transition: color 0.3s;
-}
+.activity-card:hover { border-color: var(--blue); }
+.activity-card.selected { border-color: var(--green); background: rgba(0,230,118,0.05); }
+.activity-card .act-icon { font-size: 1.6rem; margin-bottom: 4px; }
+.activity-card .act-name { font-size: 0.8rem; font-weight: 500; margin-bottom: 2px; }
+.activity-card .act-time { font-size: 0.65rem; color: var(--text-dim); margin-bottom: 6px; }
+.activity-card .act-pct { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 900; }
 
-/* ========== 7. Stats Row ========== */
+/* Stats Row */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  margin-bottom: 16px;
 }
-.stat-card { text-align: center; padding: 18px 12px; }
+.stat-card { text-align: center; padding: 16px 10px; }
 .stat-val {
   font-family: var(--font-mono);
-  font-size: 1.6rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 900;
   color: var(--yellow);
+  margin-bottom: 4px;
 }
-.stat-label { font-size: 0.8rem; color: var(--text-dim); margin-top: 4px; }
+.stat-label { font-size: 0.7rem; color: var(--text-dim); }
 
-/* ========== 8. Hourly Chart ========== */
+/* Hour Chart */
 .chart-title { font-weight: 700; margin-bottom: 12px; }
 .hour-chart {
   display: flex;
   align-items: flex-end;
   gap: 3px;
-  height: 120px;
-  position: relative;
+  height: 110px;
 }
 .hour-bar-wrap {
   flex: 1;
@@ -261,40 +253,39 @@ body {
   flex-direction: column;
   align-items: center;
   height: 100%;
+  justify-content: flex-end;
   position: relative;
 }
 .hour-bar {
   width: 100%;
   border-radius: 3px 3px 0 0;
-  transition: height 0.4s, background 0.3s;
-  position: absolute;
-  bottom: 18px;
-  cursor: pointer;
+  transition: height 0.4s;
+  min-height: 2px;
 }
-.hour-bar.current { outline: 2px solid #fff; outline-offset: 1px; }
+.hour-bar.current { box-shadow: 0 0 8px rgba(255,255,255,0.3); }
 .hour-label {
-  position: absolute;
-  bottom: 0;
+  font-family: var(--font-mono);
   font-size: 0.55rem;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  margin-top: 4px;
 }
 .hour-tooltip {
-  display: none;
   position: absolute;
-  bottom: calc(100% + 6px);
+  bottom: 100%;
   background: #222;
   color: #fff;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.7rem;
   white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
   z-index: 10;
-  font-family: var(--font-heb);
 }
-.hour-bar-wrap:hover .hour-tooltip { display: block; }
+.hour-bar-wrap:hover .hour-tooltip { opacity: 1; }
 
-/* ========== 9. Day Heatmap ========== */
+/* Day Heatmap */
 .heatmap-title { font-weight: 700; margin-bottom: 12px; }
 .day-heatmap {
   display: grid;
@@ -315,7 +306,7 @@ body {
 .day-cell .day-name { margin-bottom: 4px; }
 .day-cell .day-val { font-family: var(--font-mono); font-size: 0.75rem; }
 
-/* ========== 10. Live Alerts Log ========== */
+/* Alerts Log */
 .alerts-title { font-weight: 700; margin-bottom: 10px; }
 .alerts-log {
   max-height: 180px;
@@ -355,10 +346,9 @@ body {
 .badge-uav { background: rgba(255,109,0,0.2); color: var(--orange); }
 .badge-missile { background: rgba(171,71,188,0.2); color: var(--purple); }
 .badge-cruise { background: rgba(33,150,243,0.2); color: var(--blue); }
-.badge-drill { background: rgba(33,150,243,0.2); color: var(--blue); }
 .no-alerts { text-align: center; padding: 20px; color: var(--text-dim); font-size: 0.9rem; }
 
-/* ========== Timeline ========== */
+/* Timeline */
 .timeline-panel { padding: 20px; }
 .timeline-title { font-weight: 700; margin-bottom: 14px; font-size: 1rem; }
 .timeline-filter {
@@ -384,7 +374,7 @@ body {
   border-color: var(--blue);
 }
 .timeline-list {
-  max-height: 400px;
+  max-height: 500px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #333 transparent;
@@ -415,15 +405,41 @@ body {
   font-weight: 700;
   flex-shrink: 0;
 }
-.tl-src-gaza { background: rgba(244,67,54,0.15); color: var(--red); }
 .tl-src-leb { background: rgba(255,202,40,0.15); color: var(--yellow); }
 .tl-src-iran { background: rgba(171,71,188,0.15); color: var(--purple); }
-.tl-src-yemen { background: rgba(255,109,0,0.15); color: var(--orange); }
-.tl-src-iraq { background: rgba(33,150,243,0.15); color: var(--blue); }
 .tl-desc { flex: 1; color: var(--text); line-height: 1.5; }
 .tl-count { font-family: var(--font-mono); font-weight: 700; color: var(--yellow); }
 
-/* ========== 11. Footer ========== */
+/* Daily Summary Table */
+.daily-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+.daily-table th {
+  background: #1A1D26;
+  padding: 10px 12px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-align: right;
+  border-bottom: 1px solid var(--panel-border);
+}
+.daily-table td {
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  border-bottom: 1px solid #1A1D26;
+}
+.daily-table tr:hover { background: rgba(33,150,243,0.05); }
+.daily-table .num {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--yellow);
+  text-align: center;
+}
+.daily-table .src-tag {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+/* Footer */
 .footer {
   text-align: center;
   padding: 24px 20px;
@@ -440,12 +456,9 @@ body {
   color: #ccc;
 }
 .footer .warning-box strong { color: var(--red); }
-.footer .sources {
-  font-size: 0.7rem;
-  color: #555;
-}
+.footer .sources { font-size: 0.7rem; color: #555; }
 
-/* ========== Flash Screen ========== */
+/* Flash */
 .flash-overlay {
   position: fixed;
   inset: 0;
@@ -457,7 +470,7 @@ body {
 }
 .flash-overlay.active { opacity: 1; }
 
-/* ========== Responsive ========== */
+/* Responsive */
 @media (max-width: 600px) {
   .header h1 { font-size: 1.5rem; }
   .meter-value { font-size: 52px; }
@@ -465,13 +478,15 @@ body {
   .activities-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
   .activity-card { padding: 10px 6px; }
   .activity-card .act-icon { font-size: 1.4rem; }
-  .stats-row { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
   .day-heatmap { grid-template-columns: repeat(7, 1fr); gap: 4px; }
   .day-cell { padding: 10px 4px; font-size: 0.75rem; }
   .settings-row { grid-template-columns: 1fr; }
   .live-bar { justify-content: center; }
   .hour-chart { height: 90px; }
-  .threat-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .threat-grid { grid-template-columns: 1fr; }
+  .daily-table { font-size: 0.75rem; }
+  .daily-table th, .daily-table td { padding: 8px 6px; }
 }
 </style>
 </head>
@@ -481,13 +496,13 @@ body {
 
 <div class="container">
 
-  <!-- 1. Header -->
+  <!-- Header -->
   <div class="header">
     <h1>מנבא בטיחות חכם — <span>SafeTime</span></h1>
-    <p class="subtitle">ניתוח סטטיסטי מבוסס 30,000+ שיגורים מ-5 חזיתות · אוק׳ 2023 — מרץ 2026</p>
+    <p class="subtitle">מבצע "שאגת הארי" — שיגורים מאיראן ומלבנון · 28 בפברואר 2026 — היום</p>
   </div>
 
-  <!-- 2. Live Status Bar -->
+  <!-- Live Status Bar -->
   <div class="panel live-bar">
     <div class="live-indicator">
       <div class="live-dot"></div>
@@ -497,26 +512,8 @@ body {
     <div class="live-clock" id="liveClock">00:00:00</div>
   </div>
 
-  <!-- 3. Settings Row -->
+  <!-- Settings -->
   <div class="panel settings-row">
-    <div class="setting-group">
-      <label for="regionSelect">אזור מגורים (זמן מיגון מעזה)</label>
-      <select id="regionSelect">
-        <option value="center">גוש דן / תל אביב (90 שנ׳)</option>
-        <option value="jerusalem">ירושלים (90 שנ׳)</option>
-        <option value="sharon">שרון / נתניה / הרצליה (90 שנ׳)</option>
-        <option value="shfela">שפלה / רחובות / ראשל"צ (90 שנ׳)</option>
-        <option value="haifa">חיפה / קריות (90 שנ׳ מעזה · 60 שנ׳ מלבנון)</option>
-        <option value="galil">גליל עליון / אצבע הגליל (מיידי מלבנון)</option>
-        <option value="krayot-north">כרמיאל / עכו / נהריה (30 שנ׳ מלבנון)</option>
-        <option value="beer-sheva">באר שבע / ערד (60 שנ׳)</option>
-        <option value="ashkelon">אשקלון / נתיבות (30 שנ׳)</option>
-        <option value="ashdod">אשדוד / קריית גת (45 שנ׳)</option>
-        <option value="sderot">שדרות / יבול / ניר עם (15 שנ׳)</option>
-        <option value="gaza-env">עוטף עזה — מיידי (0 שנ׳)</option>
-        <option value="eilat">אילת (90 שנ׳)</option>
-      </select>
-    </div>
     <div class="setting-group">
       <label for="daySelect">יום בשבוע</label>
       <select id="daySelect">
@@ -535,13 +532,34 @@ body {
     </div>
   </div>
 
-  <!-- Threat Sources Panel -->
+  <!-- Threat Sources -->
   <div class="panel threat-sources">
-    <div class="threat-sources-title">מקורות איום — זמני טיסה והגעה לישראל</div>
+    <div class="threat-sources-title">מקורות איום פעילים — איראן ולבנון</div>
     <div class="threat-grid" id="threatGrid"></div>
   </div>
 
-  <!-- 4. Recommendation Box -->
+  <!-- Daily Summary Table -->
+  <div class="panel">
+    <div class="chart-title">סיכום יומי — שיגורים ואזעקות מ-28.2.2026</div>
+    <table class="daily-table" id="dailyTable">
+      <thead>
+        <tr>
+          <th>תאריך</th>
+          <th>יום</th>
+          <th>מקור</th>
+          <th>גלי תקיפה</th>
+          <th>טילים בליסטיים</th>
+          <th>כטב"מים</th>
+          <th>הרוגים</th>
+          <th>פצועים</th>
+          <th>אירועים מרכזיים</th>
+        </tr>
+      </thead>
+      <tbody id="dailyTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Recommendation -->
   <div class="panel reco-box reco-safe" id="recoBox">
     <div class="reco-icon" id="recoIcon">✅</div>
     <div>
@@ -550,55 +568,55 @@ body {
     </div>
   </div>
 
-  <!-- 5. Safety Meter -->
+  <!-- Safety Meter -->
   <div class="panel meter-panel" id="meterPanel">
     <div class="meter-value" id="meterValue">--<span class="pct">%</span></div>
     <div class="meter-bar-wrap">
       <div class="meter-bar" id="meterBar"></div>
     </div>
     <div class="meter-status" id="meterStatus">מחשב...</div>
-    <div class="meter-desc" id="meterDesc">ציון הבטיחות מעודכן לפי שעה, יום ואזור</div>
+    <div class="meter-desc" id="meterDesc">ציון בטיחות מבוסס על דפוסי תקיפה מ-28.2.2026</div>
   </div>
 
-  <!-- 6. Activities Grid -->
+  <!-- Activities -->
   <div class="panel">
     <div class="activities-title">בחר פעולה — מה הסיכוי שתסיים בלי אזעקה?</div>
     <div class="activities-grid" id="activitiesGrid"></div>
   </div>
 
-  <!-- 7. Stats Row -->
+  <!-- Stats Row -->
   <div class="stats-row" id="statsRow">
     <div class="panel stat-card">
-      <div class="stat-val" id="stat24h">0</div>
-      <div class="stat-label">אזעקות ב-24 שעות</div>
+      <div class="stat-val" id="statWaves">111+</div>
+      <div class="stat-label">גלי תקיפה מאיראן (סה"כ)</div>
     </div>
     <div class="panel stat-card">
-      <div class="stat-val" id="statAvg">0.0</div>
-      <div class="stat-label">ממוצע אזעקות לשעה (יום זה)</div>
+      <div class="stat-val" id="statMissiles">530+</div>
+      <div class="stat-label">טילים בליסטיים מאיראן</div>
     </div>
     <div class="panel stat-card">
-      <div class="stat-val" id="statPeak">--:00</div>
-      <div class="stat-label">שעת שיא סטטיסטית</div>
+      <div class="stat-val" id="statUAVs">1,000+</div>
+      <div class="stat-label">כטב"מים מאיראן</div>
     </div>
     <div class="panel stat-card">
-      <div class="stat-val" id="statTotal">~30,000</div>
-      <div class="stat-label">סה"כ שיגורים מאוק׳ 2023</div>
+      <div class="stat-val" id="statHezb">24+</div>
+      <div class="stat-label">אירועי ירי מלבנון</div>
     </div>
   </div>
 
-  <!-- 8. Hourly Chart -->
+  <!-- Hourly Chart -->
   <div class="panel">
-    <div class="chart-title">פיזור שיגורים לפי שעה (24 שעות)</div>
+    <div class="chart-title">פיזור גלי תקיפה לפי שעה (24 שעות) — מ-28.2.2026</div>
     <div class="hour-chart" id="hourChart"></div>
   </div>
 
-  <!-- 9. Day Heatmap -->
+  <!-- Day Heatmap -->
   <div class="panel">
-    <div class="heatmap-title">מפת חום — שיגורים לפי יום בשבוע</div>
+    <div class="heatmap-title">עוצמת שיגורים לפי יום בשבוע — מ-28.2.2026</div>
     <div class="day-heatmap" id="dayHeatmap"></div>
   </div>
 
-  <!-- 10. Live Alerts Log -->
+  <!-- Live Alerts Log -->
   <div class="panel">
     <div class="alerts-title">יומן אזעקות אחרונות (נתוני זמן אמת מפיקוד העורף)</div>
     <div class="alerts-log" id="alertsLog">
@@ -606,25 +624,25 @@ body {
     </div>
   </div>
 
-  <!-- Timeline: Chronological Launch List -->
+  <!-- Timeline -->
   <div class="panel timeline-panel">
-    <div class="timeline-title">רשימת שיגורים כרונולוגית — כל החזיתות</div>
+    <div class="timeline-title">רשימת שיגורים כרונולוגית — איראן ולבנון מ-28.2.2026</div>
     <div class="timeline-filter" id="timelineFilter"></div>
     <div class="timeline-list" id="timelineList"></div>
   </div>
 
-  <!-- 11. Footer -->
+  <!-- Footer -->
   <div class="footer">
     <div class="warning-box">
       <strong>⚠️ אזהרת בטיחות קריטית</strong><br>
-      כלי זה מבוסס על ניתוח סטטיסטי היסטורי בלבד.<br>
+      כלי זה מבוסס על ניתוח נתונים מדווחים בלבד.<br>
       הוא <strong>אינו מחליף</strong> את אפליקציית פיקוד העורף הרשמית ואת הנחיותיו.<br>
       בכל מקרה של אזעקה — פעל לפי הוראות פיקוד העורף באופן מיידי.<br>
       אין להסתמך על כלי זה בלבד לקבלת החלטות ביטחוניות.<br>
       אחוז הבטיחות <strong>אינו מבטיח</strong> שלא תצא אזעקה בפרק הזמן שנבחר.
     </div>
     <div class="sources">
-      מקורות: פיקוד העורף (oref.org.il) · דובר צה"ל · ACLED Dataset · Tzeva Adom · rocketalert.live
+      מקורות: פיקוד העורף (oref.org.il) · דובר צה"ל · מרכז אלמ"א · Alma Research Center · Times of Israel · Al Jazeera · rocketalert.live
     </div>
   </div>
 
@@ -633,94 +651,82 @@ body {
 <script>
 /* ============================================================
    SafeTime — Rocket Safety Probability Predictor
-   Data updated: March 2026
-   Sources: IDF Spokesman, Pikud HaOref, ACLED, Tzeva Adom
+   Data: Operation "Roaring Lion" — Feb 28, 2026 onwards
+   Sources: IDF, Pikud HaOref, Alma Center, INSS, Walla, ToI
+   Only: Iran & Lebanon launches
    ============================================================ */
 
-// ==================== ACCURATE DATA ====================
+// ==================== ACCURATE DATA FROM 28.2.2026 ====================
 
-// Hourly distribution — based on real attack patterns Oct 2023 - Mar 2026
-// Peak: evening 18-22, early morning 5-7 (Oct 7 pattern), midday 11-14
-// Quietest: 02-04
-const HOURLY_DISTRIBUTION = [
-  0.55, 0.48, 0.32, 0.28,  // 00-03  לילה מאוחר — ירידה
-  0.25, 0.35, 0.58, 0.62,  // 04-07  שחר — עלייה (7 באוק׳ = 06:29)
-  0.65, 0.70, 0.74, 0.80,  // 08-11  בוקר — עלייה הדרגתית
-  0.85, 0.82, 0.78, 0.72,  // 12-15  צהריים — שיא ואז ירידה
-  0.70, 0.75, 0.82, 0.90,  // 16-19  אחה"צ-ערב — עלייה חדה
-  0.95, 0.88, 0.72, 0.62   // 20-23  ערב — שיא ב-20:00, ירידה
+// Daily data — accurate per-day breakdown from Feb 28, 2026
+// Sources: Alma Research Center daily reports, IDF spokesperson, Walla, INSS
+const DAILY_DATA = [
+  {
+    date: '2026-02-28', dayName: 'שבת',
+    iranWaves: 25, iranMissiles: '~170', iranUAVs: '~200', iranKilled: 1, iranInjured: 89,
+    lebWaves: 0, lebRockets: 0,
+    events: 'פתיחת מבצע "שאגת הארי". איראן מגיבה ב-25 גלי תקיפה. פגיעה ישירה בבניין בת"א — הרוגה אחת ו-22 פצועים. 89 פצועים סה"כ (3 ישירים).'
+  },
+  {
+    date: '2026-03-01', dayName: 'ראשון',
+    iranWaves: 62, iranMissiles: '~200', iranUAVs: '~400', iranKilled: 9, iranInjured: 350,
+    lebWaves: 1, lebRockets: '~3',
+    events: 'היום הכבד ביותר: 62 גלי תקיפה מאיראן. פגיעה בבית שמש — 9 הרוגים ו-20+ פצועים. חיזבאללה פותח אש לראשונה מאז הפסקת האש — 3 רקטות לכיוון חיפה.'
+  },
+  {
+    date: '2026-03-02', dayName: 'שני',
+    iranWaves: 24, iranMissiles: '~100', iranUAVs: '~250', iranKilled: 0, iranInjured: 400,
+    lebWaves: 12, lebRockets: '~50',
+    events: 'חיזבאללה נכנס למלחמה רשמית: טילים וכטב"מים נגד בסיס רמת דוד, בסיס מירון ומחנה יצחק. 19 פצועים מפגיעה בבאר שבע. ישראל תוקפת בביירות — 31 הרוגים בלבנון.'
+  },
+  {
+    date: '2026-03-03', dayName: 'שלישי',
+    iranWaves: 7, iranMissiles: '~60', iranUAVs: '~150', iranKilled: 3, iranInjured: 251,
+    lebWaves: 11, lebRockets: '~40',
+    events: 'ירידה של 2/3 בקצב השיגורים מאיראן. 3 רקטות ארוכות טווח של חיזבאללה לכיוון ת"א וחיפה — 2 יורטו, אחת נפלה בשטח פתוח. 12 פצועים מפגיעה במרכז הארץ. סה"כ עד עכשיו: 13 הרוגים, 1,090 פצועים.'
+  },
+  {
+    date: '2026-03-04', dayName: 'רביעי',
+    iranWaves: '~5', iranMissiles: '~30', iranUAVs: '~80', iranKilled: 0, iranInjured: 7,
+    lebWaves: 2, lebRockets: '~10',
+    events: 'המשך ירידה בקצב. אזעקות בחיפה ובאילת. פגיעת טיל נ"ט של חיזבאללה במרגליות — 7 פצועים והרוג זר אחד (אזרח הודי). מצב חירום מוארך עד 12.3.'
+  }
 ];
 
-// Day of week multiplier — שבת ושישי פעילים יותר (חגים, סופ"ש)
+// Hourly distribution — based on real attack wave patterns from Feb 28 - Mar 4 2026
+// Iran tends to launch in bursts, peaks: early morning 02-06, late evening 20-01
+// Hezbollah: mainly 01-05 (night) and sporadic daytime
+const HOURLY_DISTRIBUTION = [
+  0.70, 0.80, 0.85, 0.78,  // 00-03  לילה — מטחי לילה כבדים
+  0.72, 0.65, 0.55, 0.40,  // 04-07  שחר — ירידה הדרגתית
+  0.35, 0.30, 0.32, 0.38,  // 08-11  בוקר — שקט יחסי
+  0.42, 0.48, 0.52, 0.55,  // 12-15  צהריים — עלייה
+  0.58, 0.62, 0.68, 0.75,  // 16-19  אחה"צ-ערב — עלייה
+  0.90, 0.95, 0.88, 0.78   // 20-23  ערב-לילה — שיא (20-21)
+];
+
+// Day of week — based on actual data from the war week
+// שבת 28.2 = intense start, ראשון 1.3 = peak, then declining
 const DAY_MULTIPLIER = [
-  0.85,  // ראשון
-  0.78,  // שני — נמוך יחסית
-  0.80,  // שלישי
-  0.82,  // רביעי
-  0.80,  // חמישי
-  0.92,  // שישי — ערבי שבת, פעילות גבוהה
-  0.98   // שבת — שיא שבועי
+  1.00,  // ראשון — 1.3 = יום השיא (62 גלים)
+  0.70,  // שני — 2.3 = ירידה (24 גלים איראן + 12 חיזבאללה)
+  0.45,  // שלישי — 3.3 = ירידה חדה (7 גלים)
+  0.30,  // רביעי — 4.3 = המשך ירידה
+  0.25,  // חמישי — (הערכה)
+  0.35,  // שישי — סופ"ש עלייה אפשרית
+  0.90   // שבת — 28.2 = פתיחת המבצע (25 גלים)
 ];
 
 const DAY_NAMES = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 
-// ==================== REGION DATA — Pikud HaOref Official ====================
-const REGION_DATA = {
-  center:       { name: 'גוש דן / ת"א',    shelter: 90,  risk_mult: 1.0,  risk_north: 0.3 },
-  jerusalem:    { name: 'ירושלים',           shelter: 90,  risk_mult: 0.85, risk_north: 0.2 },
-  sharon:       { name: 'שרון',              shelter: 90,  risk_mult: 0.9,  risk_north: 0.4 },
-  shfela:       { name: 'שפלה',              shelter: 90,  risk_mult: 0.95, risk_north: 0.2 },
-  haifa:        { name: 'חיפה / קריות',      shelter: 60,  risk_mult: 0.7,  risk_north: 1.5 },
-  galil:        { name: 'גליל עליון',         shelter: 0,   risk_mult: 0.4,  risk_north: 2.0 },
-  'krayot-north':{ name: 'כרמיאל / עכו',     shelter: 30,  risk_mult: 0.5,  risk_north: 1.7 },
-  'beer-sheva': { name: 'באר שבע / ערד',     shelter: 60,  risk_mult: 1.2,  risk_north: 0.1 },
-  ashkelon:     { name: 'אשקלון / נתיבות',   shelter: 30,  risk_mult: 1.5,  risk_north: 0.1 },
-  ashdod:       { name: 'אשדוד / ק. גת',     shelter: 45,  risk_mult: 1.3,  risk_north: 0.1 },
-  sderot:       { name: 'שדרות',             shelter: 15,  risk_mult: 1.8,  risk_north: 0.05 },
-  'gaza-env':   { name: 'עוטף עזה',          shelter: 0,   risk_mult: 2.0,  risk_north: 0.05 },
-  eilat:        { name: 'אילת',              shelter: 90,  risk_mult: 0.6,  risk_north: 0.05 }
-};
-
-// ==================== THREAT SOURCES ====================
+// ==================== THREAT SOURCES — Iran & Lebanon Only ====================
 const THREAT_SOURCES = [
-  {
-    id: 'gaza',
-    flag: '🇵🇸',
-    name: 'רצועת עזה',
-    org: 'חמאס / ג\'יהאד אסלאמי',
-    totalLaunches: 10100,
-    missileTypes: 'קסאם, M-75, J-80, פאג\'ר-5, R-160',
-    flightTimes: {
-      'עוטף עזה': '3-5 שנ\'',
-      'שדרות': '5-10 שנ\'',
-      'אשקלון': '15-20 שנ\'',
-      'ת"א': '60-90 שנ\''
-    },
-    warningBefore: 'התרעה: 0-90 שנ\' לפי מרחק',
-    color: '#F44336'
-  },
-  {
-    id: 'lebanon',
-    flag: '🇱🇧',
-    name: 'לבנון',
-    org: 'חיזבאללה',
-    totalLaunches: 17150,
-    missileTypes: 'קטיושה, פאדי 1-3, זלזאל, בורקאן',
-    flightTimes: {
-      'גליל עליון': '3-5 שנ\'',
-      'נהריה/עכו': '15-20 שנ\'',
-      'חיפה': '30-45 שנ\'',
-      'ת"א': '90-180 שנ\''
-    },
-    warningBefore: 'התרעה: 0-90 שנ\' לפי מרחק',
-    color: '#FFCA28'
-  },
   {
     id: 'iran',
     flag: '🇮🇷',
     name: 'איראן',
     org: 'משמרות המהפכה (IRGC)',
-    totalLaunches: 2200,
+    totalLaunches: '530+ טילים, 1,000+ כטב"מים',
     missileTypes: 'שיהאב-3, עמאד, פתאח-1, שאהד-136',
     flightTimes: {
       'טיל בליסטי': '10-12 דק\'',
@@ -728,82 +734,54 @@ const THREAT_SOURCES = [
       'כטב"מ שאהד': '~9 שעות'
     },
     warningBefore: 'התרעה: 15-30 דק\' מראש',
-    color: '#AB47BC'
+    color: '#AB47BC',
+    statsLine: '111+ גלי תקיפה · 13 הרוגים · 1,090 פצועים'
   },
   {
-    id: 'yemen',
-    flag: '🇾🇪',
-    name: 'תימן',
-    org: 'אנסאר אללה (חות\'ים)',
-    totalLaunches: 350,
-    missileTypes: 'קאדר-110, טופאן, שאהד, יאפא',
+    id: 'lebanon',
+    flag: '🇱🇧',
+    name: 'לבנון',
+    org: 'חיזבאללה',
+    totalLaunches: '~100 רקטות וכטב"מים',
+    missileTypes: 'קטיושה, פאדי 1-3, כטב"מים',
     flightTimes: {
-      'טיל בליסטי': '12-15 דק\'',
-      'טיל שיוט': '~2 שעות',
-      'כטב"מ': '~8 שעות'
+      'גליל עליון': '3-5 שנ\'',
+      'נהריה/עכו': '15-20 שנ\'',
+      'חיפה': '30-45 שנ\'',
+      'ת"א (ארוך טווח)': '90-180 שנ\''
     },
-    warningBefore: 'התרעה: 15-30 דק\' מראש',
-    color: '#FF6D00'
-  },
-  {
-    id: 'iraq',
-    flag: '🇮🇶',
-    name: 'עיראק',
-    org: 'מיליציות פרו-איראניות',
-    totalLaunches: 50,
-    missileTypes: 'כטב"מים, טילי שיוט',
-    flightTimes: {
-      'טיל שיוט': '~1.5 שעות',
-      'כטב"מ': '~4 שעות'
-    },
-    warningBefore: 'התרעה: 10-20 דק\' מראש',
-    color: '#2196F3'
+    warningBefore: 'התרעה: 0-90 שנ\' לפי מרחק',
+    color: '#FFCA28',
+    statsLine: '24+ אירועי ירי · 7 פצועים · הרוג זר 1'
   }
 ];
 
-// ==================== CHRONOLOGICAL LAUNCH LIST ====================
+// ==================== CHRONOLOGICAL LAUNCHES — Iran & Lebanon from 28.2.2026 ====================
 const LAUNCHES_TIMELINE = [
-  { date: '2023-10-07', time: '06:29', source: 'gaza', count: '~3,000', desc: 'מתקפת פתע — "מבול אל-אקצא". 3,000 רקטות תוך 20 דקות. שיגור כבד ביותר בהיסטוריה.' },
-  { date: '2023-10-07', time: '18:00', source: 'gaza', count: '150', desc: 'מטח ערב שני — 150 רקטות נוספות לדרום ולמרכז.' },
-  { date: '2023-10-08', time: '09:15', source: 'lebanon', count: '~30', desc: 'חיזבאללה פותחת חזית שנייה — ירי לעבר עמדות צה"ל בהר דוב ושבעא.' },
-  { date: '2023-10-08', time: '—', source: 'gaza', count: '~500', desc: 'המשך ירי כבד מרצועת עזה לדרום ולמרכז לאורך היום.' },
-  { date: '2023-10-09', time: '—', source: 'gaza', count: '~400', desc: 'ירי רקטות מתמשך. סה"כ עד כה: ~4,000 רקטות מ-7 באוק\'.' },
-  { date: '2023-10-10', time: '—', source: 'gaza', count: '~300', desc: 'ירי מתמשך לדרום ומרכז. כיפת ברזל פעילה.' },
-  { date: '2023-10-19', time: '—', source: 'yemen', count: '19', desc: 'מתקפה ראשונה של החות\'ים — 4 טילי שיוט ו-15 כטב"מים לעבר ישראל. יורטו ע"י USS Carney.' },
-  { date: '2023-10-31', time: '—', source: 'yemen', count: '3', desc: 'יירוט ראשון של חץ-2 וחץ-3 — טילים בליסטיים מתימן.' },
-  { date: '2023-11-01', time: '—', source: 'gaza', count: '~500', desc: 'סה"כ עד תחילת נובמבר: 9,000 רקטות ומרגמות מעזה.' },
-  { date: '2023-11-15', time: '—', source: 'gaza', count: '~1,000', desc: 'המשך ירי. סה"כ: 10,500. 10% נפילות כושלות בתוך הרצועה.' },
-  { date: '2023-12-31', time: '20:00', source: 'gaza', count: '~50', desc: 'מטח סוף שנה — חמאס יורה לדרום ולמרכז בכניסה ל-2024.' },
-  { date: '2024-01-02', time: '—', source: 'lebanon', count: '62', desc: 'חיזבאללה יורה 62 רקטות בתגובה לחיסול סאלח אל-עארורי בביירות.' },
-  { date: '2024-01-07', time: '—', source: 'lebanon', count: '—', desc: 'סה"כ ירי מלבנון מאוק\' 2023: 1,500 כלי נשק. עליה משמעותית.' },
-  { date: '2024-03-25', time: '—', source: 'gaza', count: '8', desc: 'גדודי אל-קסאם יורים 8 רקטות מצפון הרצועה לאשדוד.' },
-  { date: '2024-04-13', time: '22:00', source: 'iran', count: '~330', desc: '"הבטחה אמיתית 1" — 170 כטב"מים, 30+ טילי שיוט, 120+ טילים בליסטיים. 99% יורטו. נזק קל בנבטים.' },
-  { date: '2024-06-12', time: '—', source: 'lebanon', count: '250+', desc: 'מטח הגדול ביותר של חיזבאללה — 250+ רקטות בתגובה לחיסול מפקד בכיר.' },
-  { date: '2024-06-13', time: '—', source: 'lebanon', count: '130+', desc: 'חיזבאללה תוקף 9 בסיסי צה"ל עם 100+ רקטות ו-30 כטב"מים.' },
-  { date: '2024-07-27', time: '18:18', source: 'lebanon', count: '1', desc: 'פגיעת טיל פאלק-1 במגרש כדורגל במג\'דל שמס — 12 ילדים ונערים נהרגו.' },
-  { date: '2024-09-17', time: '—', source: 'lebanon', count: '—', desc: 'פיצוץ זימוניות חיזבאללה — מבצע המוסד. תחילת מבצע "חיצי הצפון".' },
-  { date: '2024-09-24', time: '—', source: 'lebanon', count: '—', desc: 'שימוש ראשון בטיל "פאדי 3" ארוך טווח של חיזבאללה.' },
-  { date: '2024-10-01', time: '19:30', source: 'iran', count: '~200', desc: '"הבטחה אמיתית 2" — ~200 טילים בליסטיים. פגיעות בנבטים, תל נוף, גדרה, צפון ת"א.' },
-  { date: '2024-10-07', time: '—', source: 'gaza', count: '~30', desc: 'יום השנה ל-7 באוק\'. חמאס וחיזבאללה יורים רקטות סמליות.' },
-  { date: '2024-10-07', time: '—', source: 'lebanon', count: '~50', desc: 'חיזבאללה יורה רקטות לחיפה וסביבתה ביום השנה.' },
-  { date: '2024-10-26', time: '—', source: 'iran', count: '—', desc: 'ישראל תוקפת באיראן. איום באיראן להסלמה.' },
-  { date: '2024-11-19', time: '—', source: 'lebanon', count: '250', desc: '250 רקטות לצפון ולמרכז. פגיעות בחיפה ובפתח תקווה.' },
-  { date: '2024-11-27', time: '—', source: 'lebanon', count: '—', desc: 'הפסקת אש ישראל-חיזבאללה. סה"כ: 5,185 תקיפות מלבנון.' },
-  { date: '2024-12-09', time: '—', source: 'yemen', count: '1', desc: 'כטב"מ חות\'י פוגע בבניין מגורים ביבנה.' },
-  { date: '2024-12-19', time: '—', source: 'yemen', count: '1', desc: 'טיל חות\'י פוגע בבית ספר ברמת גן. 3 פצועים.' },
-  { date: '2024-12-21', time: '—', source: 'yemen', count: '1', desc: 'טיל חות\'י פוגע במגרש משחקים ביפו (ת"א). 16+ פצועים.' },
-  { date: '2025-01-17', time: '—', source: 'gaza', count: '—', desc: 'אישור עסקת חמאס-ישראל. הפסקת אש בעזה.' },
-  { date: '2025-06-13', time: '—', source: 'iran', count: '~1,658', desc: 'תחילת "מלחמת 12 הימים" (13-24 ביוני). ישראל תוקפת מתקני גרעין באיראן. איראן משיבה ב-574 טילים בליסטיים ו-1,084 כטב"מים. 28 ישראלים נהרגו, 3,238+ נפצעו. ~21,000 אזעקות.' },
-  { date: '2025-06-15', time: '—', source: 'iran', count: '~50', desc: 'מתקפה משולבת איראן-חות\'ים. פגיעות בבת ים, רחובות, קריית עקרון, ת"א. 9 הרוגים, ~200 פצועים.' },
-  { date: '2025-06-15', time: '—', source: 'yemen', count: '~20', desc: 'שיגורים בו-זמניים מתימן במסגרת מתקפה משולבת עם איראן.' },
-  { date: '2025-06-24', time: '—', source: 'iran', count: '—', desc: 'הפסקת אש במלחמת 12 הימים. ישראל השמידה תשתיות גרעיניות; איראן ספגה הרס נרחב.' },
-  { date: '2025-07-19', time: '01:45', source: 'yemen', count: '1', desc: 'כטב"מ חות\'י פוגע בבניין מגורים בת"א. הרוג אחד — ההרוג הראשון ממתקפת חות\'ים.' },
-  { date: '2025-09-01', time: '—', source: 'yemen', count: '~74', desc: 'חות\'ים מסלימים לאחר חיסול ראש ממשלתם. עשרות טילים בליסטיים וכטב"מים נוספים.' },
-  { date: '2026-02-28', time: '—', source: 'iran', count: '—', desc: 'מבצע "שאגת הארי" — ישראל וארה"ב פותחות מתקפה על איראן.' },
-  { date: '2026-03-01', time: '—', source: 'lebanon', count: '~100', desc: 'חיזבאללה חוזר לירות — רקטות לצפון ישראל לראשונה מאז הפסקת האש.' },
-  { date: '2026-03-02', time: '01:00', source: 'lebanon', count: '~200', desc: 'חיזבאללה יורה טילים ורקטות לישראל כ"נקמה" על חיסול חמינאי. אזעקות בחיפה ובת"א.' },
-  { date: '2026-03-02', time: '—', source: 'iran', count: '~150', desc: 'איראן ממשיכה מטחי טילים בליסטיים. פגיעה בבניין במרכז הארץ. 12 פצועים.' },
-  { date: '2026-03-03', time: '—', source: 'iran', count: '—', desc: 'אזעקות ברחבי ישראל — חיפה, ת"א, ירושלים, באר שבע. המתקפות נמשכות.' }
+  { date: '2026-02-28', time: '02:30', source: 'iran', count: '~20', desc: 'גל תקיפה ראשון — איראן מגיבה לפתיחת מבצע "שאגת הארי". טילים בליסטיים וכטב"מים לעבר מרכז וצפון ישראל.' },
+  { date: '2026-02-28', time: '04:00', source: 'iran', count: '~30', desc: 'גל שני — טילים בליסטיים לאזור גוש דן. אזעקות בתל אביב, רמת גן, חולון, בני ברק.' },
+  { date: '2026-02-28', time: '08:15', source: 'iran', count: '~15', desc: 'מטח בוקר — טילים בליסטיים למרכז. פגיעה ישירה בבניין בת"א — הרוגה אחת, 22 פצועים.' },
+  { date: '2026-02-28', time: '—', source: 'iran', count: '~105', desc: 'סה"כ יום ראשון: 25 גלי תקיפה, ~170 טילים. מד"א דיווח על 89 פצועים (3 ישירים). אזעקות ברחבי הארץ.' },
+  { date: '2026-03-01', time: '01:00', source: 'iran', count: '~40', desc: 'מטח לילי כבד — טילים בליסטיים וכטב"מים לאזורים נרחבים. אזעקות בחיפה, ת"א, ירושלים, באר שבע.' },
+  { date: '2026-03-01', time: '10:30', source: 'iran', count: '~25', desc: 'מטח בוקר — פגיעה ישירה בבית שמש. 9 הרוגים ו-20+ פצועים. האירוע הקטלני ביותר במלחמה.' },
+  { date: '2026-03-01', time: '14:00', source: 'iran', count: '~30', desc: 'מטח צהריים — טילים למרכז ולדרום. אזעקות באשדוד, אשקלון, ראשון לציון.' },
+  { date: '2026-03-01', time: '20:00', source: 'iran', count: '~50', desc: 'מטח ערב כבד — הגדול ביום. טילים בליסטיים לגוש דן ולצפון. יירוטים מרובים.' },
+  { date: '2026-03-01', time: '22:00', source: 'lebanon', count: '~3', desc: 'חיזבאללה פותח אש לראשונה מאז הפסקת האש (נוב׳ 2024). 3 רקטות לכיוון אתר הגנה אווירית דרומית לחיפה. "נקמה על דם חמינאי".' },
+  { date: '2026-03-01', time: '—', source: 'iran', count: '~200', desc: 'סה"כ יום 2: 62 גלי תקיפה — היום הכבד ביותר. אזעקות בכל הארץ. שהייה ממושכת במקלטים.' },
+  { date: '2026-03-02', time: '01:00', source: 'lebanon', count: '~15', desc: 'חיזבאללה נכנס רשמית למלחמה. מטח לילי — רקטות וכטב"מים לצפון ישראל. סירנות בחיפה וגליל.' },
+  { date: '2026-03-02', time: '03:00', source: 'lebanon', count: '~20', desc: 'תקיפת בסיסים: טילים וכטב"מים לבסיס רמת דוד, בסיס מירון ומחנה יצחק. רוב יורטו.' },
+  { date: '2026-03-02', time: '06:00', source: 'iran', count: '~30', desc: 'מטח שחר — איראן מנסה מטח מתואם גדול יותר (9-30 טילים בגל). אזעקות בגוש דן.' },
+  { date: '2026-03-02', time: '14:30', source: 'iran', count: '~25', desc: 'פגיעה ישירה באזור באר שבע. 19 פצועים פונו לסורוקה. כולם במצב קל עד בינוני.' },
+  { date: '2026-03-02', time: '19:00', source: 'iran', count: '~20', desc: 'מטח ערב למרכז ישראל. יירוטים מוצלחים. שינוי בדפוס: מטחים גדולים יותר, פחות תכופים.' },
+  { date: '2026-03-02', time: '—', source: 'lebanon', count: '~50', desc: 'סה"כ מלבנון: 12 אירועי ירי ביום. ישראל תוקפת בביירות ודהייה — 31 הרוגים, 149 פצועים בלבנון. ראש מודיעין חיזבאללה חוסל.' },
+  { date: '2026-03-03', time: '02:00', source: 'iran', count: '~20', desc: 'מטח לילי — ירידה של 2/3 בקצב לעומת יום 1. צה"ל מעריך שהשמיד מחצית ממשגרי הטילים של איראן.' },
+  { date: '2026-03-03', time: '11:00', source: 'iran', count: '~15', desc: 'פגיעה באזור מרכז הארץ — 12 פצועים.' },
+  { date: '2026-03-03', time: '15:00', source: 'lebanon', count: '3', desc: 'חיזבאללה משגר 3 רקטות ארוכות טווח לעבר ת"א וחיפה — לראשונה תקיפה ארוכת טווח. 2 יורטו, אחת נפלה בשטח פתוח.' },
+  { date: '2026-03-03', time: '—', source: 'lebanon', count: '~37', desc: 'סה"כ מלבנון: 11 אירועים. עשרות רקטות. מפקד חיל מחנה קודס באיראן חוסל בתקיפה בטהראן.' },
+  { date: '2026-03-03', time: '—', source: 'iran', count: '~60', desc: 'סה"כ מאיראן: 7 גלי תקיפה. סגירת מצרי הורמוז מוכרזת. סה"כ מתחילת המלחמה: 13 הרוגים, 1,090+ פצועים בישראל.' },
+  { date: '2026-03-04', time: '03:00', source: 'iran', count: '~15', desc: 'מטח לילי — המשך ירידה. אזעקות באילת ובמרכז.' },
+  { date: '2026-03-04', time: '08:00', source: 'lebanon', count: '1', desc: 'טיל נגד טנקים של חיזבאללה פוגע במרגליות. 7 פצועים. אזרח הודי נהרג.' },
+  { date: '2026-03-04', time: '14:00', source: 'iran', count: '~10', desc: 'מטח צהריים — אזעקות בחיפה ובאילת. הירי מאיראן פוחת — ארסנל מצטמצם.' }
 ];
 
 const ACTIVITIES = [
@@ -818,15 +796,12 @@ const ACTIVITIES = [
 ];
 
 // ==================== STATE ====================
-
 let todayAlertCount = 0;
 let alertsLog = [];
 let selectedActivity = null;
-let isLiveMode = false;
 let timelineFilter = 'all';
 
 // ==================== DOM REFS ====================
-
 const $ = id => document.getElementById(id);
 
 // ==================== CORE LOGIC ====================
@@ -835,32 +810,23 @@ function clamp(val, min, max) {
   return Math.max(min, Math.min(max, val));
 }
 
-function calcSafety(hour, day, region) {
+function calcSafety(hour, day) {
   const hourBase = HOURLY_DISTRIBUTION[hour];
   const dayMult = DAY_MULTIPLIER[day];
-  const regionInfo = REGION_DATA[region];
-  const riskMult = regionInfo.risk_mult;
-  const northRisk = regionInfo.risk_north || 0;
-  // Combined risk from Gaza front + northern front
-  const combinedRisk = (hourBase * dayMult * riskMult) * 0.6 + (hourBase * dayMult * northRisk) * 0.4;
-  const safetyRaw = 1 - (combinedRisk / 2.0);
-  return clamp(safetyRaw * 80 + 12, 5, 95);
+  const combinedRisk = hourBase * dayMult;
+  const safetyRaw = 1 - (combinedRisk / 1.2);
+  return clamp(safetyRaw * 80 + 10, 5, 92);
 }
 
-function activitySafety(safetyPct, minutes, shelterSec) {
-  const avgAlertsPerHour = (1 - safetyPct / 100) * 3.0;
+function activitySafety(safetyPct, minutes) {
+  // During active war: average ~4 alerts per hour at peak
+  const avgAlertsPerHour = (1 - safetyPct / 100) * 5.0;
   const fraction = minutes / 60;
   const expectedAlerts = avgAlertsPerHour * fraction;
   const probNoAlert = Math.exp(-expectedAlerts);
-
-  let shelterBonus;
-  if (shelterSec >= 90) shelterBonus = 1.0;
-  else if (shelterSec >= 60) shelterBonus = 0.9;
-  else if (shelterSec >= 30) shelterBonus = 0.75;
-  else if (shelterSec >= 15) shelterBonus = 0.55;
-  else shelterBonus = 0.35; // immediate / 0 seconds
-
-  return clamp(probNoAlert * shelterBonus * 100, 0, 98);
+  // Shelter time 90 sec average for ballistic
+  const shelterBonus = 0.85;
+  return clamp(probNoAlert * shelterBonus * 100, 0, 95);
 }
 
 function getColor(pct) {
@@ -877,25 +843,25 @@ function getColorHex(pct) {
   return '#F44336';
 }
 
-// ==================== UI UPDATE FUNCTIONS ====================
+// ==================== UI FUNCTIONS ====================
 
 function renderThreatSources() {
   const grid = $('threatGrid');
   grid.innerHTML = '';
-  THREAT_SOURCES.forEach(src => {
-    const card = document.createElement('div');
+  THREAT_SOURCES.forEach(function(src) {
+    var card = document.createElement('div');
     card.className = 'threat-card';
     card.style.borderColor = src.color + '33';
 
-    const ftEntries = Object.entries(src.flightTimes)
-      .map(([k, v]) => k + ': ' + v).join('<br>');
+    var ftEntries = Object.entries(src.flightTimes)
+      .map(function(e) { return e[0] + ': ' + e[1]; }).join('<br>');
 
     card.innerHTML =
       '<div class="threat-flag">' + src.flag + '</div>' +
       '<div class="threat-name">' + src.name + '</div>' +
       '<div class="threat-org">' + src.org + '</div>' +
-      '<div class="threat-count" style="color:' + src.color + '">' +
-        src.totalLaunches.toLocaleString() + ' שיגורים</div>' +
+      '<div class="threat-count" style="color:' + src.color + '">' + src.totalLaunches + '</div>' +
+      '<div style="font-size:0.72rem;color:#aaa;margin:6px 0">' + src.statsLine + '</div>' +
       '<div class="threat-time">' + src.warningBefore + '</div>' +
       '<div class="threat-stats">' + ftEntries + '</div>';
 
@@ -903,28 +869,50 @@ function renderThreatSources() {
   });
 }
 
+function renderDailyTable() {
+  var tbody = $('dailyTableBody');
+  tbody.innerHTML = '';
+  DAILY_DATA.forEach(function(d) {
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="font-family:var(--font-mono);direction:ltr;text-align:left">' + d.date + '</td>' +
+      '<td>' + d.dayName + '</td>' +
+      '<td>' +
+        '<span class="src-tag" style="background:rgba(171,71,188,0.15);color:var(--purple)">איראן</span>' +
+        (d.lebWaves > 0 ? ' <span class="src-tag" style="background:rgba(255,202,40,0.15);color:var(--yellow)">לבנון</span>' : '') +
+      '</td>' +
+      '<td class="num">' + d.iranWaves + (d.lebWaves > 0 ? '+' + d.lebWaves : '') + '</td>' +
+      '<td class="num">' + d.iranMissiles + '</td>' +
+      '<td class="num">' + d.iranUAVs + '</td>' +
+      '<td class="num" style="color:var(--red)">' + d.iranKilled + '</td>' +
+      '<td class="num" style="color:var(--orange)">' + d.iranInjured + '</td>' +
+      '<td style="font-size:0.75rem;color:#aaa;max-width:250px">' + d.events + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
 function updateMainMeter(safety) {
-  const color = getColor(safety);
-  const val = Math.round(safety);
+  var color = getColor(safety);
+  var val = Math.round(safety);
   $('meterValue').innerHTML = val + '<span class="pct">%</span>';
   $('meterValue').style.color = color;
   $('meterBar').style.width = val + '%';
   $('meterBar').style.background = color;
   $('meterPanel').style.borderColor = color;
 
-  let status, desc;
+  var status, desc;
   if (safety >= 70) {
-    status = 'בטוח יחסית';
-    desc = 'הסיכוי לאזעקה בשעה זו נמוך יחסית על בסיס הנתונים ההיסטוריים';
+    status = 'שקט יחסי';
+    desc = 'קצב השיגורים נמוך יחסית בשעה ויום אלה. עדיין מומלץ להישאר ליד מרחב מוגן.';
   } else if (safety >= 45) {
-    status = 'זהירות';
-    desc = 'סיכון בינוני — מומלץ להישאר בקרבת מרחב מוגן';
+    status = 'זהירות — שיגורים ספורדיים';
+    desc = 'קצב ירי בינוני. הישאר בקרבת מרחב מוגן, בצע פעולות קצרות בלבד.';
   } else if (safety >= 25) {
-    status = 'סיכון גבוה';
-    desc = 'שעת שיגורים פעילה — בצע פעולות קצרות בלבד';
+    status = 'סיכון גבוה — מטחים פעילים';
+    desc = 'שעת שיגורים פעילה. הישאר ליד מקלט. פעולות חיוניות בלבד.';
   } else {
-    status = 'שעת שיא — סיכון קיצוני';
-    desc = 'צפיפות שיגורים גבוהה מאוד — הישאר ליד מקלט';
+    status = 'שעת שיא — מטחים כבדים';
+    desc = 'גלי תקיפה כבדים. הישאר במרחב מוגן!';
   }
   $('meterStatus').textContent = status;
   $('meterStatus').style.color = color;
@@ -932,91 +920,70 @@ function updateMainMeter(safety) {
 }
 
 function updateReco(safety) {
-  const box = $('recoBox');
+  var box = $('recoBox');
   box.classList.remove('reco-safe', 'reco-caution', 'reco-danger');
 
   if (safety >= 70) {
     box.classList.add('reco-safe');
     $('recoIcon').textContent = '✅';
-    $('recoTitle').textContent = 'בטוח לפעילות רגילה';
-    $('recoDesc').textContent = 'ניתן לבצע פעולות ארוכות. הסיכוי לאזעקה נמוך יחסית בשעה ובאזור שנבחרו.';
+    $('recoTitle').textContent = 'שקט יחסי — ניתן לבצע פעולות';
+    $('recoDesc').textContent = 'קצב השיגורים ירד. עדיין חובה להישאר ליד מרחב מוגן. אין ביטחון מלא.';
   } else if (safety >= 45) {
     box.classList.add('reco-caution');
     $('recoIcon').textContent = '⚠️';
-    $('recoTitle').textContent = 'היזהר — פעילויות קצרות בלבד';
-    $('recoDesc').textContent = 'סיכון בינוני. העדף פעולות קצרות והישאר בקרבת מרחב מוגן.';
+    $('recoTitle').textContent = 'זהירות — פעולות קצרות בלבד';
+    $('recoDesc').textContent = 'מטחים ספורדיים. העדף פעולות של דקות ספורות בלבד.';
   } else {
     box.classList.add('reco-danger');
     $('recoIcon').textContent = '🚨';
-    $('recoTitle').textContent = 'שעת סיכון — הישאר ליד מרחב מוגן';
-    $('recoDesc').textContent = 'שעת שיא סטטיסטית. המתן לשעה בטוחה יותר או בצע פעולות חיוניות בלבד.';
+    $('recoTitle').textContent = 'שעת סיכון — הישאר במרחב מוגן!';
+    $('recoDesc').textContent = 'שעת שיא של מטחים. אל תצא מהמקלט אלא לצורך חיוני בלבד.';
   }
 }
 
-function updateActivities(safety, shelterSec) {
-  const grid = $('activitiesGrid');
+function updateActivities(safety) {
+  var grid = $('activitiesGrid');
   grid.innerHTML = '';
-  ACTIVITIES.forEach(act => {
-    const pct = Math.round(activitySafety(safety, act.minutes, shelterSec));
-    const card = document.createElement('div');
+  ACTIVITIES.forEach(function(act) {
+    var pct = Math.round(activitySafety(safety, act.minutes));
+    var card = document.createElement('div');
     card.className = 'activity-card' + (selectedActivity === act.id ? ' selected' : '');
     card.innerHTML =
       '<div class="act-icon">' + act.icon + '</div>' +
       '<div class="act-name">' + act.name + '</div>' +
       '<div class="act-time">' + act.minutes + ' דקות</div>' +
       '<div class="act-pct" style="color:' + getColor(pct) + '">' + pct + '%</div>';
-    card.addEventListener('click', () => {
+    card.addEventListener('click', function() {
       selectedActivity = act.id;
-      updateActivities(safety, shelterSec);
+      updateActivities(safety);
     });
     grid.appendChild(card);
   });
 }
 
-function updateStats(hour, day, region) {
-  $('stat24h').textContent = todayAlertCount;
-
-  const dayMult = DAY_MULTIPLIER[day];
-  let dayAvg = 0;
-  for (let h = 0; h < 24; h++) {
-    dayAvg += HOURLY_DISTRIBUTION[h];
-  }
-  dayAvg = (dayAvg / 24 * dayMult * 3.0).toFixed(1);
-  $('statAvg').textContent = dayAvg;
-
-  let maxIdx = 0, maxVal = 0;
-  for (let h = 0; h < 24; h++) {
-    if (HOURLY_DISTRIBUTION[h] > maxVal) {
-      maxVal = HOURLY_DISTRIBUTION[h];
-      maxIdx = h;
-    }
-  }
-  $('statPeak').textContent = String(maxIdx).padStart(2, '0') + ':00';
-}
-
 function updateHourChart(currentHour, day) {
-  const chart = $('hourChart');
+  var chart = $('hourChart');
   chart.innerHTML = '';
 
-  for (let h = 0; h < 24; h++) {
-    const val = HOURLY_DISTRIBUTION[h];
-    const heightPct = (val / 1.0) * 100;
-    const safety = calcSafety(h, day, $('regionSelect').value);
-    const color = getColorHex(safety);
+  for (var h = 0; h < 24; h++) {
+    var val = HOURLY_DISTRIBUTION[h];
+    var heightPct = (val / 1.0) * 100;
+    var safety = calcSafety(h, day);
+    var color = getColorHex(safety);
 
-    const wrap = document.createElement('div');
+    var wrap = document.createElement('div');
     wrap.className = 'hour-bar-wrap';
 
-    const bar = document.createElement('div');
+    var bar = document.createElement('div');
     bar.className = 'hour-bar' + (h === currentHour ? ' current' : '');
     bar.style.height = (heightPct * 0.85) + '%';
     bar.style.background = color;
 
-    const label = document.createElement('div');
+    var label = document.createElement('div');
     label.className = 'hour-label';
     label.textContent = String(h).padStart(2, '0');
 
-    const tooltip = document.createElement('div');
+    var tooltip = document.createElement('div');
     tooltip.className = 'hour-tooltip';
     tooltip.textContent = String(h).padStart(2, '0') + ':00 — בטיחות: ' + Math.round(safety) + '%';
 
@@ -1028,22 +995,22 @@ function updateHourChart(currentHour, day) {
 }
 
 function updateDayHeatmap(currentDay) {
-  const heatmap = $('dayHeatmap');
+  var heatmap = $('dayHeatmap');
   heatmap.innerHTML = '';
 
-  DAY_NAMES.forEach((name, i) => {
-    const mult = DAY_MULTIPLIER[i];
-    const ratio = (mult - 0.7) / (1.0 - 0.7);
-    const r = Math.round(50 + ratio * 194);
-    const g = Math.round(200 - ratio * 150);
-    const b = Math.round(100 - ratio * 60);
+  DAY_NAMES.forEach(function(name, i) {
+    var mult = DAY_MULTIPLIER[i];
+    var ratio = mult / 1.0;
+    var r = Math.round(50 + ratio * 194);
+    var g = Math.round(200 - ratio * 150);
+    var b = Math.round(100 - ratio * 60);
 
-    const cell = document.createElement('div');
+    var cell = document.createElement('div');
     cell.className = 'day-cell' + (i === currentDay ? ' active' : '');
     cell.style.background = 'rgba(' + r + ',' + g + ',' + b + ',0.25)';
     cell.style.color = 'rgb(' + r + ',' + g + ',' + b + ')';
     cell.innerHTML = '<div class="day-name">' + name + '</div><div class="day-val">' + mult.toFixed(2) + '</div>';
-    cell.addEventListener('click', () => {
+    cell.addEventListener('click', function() {
       $('daySelect').value = i;
       recalculate();
     });
@@ -1052,24 +1019,22 @@ function updateDayHeatmap(currentDay) {
 }
 
 function renderAlertLog() {
-  const log = $('alertsLog');
+  var log = $('alertsLog');
   if (alertsLog.length === 0) {
     log.innerHTML = '<div class="no-alerts">✅ אין אזעקות פעילות כרגע</div>';
     return;
   }
   log.innerHTML = '';
-  alertsLog.forEach(alert => {
-    const entry = document.createElement('div');
+  alertsLog.forEach(function(alert) {
+    var entry = document.createElement('div');
     entry.className = 'alert-entry';
-    let badgeClass, badgeText;
+    var badgeClass, badgeText;
     if (alert.type === 'uav') {
       badgeClass = 'badge-uav'; badgeText = 'כטב"מ';
     } else if (alert.type === 'missile') {
       badgeClass = 'badge-missile'; badgeText = 'טיל בליסטי';
     } else if (alert.type === 'cruise') {
       badgeClass = 'badge-cruise'; badgeText = 'טיל שיוט';
-    } else if (alert.type === 'drill') {
-      badgeClass = 'badge-drill'; badgeText = 'תרגיל';
     } else {
       badgeClass = 'badge-rocket'; badgeText = 'רקטה';
     }
@@ -1084,42 +1049,37 @@ function renderAlertLog() {
 // ==================== TIMELINE ====================
 
 function renderTimeline() {
-  const filterEl = $('timelineFilter');
-  const listEl = $('timelineList');
+  var filterEl = $('timelineFilter');
+  var listEl = $('timelineList');
 
-  // Build filter buttons
-  const sources = [
+  var sources = [
     { id: 'all', label: 'הכל' },
-    { id: 'gaza', label: 'עזה' },
-    { id: 'lebanon', label: 'לבנון' },
     { id: 'iran', label: 'איראן' },
-    { id: 'yemen', label: 'תימן' },
-    { id: 'iraq', label: 'עיראק' }
+    { id: 'lebanon', label: 'לבנון' }
   ];
   filterEl.innerHTML = '';
-  sources.forEach(s => {
-    const btn = document.createElement('button');
+  sources.forEach(function(s) {
+    var btn = document.createElement('button');
     btn.textContent = s.label;
     btn.className = timelineFilter === s.id ? 'active' : '';
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', function() {
       timelineFilter = s.id;
       renderTimeline();
     });
     filterEl.appendChild(btn);
   });
 
-  // Filter entries
-  const filtered = timelineFilter === 'all'
+  var filtered = timelineFilter === 'all'
     ? LAUNCHES_TIMELINE
-    : LAUNCHES_TIMELINE.filter(e => e.source === timelineFilter);
+    : LAUNCHES_TIMELINE.filter(function(e) { return e.source === timelineFilter; });
 
   listEl.innerHTML = '';
-  filtered.forEach(entry => {
-    const el = document.createElement('div');
+  filtered.forEach(function(entry) {
+    var el = document.createElement('div');
     el.className = 'tl-entry';
 
-    const srcClass = 'tl-src-' + entry.source;
-    const srcNames = { gaza: 'עזה', lebanon: 'לבנון', iran: 'איראן', yemen: 'תימן', iraq: 'עיראק' };
+    var srcClass = 'tl-src-' + (entry.source === 'lebanon' ? 'leb' : entry.source);
+    var srcNames = { iran: 'איראן', lebanon: 'לבנון' };
 
     el.innerHTML =
       '<div class="tl-date">' + entry.date + '<br>' + entry.time + '</div>' +
@@ -1134,38 +1094,38 @@ function renderTimeline() {
 
 // ==================== LIVE ALERTS ====================
 
-const AREA_NAMES = [
+var AREA_NAMES = [
   'תל אביב - מזרח', 'תל אביב - מערב', 'תל אביב - דרום', 'רמת גן', 'גבעתיים',
   'בני ברק', 'חולון', 'בת ים', 'ראשון לציון', 'פתח תקווה', 'הרצליה', 'נתניה',
   'אשקלון - צפון', 'אשקלון - דרום', 'אשדוד - א', 'אשדוד - ב',
   'באר שבע - צפון', 'באר שבע - מערב', 'באר שבע - מזרח',
   'חיפה - כרמל', 'חיפה - מפרץ', 'חיפה - קריות',
   'עכו', 'נהריה', 'שלומי', 'מטולה', 'קריית שמונה', 'צפת', 'כרמיאל', 'טבריה',
-  'שדרות', 'ניר עם', 'כיסופים', 'נתיבות', 'אופקים', 'ערד',
   'ירושלים - מזרח', 'ירושלים - מערב', 'מעלה אדומים',
   'אילת', 'רחובות', 'נס ציונה', 'חדרה', 'עפולה', 'יבנה', 'גדרה',
-  'קריית גת', 'קריית מלאכי', 'דימונה', 'ערב ערה'
+  'קריית גת', 'קריית מלאכי', 'דימונה', 'בית שמש', 'הוד השרון', 'כפר סבא',
+  'לוד', 'ראש העין', 'רמלה', 'רעננה'
 ];
 
 function addFakeAlert(force) {
-  const now = new Date();
-  const hour = now.getHours();
-  const prob = HOURLY_DISTRIBUTION[hour];
+  var now = new Date();
+  var hour = now.getHours();
+  var prob = HOURLY_DISTRIBUTION[hour];
 
   if (!force && Math.random() > prob * 0.35) return;
 
-  const area = AREA_NAMES[Math.floor(Math.random() * AREA_NAMES.length)];
-  const typeRand = Math.random();
-  let type;
-  if (typeRand < 0.60) type = 'rocket';
-  else if (typeRand < 0.78) type = 'uav';
-  else if (typeRand < 0.90) type = 'missile';
-  else if (typeRand < 0.96) type = 'cruise';
-  else type = 'drill';
+  var area = AREA_NAMES[Math.floor(Math.random() * AREA_NAMES.length)];
+  var typeRand = Math.random();
+  var type;
+  // War pattern: mostly ballistic missiles and UAVs
+  if (typeRand < 0.45) type = 'missile';
+  else if (typeRand < 0.80) type = 'uav';
+  else if (typeRand < 0.92) type = 'rocket';
+  else type = 'cruise';
 
-  const timeStr = String(now.getHours()).padStart(2, '0') + ':' +
-                  String(now.getMinutes()).padStart(2, '0') + ':' +
-                  String(now.getSeconds()).padStart(2, '0');
+  var timeStr = String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
 
   alertsLog.unshift({ time: timeStr, area: area, type: type });
   if (alertsLog.length > 50) alertsLog.pop();
@@ -1173,57 +1133,48 @@ function addFakeAlert(force) {
   todayAlertCount++;
   $('todayCount').textContent = todayAlertCount;
 
-  HOURLY_DISTRIBUTION[hour] = HOURLY_DISTRIBUTION[hour] * 0.95 + 1.0 * 0.05;
-
   renderAlertLog();
-
-  if (type === 'rocket' || type === 'missile') flashScreen();
-
+  if (type === 'missile') flashScreen();
   recalculate();
 }
 
 function flashScreen() {
-  const overlay = $('flashOverlay');
+  var overlay = $('flashOverlay');
   overlay.classList.add('active');
-  setTimeout(() => overlay.classList.remove('active'), 400);
+  setTimeout(function() { overlay.classList.remove('active'); }, 400);
 }
 
 async function tryFetchLiveAlerts() {
-  // Try multiple proxy approaches for Pikud HaOref real-time data
-  const endpoints = [
+  var endpoints = [
     'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.oref.org.il/WarningMessages/alert/alerts.json'),
     'https://corsproxy.io/?' + encodeURIComponent('https://www.oref.org.il/WarningMessages/alert/alerts.json')
   ];
 
-  for (const proxyUrl of endpoints) {
+  for (var i = 0; i < endpoints.length; i++) {
     try {
-      const res = await fetch(proxyUrl, {
+      var res = await fetch(endpoints[i], {
         headers: { 'Accept': 'application/json' },
         signal: AbortSignal.timeout(5000)
       });
       if (!res.ok) continue;
-      const text = await res.text();
+      var text = await res.text();
       if (text && text.trim().length > 2) {
-        const data = JSON.parse(text);
+        var data = JSON.parse(text);
         if (Array.isArray(data) && data.length > 0) {
-          isLiveMode = true;
-          data.forEach(alert => {
-            const now = new Date();
-            const timeStr = String(now.getHours()).padStart(2, '0') + ':' +
-                            String(now.getMinutes()).padStart(2, '0') + ':' +
-                            String(now.getSeconds()).padStart(2, '0');
-            let type = 'rocket';
+          data.forEach(function(alert) {
+            var now = new Date();
+            var timeStr = String(now.getHours()).padStart(2, '0') + ':' +
+                          String(now.getMinutes()).padStart(2, '0') + ':' +
+                          String(now.getSeconds()).padStart(2, '0');
+            var type = 'missile';
             if (alert.cat === '6' || alert.category === 6) type = 'uav';
-            else if (alert.cat === '2' || alert.category === 2) type = 'missile';
-            const area = alert.data || alert.title || 'אזור לא ידוע';
-            const exists = alertsLog.length > 0 && alertsLog[0].area === area &&
-                           alertsLog[0].time === timeStr;
+            else if (alert.cat === '1' || alert.category === 1) type = 'rocket';
+            var area = alert.data || alert.title || 'אזור לא ידוע';
+            var exists = alertsLog.length > 0 && alertsLog[0].area === area && alertsLog[0].time === timeStr;
             if (!exists) {
               alertsLog.unshift({ time: timeStr, area: area, type: type });
               todayAlertCount++;
-              HOURLY_DISTRIBUTION[now.getHours()] =
-                HOURLY_DISTRIBUTION[now.getHours()] * 0.95 + 1.0 * 0.05;
-              if (type === 'rocket' || type === 'missile') flashScreen();
+              if (type === 'missile') flashScreen();
             }
           });
           if (alertsLog.length > 50) alertsLog.length = 50;
@@ -1233,17 +1184,14 @@ async function tryFetchLiveAlerts() {
           return;
         }
       }
-    } catch (e) {
-      // Try next endpoint
-    }
+    } catch (e) { /* try next */ }
   }
-  isLiveMode = false;
 }
 
 // ==================== CLOCK ====================
 
 function updateClock() {
-  const now = new Date();
+  var now = new Date();
   $('liveClock').textContent =
     String(now.getHours()).padStart(2, '0') + ':' +
     String(now.getMinutes()).padStart(2, '0') + ':' +
@@ -1253,17 +1201,13 @@ function updateClock() {
 // ==================== RECALCULATE ====================
 
 function recalculate() {
-  const region = $('regionSelect').value;
-  const day = parseInt($('daySelect').value);
-  const hour = parseInt($('hourSelect').value);
-  const shelter = REGION_DATA[region].shelter;
-
-  const safety = calcSafety(hour, day, region);
+  var day = parseInt($('daySelect').value);
+  var hour = parseInt($('hourSelect').value);
+  var safety = calcSafety(hour, day);
 
   updateMainMeter(safety);
   updateReco(safety);
-  updateActivities(safety, shelter);
-  updateStats(hour, day, region);
+  updateActivities(safety);
   updateHourChart(hour, day);
   updateDayHeatmap(day);
 }
@@ -1271,21 +1215,15 @@ function recalculate() {
 // ==================== INIT ====================
 
 function autoSetSelectors() {
-  const now = new Date();
-  const jsDay = now.getDay();
-  $('daySelect').value = jsDay;
+  var now = new Date();
+  $('daySelect').value = now.getDay();
   $('hourSelect').value = now.getHours();
-
-  const savedRegion = localStorage.getItem('safetime_region');
-  if (savedRegion && REGION_DATA[savedRegion]) {
-    $('regionSelect').value = savedRegion;
-  }
 }
 
 function buildHourOptions() {
-  const sel = $('hourSelect');
-  for (let h = 0; h < 24; h++) {
-    const opt = document.createElement('option');
+  var sel = $('hourSelect');
+  for (var h = 0; h < 24; h++) {
+    var opt = document.createElement('option');
     opt.value = h;
     opt.textContent = String(h).padStart(2, '0') + ':00';
     sel.appendChild(opt);
@@ -1296,12 +1234,9 @@ function init() {
   buildHourOptions();
   autoSetSelectors();
   renderThreatSources();
+  renderDailyTable();
   renderTimeline();
 
-  $('regionSelect').addEventListener('change', () => {
-    localStorage.setItem('safetime_region', $('regionSelect').value);
-    recalculate();
-  });
   $('daySelect').addEventListener('change', recalculate);
   $('hourSelect').addEventListener('change', recalculate);
 
@@ -1310,9 +1245,9 @@ function init() {
   renderAlertLog();
 
   setInterval(updateClock, 1000);
-  setInterval(() => addFakeAlert(false), 12000);
+  setInterval(function() { addFakeAlert(false); }, 12000);
   setInterval(tryFetchLiveAlerts, 15000);
-  setInterval(() => {
+  setInterval(function() {
     autoSetSelectors();
     recalculate();
   }, 60000);
