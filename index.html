@@ -1172,24 +1172,25 @@ var TODAY_SEED_ALERTS = [
 function seedTodayAlerts() {
   // Try loading persisted alerts first
   if (loadAlerts()) {
-    // Merge any new seed alerts that weren't in the stored data
+    // Restore seed alerts into the log display (without changing the count!)
+    // The count already includes these from before the refresh
     var now = new Date();
     var currentTimeStr = String(now.getHours()).padStart(2, '0') + ':' +
                          String(now.getMinutes()).padStart(2, '0');
     var seeded = TODAY_SEED_ALERTS.filter(function(a) {
       return a.time <= currentTimeStr;
     });
-    // Check for seed alerts missing from stored log
+    // Only add to log for display — do NOT increment todayAlertCount
+    // because these alerts were already counted before the refresh
     seeded.forEach(function(a) {
       var exists = alertsLog.some(function(stored) {
         return stored.time === a.time && stored.area === a.area;
       });
       if (!exists) {
         alertsLog.push({ time: a.time, area: a.area, type: a.type });
-        todayAlertCount++;
       }
     });
-    // Sort: newest first (alerts with HH:MM:SS before HH:MM)
+    // Sort: newest first
     alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
     if (alertsLog.length > 50) alertsLog.length = 50;
     $('todayCount').textContent = todayAlertCount;
@@ -1380,7 +1381,8 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
   var ey = cy - r * Math.sin(endAngle);
   var diff = startAngle - endAngle;
   var largeArc = diff > Math.PI ? 1 : 0;
-  return 'M ' + sx + ' ' + sy + ' A ' + r + ' ' + r + ' 0 ' + largeArc + ' 0 ' + ex + ' ' + ey;
+  // sweep-flag 1 = clockwise in SVG coords = arc goes through top (correct for gauge)
+  return 'M ' + sx + ' ' + sy + ' A ' + r + ' ' + r + ' 0 ' + largeArc + ' 1 ' + ex + ' ' + ey;
 }
 
 // ==================== REAL-TIME HELPERS ====================
