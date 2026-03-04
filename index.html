@@ -470,23 +470,72 @@ body {
 }
 .flash-overlay.active { opacity: 1; }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .header h1 { font-size: 1.5rem; }
-  .meter-value { font-size: 52px; }
-  .meter-value .pct { font-size: 22px; }
-  .activities-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
-  .activity-card { padding: 10px 6px; }
-  .activity-card .act-icon { font-size: 1.4rem; }
-  .stats-row { grid-template-columns: 1fr 1fr; }
+/* Responsive — Mobile First */
+@media (max-width: 768px) {
+  .container { padding: 10px 8px 30px; }
+  .header { padding: 20px 10px 14px; }
+  .header h1 { font-size: 1.3rem; }
+  .header .subtitle { font-size: 0.78rem; }
+  .meter-value { font-size: 48px; }
+  .meter-value .pct { font-size: 20px; }
+  .panel { padding: 14px 12px; margin-bottom: 10px; }
+  .activities-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .activity-card { padding: 10px 4px; }
+  .activity-card .act-icon { font-size: 1.3rem; }
+  .activity-card .act-name { font-size: 0.72rem; }
+  .activity-card .act-pct { font-size: 0.95rem; }
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 12px 6px; }
+  .stat-val { font-size: 1.2rem; }
+  .stat-label { font-size: 0.62rem; }
   .day-heatmap { grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  .day-cell { padding: 10px 4px; font-size: 0.75rem; }
-  .settings-row { grid-template-columns: 1fr; }
-  .live-bar { justify-content: center; }
-  .hour-chart { height: 90px; }
+  .day-cell { padding: 8px 2px; font-size: 0.7rem; }
+  .day-cell .day-val { font-size: 0.65rem; }
+  .settings-row { grid-template-columns: 1fr; gap: 10px; }
+  .live-bar { justify-content: center; padding: 10px 12px; gap: 10px; }
+  .live-indicator { font-size: 0.8rem; }
+  .alert-count { font-size: 0.8rem; }
+  .live-clock { font-size: 0.8rem; }
+  .hour-chart { height: 80px; gap: 2px; }
+  .hour-label { font-size: 0.45rem; }
   .threat-grid { grid-template-columns: 1fr; }
-  .daily-table { font-size: 0.75rem; }
-  .daily-table th, .daily-table td { padding: 8px 6px; }
+  .threat-card { padding: 12px; }
+  .reco-box { padding: 14px 12px; gap: 10px; }
+  .reco-icon { font-size: 1.6rem; }
+  .reco-title { font-size: 0.95rem; }
+  .reco-desc { font-size: 0.78rem; }
+  .meter-panel { padding: 20px 14px; }
+  .meter-desc { font-size: 0.72rem; }
+
+  /* Daily table — horizontal scroll on mobile */
+  .daily-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .daily-table { font-size: 0.7rem; min-width: 600px; }
+  .daily-table th, .daily-table td { padding: 6px 5px; white-space: nowrap; }
+
+  /* Timeline */
+  .timeline-panel { padding: 14px 12px; }
+  .tl-entry { font-size: 0.78rem; gap: 8px; }
+  .tl-date { font-size: 0.68rem; min-width: 70px; }
+  .timeline-filter button { font-size: 0.7rem; padding: 4px 10px; }
+
+  /* Alerts log */
+  .alerts-log { max-height: 200px; }
+  .alert-entry { padding: 6px 8px; gap: 6px; }
+  .alert-entry .alert-time { font-size: 0.72rem; }
+  .alert-entry .alert-area { font-size: 0.78rem; }
+  .alert-badge { font-size: 0.6rem; padding: 2px 6px; }
+
+  /* Footer */
+  .footer { padding: 16px 10px; }
+  .footer .warning-box { font-size: 0.78rem; padding: 12px 14px; }
+  .footer .sources { font-size: 0.62rem; }
+}
+
+@media (max-width: 380px) {
+  .header h1 { font-size: 1.1rem; }
+  .activities-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .meter-value { font-size: 40px; }
 }
 </style>
 </head>
@@ -541,6 +590,7 @@ body {
   <!-- Daily Summary Table -->
   <div class="panel">
     <div class="chart-title">סיכום יומי — שיגורים ואזעקות מ-28.2.2026</div>
+    <div class="daily-table-wrap">
     <table class="daily-table" id="dailyTable">
       <thead>
         <tr>
@@ -557,6 +607,7 @@ body {
       </thead>
       <tbody id="dailyTableBody"></tbody>
     </table>
+    </div>
   </div>
 
   <!-- Recommendation -->
@@ -1279,13 +1330,51 @@ function addFakeAlert(force) {
   saveAlerts();
 
   renderAlertLog();
-  if (type === 'missile') flashScreen();
+  flashScreen();
   recalculate();
+}
+
+// ==================== ALERT SOUND ====================
+var audioCtx = null;
+function playAlertSound() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Siren-like tone: two alternating frequencies
+    var now = audioCtx.currentTime;
+    var osc1 = audioCtx.createOscillator();
+    var osc2 = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+
+    osc1.type = 'sine';
+    osc2.type = 'sine';
+    osc1.frequency.setValueAtTime(880, now);
+    osc2.frequency.setValueAtTime(660, now);
+
+    // Alternate between high and low (siren effect)
+    for (var i = 0; i < 4; i++) {
+      osc1.frequency.setValueAtTime(880, now + i * 0.3);
+      osc1.frequency.setValueAtTime(660, now + i * 0.3 + 0.15);
+    }
+
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.linearRampToValueAtTime(0.15, now + 0.6);
+    gain.gain.linearRampToValueAtTime(0, now + 1.2);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc1.start(now);
+    osc2.start(now + 0.15);
+    osc1.stop(now + 1.2);
+    osc2.stop(now + 1.2);
+  } catch(e) {}
 }
 
 function flashScreen() {
   var overlay = $('flashOverlay');
   overlay.classList.add('active');
+  playAlertSound();
   setTimeout(function() { overlay.classList.remove('active'); }, 400);
 }
 
@@ -1318,7 +1407,7 @@ async function tryFetchLiveAlerts() {
             if (!exists) {
               alertsLog.unshift({ time: timeStr, area: area, type: type });
               todayAlertCount++;
-              if (type === 'missile') flashScreen();
+              flashScreen();
             }
           });
           if (alertsLog.length > 50) alertsLog.length = 50;
