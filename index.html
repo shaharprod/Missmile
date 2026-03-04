@@ -551,7 +551,7 @@ body {
           <th>טילים בליסטיים</th>
           <th>כטב"מים</th>
           <th>הרוגים</th>
-          <th>פצועים</th>
+          <th>פצועים (מצטבר)</th>
           <th>אירועים מרכזיים</th>
         </tr>
       </thead>
@@ -679,9 +679,9 @@ const DAILY_DATA = [
   },
   {
     date: '2026-03-02', dayName: 'שני',
-    iranWaves: 24, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 0, iranInjured: '19+',
+    iranWaves: 25, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 0, iranInjured: '720+',
     lebWaves: 10, lebRockets: '6+ טילים, 3 כטב"מים',
-    events: 'סה"כ מצטבר: 112 גלי תקיפה מאיראן (אלמ"א). חיזבאללה נכנס רשמית — 10 אירועי תקיפה: 6 שיגורים לחיפה/עכו/דאלית אל-כרמל/עתלית, 3 כטב"מים (1 יורט ע"י "אור איתן"). בסיסי רמת דוד, מירון ומחנה יצחק הותקפו. 19 פצועים מפגיעה בשכונה בבאר שבע. ישראל תוקפת ביירות — 31 הרוגים, 149 פצועים בלבנון. ראש מודיעין חיזבאללה חוסאין מכלד חוסל.'
+    events: 'סה"כ מצטבר: 112 גלי תקיפה מאיראן (אלמ"א). חיזבאללה נכנס רשמית — 10 אירועי תקיפה: 6 שיגורים לחיפה/עכו/דאלית אל-כרמל/עתלית, 3 כטב"מים (1 יורט ע"י "אור איתן"). בסיסי רמת דוד, מירון ומחנה יצחק הותקפו. 19 פצועים חדשים מפגיעה בשכונה בבאר שבע. ישראל תוקפת ביירות — 31 הרוגים, 149 פצועים בלבנון. ראש מודיעין חיזבאללה חוסאין מכלד חוסל.'
   },
   {
     date: '2026-03-03', dayName: 'שלישי',
@@ -691,7 +691,7 @@ const DAILY_DATA = [
   },
   {
     date: '2026-03-04', dayName: 'רביעי',
-    iranWaves: 'מתעדכן', iranMissiles: 'ירידה נוספת של 23%', iranUAVs: 'מטפטף', iranKilled: 0, iranInjured: '8+',
+    iranWaves: 'מתעדכן', iranMissiles: 'ירידה נוספת של 23%', iranUAVs: 'מטפטף', iranKilled: 0, iranInjured: '1,008+',
     lebWaves: 'מתעדכן', lebRockets: 'מספר שיגורים',
     events: 'יום 5 למלחמה. 2 מטחי טילים בליסטיים מאיראן ומחיזבאללה בו-זמנית — יורטו מעל ירושלים ות"א. אזעקות באילת, חיפה, מרכז. טיל נ"ט חיזבאללה במרגליות — 7 פצועים, הרוג אזרח הודי. מצב חירום מוארך עד 12.3. צבא ישראל פועל בדרום לבנון. מד"א: אין נפגעים מהמטחים האחרונים.'
   }
@@ -713,11 +713,11 @@ const HOURLY_DISTRIBUTION = [
 ];
 
 // Day of week — based on Alma Center verified wave counts
-// שבת 28.2 = 25 waves, ראשון 1.3 = 62 waves (peak), שני 2.3 = 24+10, שלישי 3.3 = 7+14
+// שבת 28.2 = 25 waves, ראשון 1.3 = 62 waves (peak), שני 2.3 = 25+10, שלישי 3.3 = 7+14
 // US Joint Chiefs: 86% drop in ballistic fire by day 4, 23% additional drop day 5
 const DAY_MULTIPLIER = [
   1.00,  // ראשון — 1.3 = 62 גלי תקיפה מאיראן (שיא מוחלט)
-  0.55,  // שני — 2.3 = 24 גלים מאיראן + 10 מחיזבאללה = 34 סה"כ
+  0.55,  // שני — 2.3 = 25 גלים מאיראן + 10 מחיזבאללה = 35 סה"כ
   0.34,  // שלישי — 3.3 = 7 גלים מאיראן + 14 מחיזבאללה = 21 סה"כ
   0.20,  // רביעי — 4.3 = ירידה נוספת 23% (US Joint Chiefs). מטחים בודדים
   0.18,  // חמישי — הערכה: המשך ירידה, ארסנל מצטמצם
@@ -786,7 +786,7 @@ const LAUNCHES_TIMELINE = [
 
   // === 2 MARCH 2026 (שני) — Day 3 — Hezbollah enters ===
   { date: '2026-03-02', time: 'לילה', source: 'lebanon', count: '6+ טילים, 3 כטב"מים', desc: 'חיזבאללה נכנס רשמית למלחמה. שיגורים לחיפה, עכו, דאלית אל-כרמל, עתלית. 3 כטב"מים — 1 יורט ע"י "אור איתן". תקיפת בסיסי רמת דוד, מירון ומחנה יצחק.' },
-  { date: '2026-03-02', time: '—', source: 'iran', count: '24 גלים', desc: '24 גלי תקיפה מאיראן (אלמ"א). סה"כ מצטבר: 112 גלים (דו"ח 2.3). שינוי בדפוס: מטחים מתואמים יותר, 9-30 טילים בגל.' },
+  { date: '2026-03-02', time: '—', source: 'iran', count: '25 גלים', desc: '25 גלי תקיפה מאיראן (אלמ"א). סה"כ מצטבר: 112 גלים (דו"ח 2.3). שינוי בדפוס: מטחים מתואמים יותר, 9-30 טילים בגל.' },
   { date: '2026-03-02', time: '~14:30', source: 'iran', count: '—', desc: 'פגיעת טיל בשכונה בבאר שבע. 19 פצועים פונו לסורוקה. מצב קל-בינוני.' },
   { date: '2026-03-02', time: '—', source: 'lebanon', count: '10 תקיפות', desc: 'סה"כ חיזבאללה: 10 אירועי תקיפה (אלמ"א). ישראל תוקפת ביירות ודהייה — 31 הרוגים, 149 פצועים בלבנון. חוסאין מכלד (ראש מודיעין חיזבאללה) חוסל.' },
   { date: '2026-03-02', time: '—', source: 'iran', count: '—', desc: 'סיכום אלמ"א (19:00): 112 גלים מצטבר מאיראן. 11 הרוגים, 700+ פצועים בישראל.' },
@@ -1211,10 +1211,10 @@ function addFakeAlert(force) {
   var area = AREA_NAMES[Math.floor(Math.random() * AREA_NAMES.length)];
   var typeRand = Math.random();
   var type;
-  // War pattern: mostly ballistic missiles and UAVs
-  if (typeRand < 0.45) type = 'missile';
-  else if (typeRand < 0.80) type = 'uav';
-  else if (typeRand < 0.92) type = 'rocket';
+  // War pattern: mostly ballistic missiles from Iran, rockets from Hezbollah
+  if (typeRand < 0.55) type = 'missile';
+  else if (typeRand < 0.75) type = 'rocket';
+  else if (typeRand < 0.93) type = 'uav';
   else type = 'cruise';
 
   var timeStr = String(now.getHours()).padStart(2, '0') + ':' +
@@ -1262,7 +1262,6 @@ async function tryFetchLiveAlerts() {
                           String(now.getSeconds()).padStart(2, '0');
             var type = 'missile';
             if (alert.cat === '6' || alert.category === 6) type = 'uav';
-            else if (alert.cat === '1' || alert.category === 1) type = 'rocket';
             var area = alert.data || alert.title || 'אזור לא ידוע';
             var exists = alertsLog.length > 0 && alertsLog[0].area === area && alertsLog[0].time === timeStr;
             if (!exists) {
