@@ -822,6 +822,32 @@ let alertsLog = [];
 let selectedActivity = null;
 let timelineFilter = 'all';
 
+// ==================== PERSISTENCE ====================
+function getTodayKey() {
+  var d = new Date();
+  return 'safetime_' + d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function saveAlerts() {
+  try {
+    var data = { count: todayAlertCount, log: alertsLog.slice(0, 50) };
+    localStorage.setItem(getTodayKey(), JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadAlerts() {
+  try {
+    var stored = localStorage.getItem(getTodayKey());
+    if (stored) {
+      var data = JSON.parse(stored);
+      alertsLog = data.log || [];
+      todayAlertCount = data.count || alertsLog.length;
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
 // ==================== SEED TODAY'S ALERTS ====================
 // Based on actual data: March 4, 2026 (Day 5) has ~15-25 alerts throughout the day
 // Sirens activated in Jerusalem, Tel Aviv, Haifa, Eilat, central Israel
@@ -876,23 +902,47 @@ var TODAY_SEED_ALERTS = [
 ];
 
 function seedTodayAlerts() {
+  // Try loading persisted alerts first
+  if (loadAlerts()) {
+    // Merge any new seed alerts that weren't in the stored data
+    var now = new Date();
+    var currentTimeStr = String(now.getHours()).padStart(2, '0') + ':' +
+                         String(now.getMinutes()).padStart(2, '0');
+    var seeded = TODAY_SEED_ALERTS.filter(function(a) {
+      return a.time <= currentTimeStr;
+    });
+    // Check for seed alerts missing from stored log
+    seeded.forEach(function(a) {
+      var exists = alertsLog.some(function(stored) {
+        return stored.time === a.time && stored.area === a.area;
+      });
+      if (!exists) {
+        alertsLog.push({ time: a.time, area: a.area, type: a.type });
+        todayAlertCount++;
+      }
+    });
+    // Sort: newest first (alerts with HH:MM:SS before HH:MM)
+    alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
+    if (alertsLog.length > 50) alertsLog.length = 50;
+    $('todayCount').textContent = todayAlertCount;
+    saveAlerts();
+    return;
+  }
+
+  // No stored data — seed from scratch
   var now = new Date();
   var currentTimeStr = String(now.getHours()).padStart(2, '0') + ':' +
                        String(now.getMinutes()).padStart(2, '0');
-
-  // Add all alerts that happened before the current time
   var seeded = TODAY_SEED_ALERTS.filter(function(a) {
     return a.time <= currentTimeStr;
   });
-
-  // Add in reverse chronological order (newest first)
   seeded.reverse().forEach(function(a) {
     alertsLog.push({ time: a.time, area: a.area, type: a.type });
   });
-
   todayAlertCount = seeded.length;
   if (alertsLog.length > 50) alertsLog.length = 50;
   $('todayCount').textContent = todayAlertCount;
+  saveAlerts();
 }
 
 // ==================== DOM REFS ====================
@@ -1226,6 +1276,7 @@ function addFakeAlert(force) {
 
   todayAlertCount++;
   $('todayCount').textContent = todayAlertCount;
+  saveAlerts();
 
   renderAlertLog();
   if (type === 'missile') flashScreen();
@@ -1272,6 +1323,7 @@ async function tryFetchLiveAlerts() {
           });
           if (alertsLog.length > 50) alertsLog.length = 50;
           $('todayCount').textContent = todayAlertCount;
+          saveAlerts();
           renderAlertLog();
           recalculate();
           return;
