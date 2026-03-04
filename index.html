@@ -90,6 +90,25 @@ body {
   margin-right: auto;
   direction: ltr;
 }
+.connection-status {
+  display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-dim);
+}
+.conn-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #888; display: inline-block;
+  transition: background 0.3s;
+}
+.conn-dot.connected { background: #4caf50; box-shadow: 0 0 6px #4caf5088; }
+.conn-dot.disconnected { background: #f44336; box-shadow: 0 0 6px #f4433688; animation: pulse-red 1.5s infinite; }
+@keyframes pulse-red { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.conn-ago { font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.6; direction: ltr; }
+.conn-refresh {
+  background: none; border: 1px solid rgba(255,255,255,0.2); color: var(--text-dim);
+  border-radius: 4px; cursor: pointer; font-size: 0.85rem; padding: 2px 6px;
+  transition: all 0.2s;
+}
+.conn-refresh:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.conn-refresh.spinning { animation: spin-refresh 0.8s ease; }
+@keyframes spin-refresh { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* Settings */
 .settings-row {
@@ -576,10 +595,13 @@ body {
   .day-cell { padding: 8px 2px; font-size: 0.7rem; }
   .day-cell .day-val { font-size: 0.65rem; }
   .settings-row { grid-template-columns: 1fr; gap: 10px; }
-  .live-bar { justify-content: center; padding: 10px 12px; gap: 10px; }
+  .live-bar { justify-content: center; padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
   .live-indicator { font-size: 0.8rem; }
   .alert-count { font-size: 0.8rem; }
   .live-clock { font-size: 0.8rem; }
+  .connection-status { font-size: 0.65rem; gap: 4px; }
+  .conn-ago { font-size: 0.6rem; }
+  .conn-refresh { font-size: 0.75rem; padding: 1px 4px; }
   .hour-chart { height: 80px; gap: 2px; }
   .hour-label { font-size: 0.45rem; }
   .threat-grid { grid-template-columns: 1fr; }
@@ -661,6 +683,12 @@ body {
     </div>
     <div class="alert-count" id="alertCountDisplay">אזעקות היום: <span id="todayCount">0</span></div>
     <div class="live-clock" id="liveClock">00:00:00</div>
+    <div class="connection-status" id="connectionStatus">
+      <span class="conn-dot" id="connDot"></span>
+      <span class="conn-text" id="connText">מתחבר...</span>
+      <span class="conn-ago" id="connAgo"></span>
+      <button class="conn-refresh" id="connRefresh" title="רענן עכשיו">⟳</button>
+    </div>
   </div>
 
   <!-- Real-Time Status Banner -->
@@ -1151,7 +1179,7 @@ function loadAlerts() {
 
 // ==================== ALERTS PER DAY — פיקוד העורף בלבד ====================
 // מקור: פיקוד העורף (oref.org.il), hamal.co.il, ToI liveblogs
-var SEED_VERSION = 8;
+var SEED_VERSION = 9;
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: ToI liveblog Feb 28 + חיפושי חדשות
@@ -1239,7 +1267,10 @@ var ALERTS_BY_DAY = {
   '2026-03-05': [
     // פיקוד העורף — 5.3.2026 (חמישי, יום 6) — מקור: hamal.co.il + oref API
     { time: '00:00', areas: 'דוב"ב, יפתח, מלכיה, רמות נפתלי', type: 'uav', title: 'חדירת כלי טיס עוין' },
-    { time: '00:07', areas: 'מנרה, מרגליות, קריית שמונה, דוב"ב, יפתח, מלכיה, רמות נפתלי', type: 'uav', title: 'חדירת כלי טיס עוין — האירוע הסתיים' }
+    { time: '00:07', areas: 'מנרה, מרגליות, קריית שמונה, דוב"ב, יפתח, מלכיה, רמות נפתלי', type: 'uav', title: 'חדירת כלי טיס עוין — האירוע הסתיים' },
+    { time: '00:34', areas: 'אביבים', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '00:34', areas: 'יראון', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '00:43', areas: 'אביבים, יראון', type: 'uav', title: 'חדירת כלי טיס עוין — האירוע הסתיים' }
   ]
 };
 
@@ -2002,73 +2033,230 @@ function flashScreen() {
   setTimeout(function() { overlay.classList.remove('active'); }, 400);
 }
 
+// ==================== מערכת אזעקות בזמן אמת — משודרגת ====================
+
+// סטטוס חיבור
+var connectionState = {
+  connected: false,
+  lastSuccess: 0,
+  lastProxyIndex: -1,
+  failCount: 0,
+  pollInterval: 10000, // 10 שניות — ברירת מחדל
+  pollTimer: null
+};
+
+// רשימת CORS proxies — מסודרת לפי אמינות
+var OREF_URL = 'https://www.oref.org.il/WarningMessages/alert/alerts.json';
+var OREF_HISTORY_URL = 'https://www.oref.org.il/WarningMessages/alert/History/AlertsHistory.json';
+var CORS_PROXIES = [
+  function(u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+  function(u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); },
+  function(u) { return 'https://api.codetabs.com/v1/proxy?quest=' + u; },
+  function(u) { return 'https://cors-anywhere.herokuapp.com/' + u; },
+  function(u) { return 'https://thingproxy.freeboard.io/fetch/' + u; },
+  function(u) { return 'https://api.cors.lol/?url=' + encodeURIComponent(u); }
+];
+
+function updateConnectionUI(connected, proxyName) {
+  var dot = $('connDot');
+  var text = $('connText');
+  connectionState.connected = connected;
+  if (connected) {
+    dot.className = 'conn-dot connected';
+    text.textContent = 'מחובר לפיקוד העורף';
+    connectionState.lastSuccess = Date.now();
+  } else {
+    dot.className = 'conn-dot disconnected';
+    text.textContent = 'לא מחובר';
+  }
+}
+
+function updateConnectionAgo() {
+  var ago = $('connAgo');
+  if (!connectionState.lastSuccess) { ago.textContent = ''; return; }
+  var sec = Math.round((Date.now() - connectionState.lastSuccess) / 1000);
+  if (sec < 60) ago.textContent = sec + 's';
+  else ago.textContent = Math.round(sec / 60) + 'm';
+}
+
+// שליחה מקבילית — הראשון שעונה מנצח
+async function fetchWithProxies(targetUrl, timeout) {
+  timeout = timeout || 6000;
+  // אם יש proxy שהצליח אחרון — נסה אותו ראשון
+  var ordered = CORS_PROXIES.slice();
+  if (connectionState.lastProxyIndex >= 0 && connectionState.lastProxyIndex < ordered.length) {
+    var preferred = ordered.splice(connectionState.lastProxyIndex, 1)[0];
+    ordered.unshift(preferred);
+  }
+  // שלח לכולם במקביל
+  var promises = ordered.map(function(proxyFn, idx) {
+    var url = proxyFn(targetUrl);
+    return fetch(url, {
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(timeout)
+    }).then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text().then(function(text) {
+        if (!text || text.trim().length < 3) throw new Error('empty');
+        // שמור אינדקס ה-proxy שהצליח
+        var origIdx = CORS_PROXIES.indexOf(proxyFn);
+        return { text: text, proxyIndex: origIdx >= 0 ? origIdx : idx };
+      });
+    });
+  });
+
+  return Promise.any(promises);
+}
+
+function processOrefAlerts(alertsData) {
+  var alerts = Array.isArray(alertsData) ? alertsData : [alertsData];
+  if (alerts.length === 0 || !alerts[0].data) return false;
+
+  var newAlerts = false;
+  var todayStr = new Date().toISOString().split('T')[0];
+
+  alerts.forEach(function(a) {
+    // דלג על "האירוע הסתיים" (category 13)
+    var cat = parseInt(a.category || a.cat || '1');
+    if (cat === 13) return;
+
+    // זמן מלא מה-API
+    var fullDate = a.alertDate || '';
+    var timeStr;
+    if (fullDate) {
+      var parts = fullDate.split(' ');
+      timeStr = parts.length > 1 ? parts[1] : parts[0];
+    } else {
+      var now = new Date();
+      timeStr = String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
+      fullDate = todayStr + ' ' + timeStr;
+    }
+
+    // סוג מ-category וכותרת
+    var type = (cat === 2 || cat === 6) ? 'uav' : 'missile';
+    var area = a.data || 'אזור לא ידוע';
+    var title = a.title || '';
+
+    if (title.indexOf('כלי טיס') !== -1 || title.indexOf('חדירת') !== -1) type = 'uav';
+    if (title.indexOf('רקטות') !== -1 || title.indexOf('טילים') !== -1) type = 'missile';
+
+    // בדיקת כפילויות — השוואה לכל הלוג
+    var isDuplicate = alertsLog.some(function(existing) {
+      return existing.area === area && existing.time === timeStr;
+    });
+    if (!isDuplicate) {
+      alertsLog.unshift({
+        time: timeStr,
+        alertDate: fullDate,
+        area: area,
+        type: type,
+        title: title,
+        source: type === 'uav' ? 'lebanon' : 'iran',
+        live: true
+      });
+      todayAlertCount++;
+      newAlerts = true;
+
+      // שמירה דינמית ל-ALERTS_BY_DAY
+      var dateKey = fullDate.split(' ')[0];
+      saveDynamicAlert(dateKey, timeStr, area, type, title);
+    }
+  });
+
+  return newAlerts;
+}
+
+// שמירת אזעקה חדשה ל-localStorage היסטורי
+function saveDynamicAlert(dateKey, time, areas, type, title) {
+  try {
+    var stored = JSON.parse(localStorage.getItem('safetime_dynamic_alerts') || '{}');
+    if (!stored[dateKey]) stored[dateKey] = [];
+    var timeShort = time.substring(0, 5);
+    var exists = stored[dateKey].some(function(e) {
+      return e.time === timeShort && e.areas === areas;
+    });
+    if (!exists) {
+      stored[dateKey].push({ time: timeShort, areas: areas, type: type, title: title });
+      localStorage.setItem('safetime_dynamic_alerts', JSON.stringify(stored));
+    }
+  } catch(e) {}
+}
+
 async function tryFetchLiveAlerts() {
-  var orefUrl = 'https://www.oref.org.il/WarningMessages/alert/alerts.json';
-  var endpoints = [
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(orefUrl),
-    'https://corsproxy.io/?' + encodeURIComponent(orefUrl),
-    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(orefUrl)
-  ];
+  var btn = $('connRefresh');
+  if (btn) btn.classList.add('spinning');
 
-  for (var i = 0; i < endpoints.length; i++) {
+  try {
+    // ניסיון מקבילי לכל ה-proxies
+    var result = await fetchWithProxies(OREF_URL, 6000);
+    var parsed = JSON.parse(result.text);
+    connectionState.lastProxyIndex = result.proxyIndex;
+    connectionState.failCount = 0;
+    connectionState.pollInterval = 10000;
+    updateConnectionUI(true);
+
+    var newAlerts = processOrefAlerts(parsed);
+    if (newAlerts) {
+      flashScreen();
+      if (alertsLog.length > 200) alertsLog.length = 200;
+      $('todayCount').textContent = todayAlertCount;
+      saveAlerts();
+      renderAlertLog();
+      recalculate();
+    }
+  } catch (e) {
+    // כל ה-proxies נכשלו — נסה AlertsHistory כ-fallback
     try {
-      var res = await fetch(endpoints[i], {
-        headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(6000)
-      });
-      if (!res.ok) continue;
-      var text = await res.text();
-      if (!text || text.trim().length < 3) continue;
-      // oref API may return object or array
-      var parsed = JSON.parse(text);
-      var alerts = Array.isArray(parsed) ? parsed : [parsed];
-      if (alerts.length === 0 || !alerts[0].data) continue;
+      var histResult = await fetchWithProxies(OREF_HISTORY_URL, 8000);
+      var histParsed = JSON.parse(histResult.text);
+      connectionState.lastProxyIndex = histResult.proxyIndex;
+      connectionState.failCount = 0;
+      updateConnectionUI(true);
 
-      var newAlerts = false;
-      alerts.forEach(function(a) {
-        // זמן מה-API (alertDate: "2026-03-04 22:32:00") או זמן נוכחי כ-fallback
-        var timeStr;
-        if (a.alertDate) {
-          var parts = a.alertDate.split(' ');
-          timeStr = parts.length > 1 ? parts[1] : parts[0];
-        } else {
-          var now = new Date();
-          timeStr = String(now.getHours()).padStart(2, '0') + ':' +
-                    String(now.getMinutes()).padStart(2, '0') + ':' +
-                    String(now.getSeconds()).padStart(2, '0');
-        }
-        // סוג: category 1=טילים/רקטות, 6=כטב"מ/חדירת כלי טיס
-        var cat = parseInt(a.category || a.cat || '1');
-        var type = (cat === 6) ? 'uav' : 'missile';
-        var area = a.data || a.title || 'אזור לא ידוע';
-        var source = 'unknown';
-        // ניחוש מקור לפי כותרת
-        if (a.title) {
-          if (a.title.indexOf('כלי טיס') !== -1 || a.title.indexOf('חדירת') !== -1) { type = 'uav'; }
-          if (a.title.indexOf('רקטות') !== -1 || a.title.indexOf('טילים') !== -1) { type = 'missile'; }
-        }
-        // בדיקת כפילויות — השוואה לכל הלוג (לא רק הראשון)
-        var isDuplicate = alertsLog.some(function(existing) {
-          return existing.area === area && existing.time === timeStr;
-        });
-        if (!isDuplicate) {
-          alertsLog.unshift({ time: timeStr, area: area, type: type, source: source, live: true });
-          todayAlertCount++;
-          newAlerts = true;
-        }
-      });
-
+      var newAlerts = processOrefAlerts(histParsed);
       if (newAlerts) {
         flashScreen();
-        if (alertsLog.length > 50) alertsLog.length = 50;
+        if (alertsLog.length > 200) alertsLog.length = 200;
         $('todayCount').textContent = todayAlertCount;
         saveAlerts();
         renderAlertLog();
         recalculate();
       }
-      return;
-    } catch (e) { /* try next endpoint */ }
+    } catch (e2) {
+      // גם ה-fallback נכשל
+      connectionState.failCount++;
+      updateConnectionUI(false);
+      // Exponential backoff: 10s → 20s → 40s → 60s max
+      connectionState.pollInterval = Math.min(60000, 10000 * Math.pow(2, connectionState.failCount - 1));
+    }
   }
+
+  if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
+  scheduleNextPoll();
+}
+
+function scheduleNextPoll() {
+  if (connectionState.pollTimer) clearTimeout(connectionState.pollTimer);
+  connectionState.pollTimer = setTimeout(tryFetchLiveAlerts, connectionState.pollInterval);
+}
+
+// ייצוא נתונים כ-JSON
+function exportAlertData() {
+  var data = {
+    exportDate: new Date().toISOString(),
+    todayAlertCount: todayAlertCount,
+    alertsLog: alertsLog,
+    dynamicAlerts: JSON.parse(localStorage.getItem('safetime_dynamic_alerts') || '{}')
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'safetime-alerts-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ==================== CLOCK ====================
@@ -2135,8 +2323,9 @@ function init() {
   renderAlertLog();
 
   setInterval(updateClock, 1000);
-  // אזעקות בזמן אמת מפיקוד העורף בלבד (ללא סימולציה)
-  setInterval(tryFetchLiveAlerts, 15000);
+  setInterval(updateConnectionAgo, 5000);
+  // אזעקות בזמן אמת מפיקוד העורף — polling מהיר עם backoff
+  tryFetchLiveAlerts(); // מפעיל scheduleNextPoll אוטומטית
   setInterval(function() {
     updateRealtimeGauge();
     updateRealtimeStatus();
@@ -2146,7 +2335,10 @@ function init() {
     recalculate();
   }, 60000);
 
-  tryFetchLiveAlerts();
+  // כפתור רענון ידני
+  $('connRefresh').addEventListener('click', function() {
+    tryFetchLiveAlerts();
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);
