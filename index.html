@@ -1117,11 +1117,10 @@ function loadAlerts() {
 }
 
 // ==================== SEED TODAY'S ALERTS ====================
-// Based on actual data: March 4, 2026 (Day 5) has ~15-25 alerts throughout the day
-// Sirens activated in Jerusalem, Tel Aviv, Haifa, Eilat, central Israel
-// Sources: IDF Spokesperson, Al Jazeera Day 5 summary, ToI liveblog March 4
-// Real alerts reported today: 2 barrages intercepted over Jerusalem+TLV (morning),
-// launches from Lebanon intercepted over central Israel, sirens in Eilat+Haifa
+// Based on actual data: March 4, 2026 (Day 5)
+// Sources: פיקוד העורף (oref.org.il), IDF Spokesperson, ToI liveblog March 4
+// Includes verified alerts from Pikud HaOref alert history
+var SEED_VERSION = 3; // increment when seed data changes to force refresh
 var TODAY_SEED_ALERTS = [
   { time: '01:12', area: 'אילת', type: 'missile' },
   { time: '01:12', area: 'ערבה', type: 'missile' },
@@ -1160,37 +1159,90 @@ var TODAY_SEED_ALERTS = [
   { time: '19:15', area: 'תל אביב - מזרח', type: 'missile' },
   { time: '19:16', area: 'פתח תקווה', type: 'missile' },
   { time: '19:16', area: 'ראש העין', type: 'missile' },
+  // פיקוד העורף — חדירת כטב"מ 19:21
+  { time: '19:21', area: 'שומרה', type: 'uav', source: 'lebanon' },
+  { time: '19:21', area: 'זרעית', type: 'uav', source: 'lebanon' },
+  { time: '19:21', area: 'גורנות הגליל', type: 'uav', source: 'lebanon' },
+  { time: '19:21', area: 'גורן', type: 'uav', source: 'lebanon' },
+  // פיקוד העורף — חדירת כטב"מ 19:43-19:49
+  { time: '19:43', area: 'שדה אליעזר', type: 'uav', source: 'lebanon' },
+  { time: '19:43', area: 'רמות נפתלי', type: 'uav', source: 'lebanon' },
+  { time: '19:43', area: 'מרכז אזורי מבואות חרמון', type: 'uav', source: 'lebanon' },
+  { time: '19:43', area: 'יפתח', type: 'uav', source: 'lebanon' },
+  { time: '19:43', area: 'יסוד המעלה', type: 'uav', source: 'lebanon' },
+  { time: '19:43', area: 'חולתה', type: 'uav', source: 'lebanon' },
+  { time: '19:43', area: 'לב החולה', type: 'uav', source: 'lebanon' },
+  // פיקוד העורף — חדירת כטב"מ + רקטות 19:56
+  { time: '19:56', area: 'מלכיה', type: 'uav', source: 'lebanon' },
+  { time: '19:56', area: 'דוב"ב', type: 'uav', source: 'lebanon' },
+  { time: '19:56', area: 'רמות נפתלי', type: 'uav', source: 'lebanon' },
+  { time: '19:56', area: 'לב החולה', type: 'uav', source: 'lebanon' },
+  { time: '19:56', area: 'מרכז אזורי מבואות חרמון', type: 'uav', source: 'lebanon' },
+  { time: '19:56', area: 'יפתח', type: 'rocket', source: 'lebanon' },
+  // פיקוד העורף — כטב"מ + רקטות 20:29-20:31
+  { time: '20:29', area: 'שאר ישוב', type: 'uav', source: 'lebanon' },
+  { time: '20:29', area: 'שניר', type: 'rocket', source: 'lebanon' },
+  { time: '20:30', area: 'עין קנייא', type: 'uav', source: 'lebanon' },
+  { time: '20:31', area: 'מטולה', type: 'rocket', source: 'lebanon' },
   { time: '20:45', area: 'חיפה - מפרץ', type: 'uav' },
   { time: '20:45', area: 'עכו', type: 'uav' },
   { time: '21:30', area: 'תל אביב - מערב', type: 'missile' },
   { time: '21:30', area: 'הרצליה', type: 'missile' },
   { time: '22:10', area: 'אילת', type: 'missile' },
+  // פיקוד העורף — חדירת כטב"מ 22:31-22:33
+  { time: '22:31', area: 'שאר ישוב', type: 'uav', source: 'lebanon' },
+  { time: '22:31', area: 'קיבוץ דן', type: 'uav', source: 'lebanon' },
+  { time: '22:31', area: 'הגושרים', type: 'uav', source: 'lebanon' },
+  { time: '22:31', area: 'דפנה', type: 'uav', source: 'lebanon' },
+  { time: '22:31', area: 'בית הלל', type: 'uav', source: 'lebanon' },
+  { time: '22:32', area: 'שדה נחמיה', type: 'uav', source: 'lebanon' },
+  { time: '22:32', area: 'שעל', type: 'uav', source: 'lebanon' },
+  { time: '22:32', area: 'רמת טראמפ', type: 'uav', source: 'lebanon' },
+  { time: '22:32', area: 'קלע אלון', type: 'uav', source: 'lebanon' },
+  { time: '22:32', area: 'כפר סאלד', type: 'uav', source: 'lebanon' },
+  { time: '22:32', area: 'קריית שמונה', type: 'uav', source: 'lebanon' },
+  { time: '22:33', area: 'נאות מרדכי', type: 'uav', source: 'lebanon' },
+  { time: '22:33', area: 'עמיר', type: 'uav', source: 'lebanon' },
+  { time: '22:33', area: 'כפר בלום', type: 'uav', source: 'lebanon' },
   { time: '23:05', area: 'גדרה', type: 'missile' },
   { time: '23:05', area: 'יבנה', type: 'missile' }
 ];
 
 function seedTodayAlerts() {
-  // Try loading persisted alerts first
-  if (loadAlerts()) {
-    // Restore seed alerts into the log display (without changing the count!)
-    // The count already includes these from before the refresh
+  // בדיקת גרסת seed — אם השתנתה, מאפסים localStorage
+  var storedVersion = 0;
+  try { storedVersion = parseInt(localStorage.getItem('safetime_seed_version') || '0'); } catch(e) {}
+  if (storedVersion < SEED_VERSION) {
+    // seed data עודכן — מאפסים הכל
+    try {
+      localStorage.removeItem('safetime_alerts');
+      localStorage.removeItem('safetime_count');
+      localStorage.setItem('safetime_seed_version', String(SEED_VERSION));
+    } catch(e) {}
+    alertsLog = [];
+    todayAlertCount = 0;
+  }
+
+  // טעינת נתונים שמורים
+  if (loadAlerts() && alertsLog.length > 0) {
+    // מיזוג seed חדשים שלא קיימים עדיין
     var now = new Date();
     var currentTimeStr = String(now.getHours()).padStart(2, '0') + ':' +
                          String(now.getMinutes()).padStart(2, '0');
     var seeded = TODAY_SEED_ALERTS.filter(function(a) {
       return a.time <= currentTimeStr;
     });
-    // Only add to log for display — do NOT increment todayAlertCount
-    // because these alerts were already counted before the refresh
+    var added = 0;
     seeded.forEach(function(a) {
       var exists = alertsLog.some(function(stored) {
         return stored.time === a.time && stored.area === a.area;
       });
       if (!exists) {
-        alertsLog.push({ time: a.time, area: a.area, type: a.type });
+        alertsLog.push({ time: a.time, area: a.area, type: a.type, source: a.source || 'unknown' });
+        added++;
       }
     });
-    // Sort: newest first
+    if (added > 0) todayAlertCount += added;
     alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
     if (alertsLog.length > 50) alertsLog.length = 50;
     $('todayCount').textContent = todayAlertCount;
@@ -1198,19 +1250,21 @@ function seedTodayAlerts() {
     return;
   }
 
-  // No stored data — seed from scratch
+  // אין נתונים שמורים — seed מאפס
   var now = new Date();
   var currentTimeStr = String(now.getHours()).padStart(2, '0') + ':' +
                        String(now.getMinutes()).padStart(2, '0');
   var seeded = TODAY_SEED_ALERTS.filter(function(a) {
     return a.time <= currentTimeStr;
   });
-  seeded.reverse().forEach(function(a) {
-    alertsLog.push({ time: a.time, area: a.area, type: a.type });
+  seeded.forEach(function(a) {
+    alertsLog.push({ time: a.time, area: a.area, type: a.type, source: a.source || 'unknown' });
   });
+  alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
   todayAlertCount = seeded.length;
   if (alertsLog.length > 50) alertsLog.length = 50;
   $('todayCount').textContent = todayAlertCount;
+  try { localStorage.setItem('safetime_seed_version', String(SEED_VERSION)); } catch(e) {}
   saveAlerts();
 }
 
