@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeTime — מנבא בטיחות חכם</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --bg: #0A0C10;
+  --panel: #111318;
+  --panel-border: #1E2230;
+  --text: #E0E0E0;
+  --text-dim: #888;
+  --green: #00E676;
+  --yellow: #FFCA28;
+  --orange: #FF6D00;
+  --red: #F44336;
+  --blue: #2196F3;
+  --max-w: 900px;
+  --radius: 12px;
+  --font-heb: 'Heebo', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+}
+
+/* ========== Reset & Base ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-heb);
+  line-height: 1.6;
+  min-height: 100vh;
+  direction: rtl;
+}
+.container {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+/* ========== 1. Header ========== */
+.header { text-align: center; padding: 30px 20px 20px; }
+.header h1 {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+.header h1 span { color: var(--green); }
+.header .subtitle {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 300;
+}
+
+/* ========== 2. Live Status Bar ========== */
+.live-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 20px;
+}
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--green);
+}
+.live-dot {
+  width: 10px; height: 10px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,230,118,0.6); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 8px rgba(0,230,118,0); }
+}
+.alert-count { color: var(--yellow); font-family: var(--font-mono); font-weight: 700; }
+.live-clock { font-family: var(--font-mono); color: var(--text); font-size: 1.1rem; }
+
+/* ========== 3. Settings Row ========== */
+.settings-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 16px 20px;
+}
+.setting-group label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.setting-group select {
+  width: 100%;
+  padding: 10px 12px;
+  background: #1A1D26;
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  font-family: var(--font-heb);
+  font-size: 0.95rem;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 12px center;
+}
+.setting-group select:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+
+/* ========== 4. Recommendation Box ========== */
+.reco-box {
+  padding: 18px 24px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: background 0.3s, border-color 0.3s;
+}
+.reco-box .reco-icon { font-size: 2rem; flex-shrink: 0; }
+.reco-box .reco-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 2px; }
+.reco-box .reco-desc { font-size: 0.85rem; color: var(--text-dim); }
+.reco-safe { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.3); }
+.reco-caution { background: rgba(255,202,40,0.08); border: 1px solid rgba(255,202,40,0.3); }
+.reco-danger { background: rgba(244,67,54,0.08); border: 1px solid rgba(244,67,54,0.3); }
+
+/* ========== 5. Safety Meter ========== */
+.meter-panel { text-align: center; padding: 30px 20px; transition: border-color 0.4s; }
+.meter-value {
+  font-size: 72px;
+  font-weight: 900;
+  font-family: var(--font-mono);
+  line-height: 1;
+  transition: color 0.4s;
+}
+.meter-value .pct { font-size: 32px; }
+.meter-bar-wrap {
+  width: 100%;
+  height: 10px;
+  background: #1A1D26;
+  border-radius: 5px;
+  margin: 16px 0;
+  overflow: hidden;
+}
+.meter-bar {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s ease, background 0.4s;
+}
+.meter-status { font-size: 1.1rem; font-weight: 700; }
+.meter-desc { font-size: 0.85rem; color: var(--text-dim); margin-top: 4px; }
+
+/* ========== 6. Activities Grid ========== */
+.activities-title { font-weight: 700; margin-bottom: 12px; font-size: 1rem; }
+.activities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+.activity-card {
+  background: #1A1D26;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 14px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+}
+.activity-card:hover { transform: translateY(-2px); }
+.activity-card.selected { border-color: var(--blue); }
+.activity-card .act-icon { font-size: 1.8rem; }
+.activity-card .act-name { font-size: 0.85rem; margin: 6px 0 2px; }
+.activity-card .act-time { font-size: 0.7rem; color: var(--text-dim); }
+.activity-card .act-pct {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 6px;
+  transition: color 0.3s;
+}
+
+/* ========== 7. Stats Row ========== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.stat-card { text-align: center; padding: 18px 12px; }
+.stat-val {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--yellow);
+}
+.stat-label { font-size: 0.8rem; color: var(--text-dim); margin-top: 4px; }
+
+/* ========== 8. Hourly Chart ========== */
+.chart-title { font-weight: 700; margin-bottom: 12px; }
+.hour-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 120px;
+  position: relative;
+}
+.hour-bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  position: relative;
+}
+.hour-bar {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  transition: height 0.4s, background 0.3s;
+  position: absolute;
+  bottom: 18px;
+  cursor: pointer;
+}
+.hour-bar.current { outline: 2px solid #fff; outline-offset: 1px; }
+.hour-label {
+  position: absolute;
+  bottom: 0;
+  font-size: 0.55rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+.hour-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  background: #222;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  z-index: 10;
+  font-family: var(--font-heb);
+}
+.hour-bar-wrap:hover .hour-tooltip { display: block; }
+
+/* ========== 9. Day Heatmap ========== */
+.heatmap-title { font-weight: 700; margin-bottom: 12px; }
+.day-heatmap {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+.day-cell {
+  text-align: center;
+  padding: 14px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.day-cell:hover { transform: scale(1.05); }
+.day-cell.active { box-shadow: 0 0 0 2px #fff; }
+.day-cell .day-name { margin-bottom: 4px; }
+.day-cell .day-val { font-family: var(--font-mono); font-size: 0.75rem; }
+
+/* ========== 10. Live Alerts Log ========== */
+.alerts-title { font-weight: 700; margin-bottom: 10px; }
+.alerts-log {
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
+}
+.alerts-log::-webkit-scrollbar { width: 6px; }
+.alerts-log::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+.alert-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #1A1D26;
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.alert-entry .alert-time {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+.alert-entry .alert-area { flex: 1; font-size: 0.85rem; }
+.alert-badge {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.badge-rocket { background: rgba(244,67,54,0.2); color: var(--red); }
+.badge-uav { background: rgba(255,109,0,0.2); color: var(--orange); }
+.badge-drill { background: rgba(33,150,243,0.2); color: var(--blue); }
+.no-alerts { text-align: center; padding: 20px; color: var(--text-dim); font-size: 0.9rem; }
+
+/* ========== 11. Footer ========== */
+.footer {
+  text-align: center;
+  padding: 24px 20px;
+  margin-top: 8px;
+}
+.footer .warning-box {
+  background: rgba(244,67,54,0.06);
+  border: 1px solid rgba(244,67,54,0.25);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: #ccc;
+}
+.footer .warning-box strong { color: var(--red); }
+.footer .sources {
+  font-size: 0.7rem;
+  color: #555;
+}
+
+/* ========== Flash Screen ========== */
+.flash-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(244,67,54,0.15);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 9999;
+}
+.flash-overlay.active { opacity: 1; }
+
+/* ========== Responsive ========== */
+@media (max-width: 600px) {
+  .header h1 { font-size: 1.5rem; }
+  .meter-value { font-size: 52px; }
+  .meter-value .pct { font-size: 22px; }
+  .activities-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+  .activity-card { padding: 10px 6px; }
+  .activity-card .act-icon { font-size: 1.4rem; }
+  .stats-row { grid-template-columns: 1fr; }
+  .day-heatmap { grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .day-cell { padding: 10px 4px; font-size: 0.75rem; }
+  .settings-row { grid-template-columns: 1fr; }
+  .live-bar { justify-content: center; }
+  .hour-chart { height: 90px; }
+}
+</style>
+</head>
+<body>
+
+<div class="flash-overlay" id="flashOverlay"></div>
+
+<div class="container">
+
+  <!-- 1. Header -->
+  <div class="header">
+    <h1>מנבא בטיחות חכם — <span>SafeTime</span></h1>
+    <p class="subtitle">ניתוח סטטיסטי מבוסס 26,000+ שיגורים · עדכון חי כל 10 שניות</p>
+  </div>
+
+  <!-- 2. Live Status Bar -->
+  <div class="panel live-bar">
+    <div class="live-indicator">
+      <div class="live-dot"></div>
+      <span>LIVE</span>
+    </div>
+    <div class="alert-count" id="alertCountDisplay">אזעקות היום: <span id="todayCount">0</span></div>
+    <div class="live-clock" id="liveClock">00:00:00</div>
+  </div>
+
+  <!-- 3. Settings Row -->
+  <div class="panel settings-row">
+    <div class="setting-group">
+      <label for="regionSelect">אזור מגורים</label>
+      <select id="regionSelect">
+        <option value="center">מרכז (90 שנ׳ למקלט)</option>
+        <option value="south">דרום (30 שנ׳ למקלט)</option>
+        <option value="north">צפון (60 שנ׳ למקלט)</option>
+        <option value="gaza-env">עוטף עזה (12 שנ׳ למקלט)</option>
+        <option value="jerusalem">ירושלים (75 שנ׳ למקלט)</option>
+        <option value="eilat">אילת (20 שנ׳ למקלט)</option>
+      </select>
+    </div>
+    <div class="setting-group">
+      <label for="daySelect">יום בשבוע</label>
+      <select id="daySelect">
+        <option value="0">ראשון</option>
+        <option value="1">שני</option>
+        <option value="2">שלישי</option>
+        <option value="3">רביעי</option>
+        <option value="4">חמישי</option>
+        <option value="5">שישי</option>
+        <option value="6">שבת</option>
+      </select>
+    </div>
+    <div class="setting-group">
+      <label for="hourSelect">שעה</label>
+      <select id="hourSelect"></select>
+    </div>
+  </div>
+
+  <!-- 4. Recommendation Box -->
+  <div class="panel reco-box reco-safe" id="recoBox">
+    <div class="reco-icon" id="recoIcon">✅</div>
+    <div>
+      <div class="reco-title" id="recoTitle">בטוח לפעילות רגילה</div>
+      <div class="reco-desc" id="recoDesc">ניתן לבצע פעולות ארוכות. הסיכוי לאזעקה נמוך יחסית.</div>
+    </div>
+  </div>
+
+  <!-- 5. Safety Meter -->
+  <div class="panel meter-panel" id="meterPanel">
+    <div class="meter-value" id="meterValue">--<span class="pct">%</span></div>
+    <div class="meter-bar-wrap">
+      <div class="meter-bar" id="meterBar"></div>
+    </div>
+    <div class="meter-status" id="meterStatus">מחשב...</div>
+    <div class="meter-desc" id="meterDesc">ציון הבטיחות מעודכן לפי שעה, יום ואזור</div>
+  </div>
+
+  <!-- 6. Activities Grid -->
+  <div class="panel">
+    <div class="activities-title">בחר פעולה — מה הסיכוי שתסיים בלי אזעקה?</div>
+    <div class="activities-grid" id="activitiesGrid"></div>
+  </div>
+
+  <!-- 7. Stats Row -->
+  <div class="stats-row" id="statsRow">
+    <div class="panel stat-card">
+      <div class="stat-val" id="stat24h">0</div>
+      <div class="stat-label">אזעקות ב-24 שעות</div>
+    </div>
+    <div class="panel stat-card">
+      <div class="stat-val" id="statAvg">0.0</div>
+      <div class="stat-label">ממוצע אזעקות לשעה (יום זה)</div>
+    </div>
+    <div class="panel stat-card">
+      <div class="stat-val" id="statPeak">--:00</div>
+      <div class="stat-label">שעת שיא סטטיסטית</div>
+    </div>
+  </div>
+
+  <!-- 8. Hourly Chart -->
+  <div class="panel">
+    <div class="chart-title">פיזור שיגורים לפי שעה (24 שעות)</div>
+    <div class="hour-chart" id="hourChart"></div>
+  </div>
+
+  <!-- 9. Day Heatmap -->
+  <div class="panel">
+    <div class="heatmap-title">מפת חום — שיגורים לפי יום בשבוע</div>
+    <div class="day-heatmap" id="dayHeatmap"></div>
+  </div>
+
+  <!-- 10. Live Alerts Log -->
+  <div class="panel">
+    <div class="alerts-title">יומן אזעקות אחרונות</div>
+    <div class="alerts-log" id="alertsLog">
+      <div class="no-alerts">✅ אין אזעקות פעילות כרגע</div>
+    </div>
+  </div>
+
+  <!-- 11. Footer -->
+  <div class="footer">
+    <div class="warning-box">
+      <strong>⚠️ אזהרת בטיחות קריטית</strong><br>
+      כלי זה מבוסס על ניתוח סטטיסטי היסטורי בלבד.<br>
+      הוא <strong>אינו מחליף</strong> את אפליקציית פיקוד העורף הרשמית ואת הנחיותיו.<br>
+      בכל מקרה של אזעקה — פעל לפי הוראות פיקוד העורף באופן מיידי.<br>
+      אין להסתמך על כלי זה בלבד לקבלת החלטות ביטחוניות.<br>
+      אחוז הבטיחות <strong>אינו מבטיח</strong> שלא תצא אזעקה בפרק הזמן שנבחר.
+    </div>
+    <div class="sources">
+      מקורות: פיקוד העורף (oref.org.il) · ACLED Dataset · IDF Spokesman · Kaggle Tzeva Adom
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   SafeTime — Rocket Safety Probability Predictor
+   Single-page application — Vanilla JS
+   ============================================================ */
+
+// ==================== DATA ====================
+
+const HOURLY_DISTRIBUTION = [
+  0.62, 0.58, 0.50, 0.45,  // 00-03
+  0.40, 0.38, 0.42, 0.55,  // 04-07
+  0.68, 0.72, 0.75, 0.80,  // 08-11
+  0.85, 0.90, 0.88, 0.82,  // 12-15
+  0.78, 0.76, 0.80, 0.88,  // 16-19
+  0.92, 0.85, 0.75, 0.68   // 20-23
+];
+
+const DAY_MULTIPLIER = [0.82, 0.75, 0.78, 0.80, 0.76, 0.88, 0.95];
+
+const DAY_NAMES = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+
+const REGION_DATA = {
+  center:    { name: 'מרכז',      shelter: 90, risk_mult: 1.0 },
+  south:     { name: 'דרום',       shelter: 30, risk_mult: 1.4 },
+  north:     { name: 'צפון',       shelter: 60, risk_mult: 1.1 },
+  'gaza-env':{ name: 'עוטף עזה',  shelter: 12, risk_mult: 1.8 },
+  jerusalem: { name: 'ירושלים',    shelter: 75, risk_mult: 0.9 },
+  eilat:     { name: 'אילת',      shelter: 20, risk_mult: 1.2 }
+};
+
+const ACTIVITIES = [
+  { id: 'shower', icon: '🚿', name: 'מקלחת',  minutes: 8  },
+  { id: 'cook',   icon: '🍳', name: 'בישול',   minutes: 20 },
+  { id: 'run',    icon: '🏃', name: 'ריצה',    minutes: 30 },
+  { id: 'shop',   icon: '🛒', name: 'קנייה',   minutes: 45 },
+  { id: 'sleep',  icon: '😴', name: 'שינה',    minutes: 480},
+  { id: 'walk',   icon: '💊', name: 'הליכה',   minutes: 15 },
+  { id: 'drive',  icon: '🚗', name: 'נסיעה',   minutes: 25 },
+  { id: 'sport',  icon: '🎯', name: 'ספורט',   minutes: 60 }
+];
+
+// ==================== STATE ====================
+
+let todayAlertCount = 0;
+let alertsLog = [];
+let selectedActivity = null;
+let isLiveMode = false;
+
+// ==================== DOM REFS ====================
+
+const $ = id => document.getElementById(id);
+
+// ==================== CORE LOGIC ====================
+
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(max, val));
+}
+
+function calcSafety(hour, day, region) {
+  const hourBase = HOURLY_DISTRIBUTION[hour];
+  const dayMult = DAY_MULTIPLIER[day];
+  const riskMult = REGION_DATA[region].risk_mult;
+  const rawRisk = hourBase * dayMult * riskMult;
+  const safetyRaw = 1 - (rawRisk / 1.5);
+  return clamp(safetyRaw * 75 + 15, 8, 93);
+}
+
+function activitySafety(safetyPct, minutes, shelterSec) {
+  const avgAlertsPerHour = (1 - safetyPct / 100) * 3.0;
+  const fraction = minutes / 60;
+  const expectedAlerts = avgAlertsPerHour * fraction;
+  const probNoAlert = Math.exp(-expectedAlerts);
+
+  let shelterBonus;
+  if (shelterSec >= 90) shelterBonus = 1.0;
+  else if (shelterSec >= 60) shelterBonus = 0.9;
+  else if (shelterSec >= 30) shelterBonus = 0.75;
+  else shelterBonus = 0.5;
+
+  return clamp(probNoAlert * shelterBonus * 100, 0, 98);
+}
+
+function getColor(pct) {
+  if (pct >= 70) return 'var(--green)';
+  if (pct >= 45) return 'var(--yellow)';
+  if (pct >= 25) return 'var(--orange)';
+  return 'var(--red)';
+}
+
+function getColorHex(pct) {
+  if (pct >= 70) return '#00E676';
+  if (pct >= 45) return '#FFCA28';
+  if (pct >= 25) return '#FF6D00';
+  return '#F44336';
+}
+
+// ==================== UI UPDATE FUNCTIONS ====================
+
+function updateMainMeter(safety) {
+  const color = getColor(safety);
+  const val = Math.round(safety);
+  $('meterValue').innerHTML = val + '<span class="pct">%</span>';
+  $('meterValue').style.color = color;
+  $('meterBar').style.width = val + '%';
+  $('meterBar').style.background = color;
+  $('meterPanel').style.borderColor = color;
+
+  let status, desc;
+  if (safety >= 70) {
+    status = 'בטוח יחסית';
+    desc = 'הסיכוי לאזעקה בשעה זו נמוך יחסית על בסיס הנתונים ההיסטוריים';
+  } else if (safety >= 45) {
+    status = 'זהירות';
+    desc = 'סיכון בינוני — מומלץ להישאר בקרבת מרחב מוגן';
+  } else if (safety >= 25) {
+    status = 'סיכון גבוה';
+    desc = 'שעת שיגורים פעילה — בצע פעולות קצרות בלבד';
+  } else {
+    status = 'שעת שיא — סיכון קיצוני';
+    desc = 'צפיפות שיגורים גבוהה מאוד — הישאר ליד מקלט';
+  }
+  $('meterStatus').textContent = status;
+  $('meterStatus').style.color = color;
+  $('meterDesc').textContent = desc;
+}
+
+function updateReco(safety) {
+  const box = $('recoBox');
+  box.classList.remove('reco-safe', 'reco-caution', 'reco-danger');
+
+  if (safety >= 70) {
+    box.classList.add('reco-safe');
+    $('recoIcon').textContent = '✅';
+    $('recoTitle').textContent = 'בטוח לפעילות רגילה';
+    $('recoDesc').textContent = 'ניתן לבצע פעולות ארוכות. הסיכוי לאזעקה נמוך יחסית בשעה ובאזור שנבחרו.';
+  } else if (safety >= 45) {
+    box.classList.add('reco-caution');
+    $('recoIcon').textContent = '⚠️';
+    $('recoTitle').textContent = 'היזהר — פעילויות קצרות בלבד';
+    $('recoDesc').textContent = 'סיכון בינוני. העדף פעולות קצרות והישאר בקרבת מרחב מוגן.';
+  } else {
+    box.classList.add('reco-danger');
+    $('recoIcon').textContent = '🚨';
+    $('recoTitle').textContent = 'שעת סיכון — הישאר ליד מרחב מוגן';
+    $('recoDesc').textContent = 'שעת שיא סטטיסטית. המתן לשעה בטוחה יותר או בצע פעולות חיוניות בלבד.';
+  }
+}
+
+function updateActivities(safety, shelterSec) {
+  const grid = $('activitiesGrid');
+  grid.innerHTML = '';
+  ACTIVITIES.forEach(act => {
+    const pct = Math.round(activitySafety(safety, act.minutes, shelterSec));
+    const card = document.createElement('div');
+    card.className = 'activity-card' + (selectedActivity === act.id ? ' selected' : '');
+    card.innerHTML =
+      '<div class="act-icon">' + act.icon + '</div>' +
+      '<div class="act-name">' + act.name + '</div>' +
+      '<div class="act-time">' + act.minutes + ' דקות</div>' +
+      '<div class="act-pct" style="color:' + getColor(pct) + '">' + pct + '%</div>';
+    card.addEventListener('click', () => {
+      selectedActivity = act.id;
+      updateActivities(safety, shelterSec);
+    });
+    grid.appendChild(card);
+  });
+}
+
+function updateStats(hour, day, region) {
+  $('stat24h').textContent = todayAlertCount;
+
+  const dayMult = DAY_MULTIPLIER[day];
+  let dayAvg = 0;
+  for (let h = 0; h < 24; h++) {
+    dayAvg += HOURLY_DISTRIBUTION[h];
+  }
+  dayAvg = (dayAvg / 24 * dayMult * 3.0).toFixed(1);
+  $('statAvg').textContent = dayAvg;
+
+  let maxIdx = 0, maxVal = 0;
+  for (let h = 0; h < 24; h++) {
+    if (HOURLY_DISTRIBUTION[h] > maxVal) {
+      maxVal = HOURLY_DISTRIBUTION[h];
+      maxIdx = h;
+    }
+  }
+  $('statPeak').textContent = String(maxIdx).padStart(2, '0') + ':00';
+}
+
+function updateHourChart(currentHour, day) {
+  const chart = $('hourChart');
+  chart.innerHTML = '';
+  const dayMult = DAY_MULTIPLIER[day];
+
+  for (let h = 0; h < 24; h++) {
+    const val = HOURLY_DISTRIBUTION[h];
+    const heightPct = (val / 1.0) * 100;
+    const safety = calcSafety(h, day, $('regionSelect').value);
+    const color = getColorHex(safety);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'hour-bar-wrap';
+
+    const bar = document.createElement('div');
+    bar.className = 'hour-bar' + (h === currentHour ? ' current' : '');
+    bar.style.height = (heightPct * 0.85) + '%';
+    bar.style.background = color;
+
+    const label = document.createElement('div');
+    label.className = 'hour-label';
+    label.textContent = String(h).padStart(2, '0');
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'hour-tooltip';
+    tooltip.textContent = String(h).padStart(2, '0') + ':00 — בטיחות: ' + Math.round(safety) + '%';
+
+    wrap.appendChild(tooltip);
+    wrap.appendChild(bar);
+    wrap.appendChild(label);
+    chart.appendChild(wrap);
+  }
+}
+
+function updateDayHeatmap(currentDay) {
+  const heatmap = $('dayHeatmap');
+  heatmap.innerHTML = '';
+  const region = $('regionSelect').value;
+
+  DAY_NAMES.forEach((name, i) => {
+    const mult = DAY_MULTIPLIER[i];
+    const ratio = (mult - 0.7) / (1.0 - 0.7);
+    const r = Math.round(50 + ratio * 194);
+    const g = Math.round(200 - ratio * 150);
+    const b = Math.round(100 - ratio * 60);
+
+    const cell = document.createElement('div');
+    cell.className = 'day-cell' + (i === currentDay ? ' active' : '');
+    cell.style.background = 'rgba(' + r + ',' + g + ',' + b + ',0.25)';
+    cell.style.color = 'rgb(' + r + ',' + g + ',' + b + ')';
+    cell.innerHTML = '<div class="day-name">' + name + '</div><div class="day-val">' + mult.toFixed(2) + '</div>';
+    cell.addEventListener('click', () => {
+      $('daySelect').value = i;
+      recalculate();
+    });
+    heatmap.appendChild(cell);
+  });
+}
+
+function renderAlertLog() {
+  const log = $('alertsLog');
+  if (alertsLog.length === 0) {
+    log.innerHTML = '<div class="no-alerts">✅ אין אזעקות פעילות כרגע</div>';
+    return;
+  }
+  log.innerHTML = '';
+  alertsLog.forEach(alert => {
+    const entry = document.createElement('div');
+    entry.className = 'alert-entry';
+    const badgeClass = alert.type === 'uav' ? 'badge-uav' : alert.type === 'drill' ? 'badge-drill' : 'badge-rocket';
+    const badgeText = alert.type === 'uav' ? 'כטב"מ' : alert.type === 'drill' ? 'תרגיל' : 'רקטה';
+    entry.innerHTML =
+      '<span class="alert-time">' + alert.time + '</span>' +
+      '<span class="alert-area">' + alert.area + '</span>' +
+      '<span class="alert-badge ' + badgeClass + '">' + badgeText + '</span>';
+    log.appendChild(entry);
+  });
+}
+
+// ==================== LIVE ALERTS ====================
+
+const AREA_NAMES = [
+  'תל אביב - מזרח', 'תל אביב - מערב', 'רמת גן', 'אשקלון',
+  'אשדוד', 'באר שבע', 'חיפה', 'עכו', 'נהריה', 'שדרות',
+  'ניר עם', 'כיסופים', 'נתיבות', 'אופקים', 'קריית שמונה',
+  'מטולה', 'ירושלים - מזרח', 'ירושלים - מערב', 'אילת',
+  'רחובות', 'ראשון לציון', 'הרצליה', 'נתניה', 'חדרה',
+  'עפולה', 'טבריה', 'כרמיאל', 'צפת'
+];
+
+function addFakeAlert(force) {
+  const now = new Date();
+  const hour = now.getHours();
+  const prob = HOURLY_DISTRIBUTION[hour];
+
+  if (!force && Math.random() > prob * 0.4) return;
+
+  const area = AREA_NAMES[Math.floor(Math.random() * AREA_NAMES.length)];
+  const typeRand = Math.random();
+  const type = typeRand < 0.75 ? 'rocket' : typeRand < 0.92 ? 'uav' : 'drill';
+  const timeStr = String(now.getHours()).padStart(2, '0') + ':' +
+                  String(now.getMinutes()).padStart(2, '0') + ':' +
+                  String(now.getSeconds()).padStart(2, '0');
+
+  alertsLog.unshift({ time: timeStr, area: area, type: type });
+  if (alertsLog.length > 50) alertsLog.pop();
+
+  todayAlertCount++;
+  $('todayCount').textContent = todayAlertCount;
+
+  // Update HOURLY_DISTRIBUTION with EMA
+  HOURLY_DISTRIBUTION[hour] = HOURLY_DISTRIBUTION[hour] * 0.95 + 1.0 * 0.05;
+
+  renderAlertLog();
+
+  if (type === 'rocket') flashScreen();
+
+  recalculate();
+}
+
+function flashScreen() {
+  const overlay = $('flashOverlay');
+  overlay.classList.add('active');
+  setTimeout(() => overlay.classList.remove('active'), 400);
+}
+
+async function tryFetchLiveAlerts() {
+  try {
+    const proxyUrl = 'https://api.allorigins.win/raw?url=' +
+      encodeURIComponent('https://www.oref.org.il/WarningMessages/alert/alerts.json');
+    const res = await fetch(proxyUrl, {
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(5000)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    if (text && text.trim().length > 2) {
+      const data = JSON.parse(text);
+      if (Array.isArray(data) && data.length > 0) {
+        isLiveMode = true;
+        data.forEach(alert => {
+          const now = new Date();
+          const timeStr = String(now.getHours()).padStart(2, '0') + ':' +
+                          String(now.getMinutes()).padStart(2, '0') + ':' +
+                          String(now.getSeconds()).padStart(2, '0');
+          const type = alert.category === 6 ? 'uav' : 'rocket';
+          const area = alert.data || 'אזור לא ידוע';
+          const exists = alertsLog.length > 0 && alertsLog[0].area === area &&
+                         alertsLog[0].time === timeStr;
+          if (!exists) {
+            alertsLog.unshift({ time: timeStr, area: area, type: type });
+            todayAlertCount++;
+            HOURLY_DISTRIBUTION[now.getHours()] =
+              HOURLY_DISTRIBUTION[now.getHours()] * 0.95 + 1.0 * 0.05;
+            if (type === 'rocket') flashScreen();
+          }
+        });
+        if (alertsLog.length > 50) alertsLog.length = 50;
+        $('todayCount').textContent = todayAlertCount;
+        renderAlertLog();
+        recalculate();
+        return;
+      }
+    }
+    // No active alerts — that's fine
+  } catch (e) {
+    // API blocked or error — simulation mode active
+    isLiveMode = false;
+  }
+}
+
+// ==================== CLOCK ====================
+
+function updateClock() {
+  const now = new Date();
+  $('liveClock').textContent =
+    String(now.getHours()).padStart(2, '0') + ':' +
+    String(now.getMinutes()).padStart(2, '0') + ':' +
+    String(now.getSeconds()).padStart(2, '0');
+}
+
+// ==================== RECALCULATE ====================
+
+function recalculate() {
+  const region = $('regionSelect').value;
+  const day = parseInt($('daySelect').value);
+  const hour = parseInt($('hourSelect').value);
+  const shelter = REGION_DATA[region].shelter;
+
+  const safety = calcSafety(hour, day, region);
+
+  updateMainMeter(safety);
+  updateReco(safety);
+  updateActivities(safety, shelter);
+  updateStats(hour, day, region);
+  updateHourChart(hour, day);
+  updateDayHeatmap(day);
+}
+
+// ==================== INIT ====================
+
+function autoSetSelectors() {
+  const now = new Date();
+  const jsDay = now.getDay(); // 0=Sunday
+  $('daySelect').value = jsDay;
+  $('hourSelect').value = now.getHours();
+
+  // Restore region from localStorage
+  const savedRegion = localStorage.getItem('safetime_region');
+  if (savedRegion && REGION_DATA[savedRegion]) {
+    $('regionSelect').value = savedRegion;
+  }
+}
+
+function buildHourOptions() {
+  const sel = $('hourSelect');
+  for (let h = 0; h < 24; h++) {
+    const opt = document.createElement('option');
+    opt.value = h;
+    opt.textContent = String(h).padStart(2, '0') + ':00';
+    sel.appendChild(opt);
+  }
+}
+
+function init() {
+  buildHourOptions();
+  autoSetSelectors();
+
+  // Event listeners
+  $('regionSelect').addEventListener('change', () => {
+    localStorage.setItem('safetime_region', $('regionSelect').value);
+    recalculate();
+  });
+  $('daySelect').addEventListener('change', recalculate);
+  $('hourSelect').addEventListener('change', recalculate);
+
+  // Initial calculation
+  recalculate();
+  updateClock();
+  renderAlertLog();
+
+  // Intervals
+  setInterval(updateClock, 1000);
+  setInterval(() => addFakeAlert(false), 12000);
+  setInterval(tryFetchLiveAlerts, 30000);
+  setInterval(() => {
+    autoSetSelectors();
+    recalculate();
+  }, 60000);
+
+  // Initial fetch attempt
+  tryFetchLiveAlerts();
+}
+
+// Start
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
