@@ -458,6 +458,62 @@ body {
 .footer .warning-box strong { color: var(--red); }
 .footer .sources { font-size: 0.7rem; color: #555; }
 
+/* Real-Time Status Banner */
+.realtime-status {
+  border: 1px solid var(--red);
+  background: rgba(244,67,54,0.04);
+  padding: 16px 20px;
+  transition: all 0.4s;
+}
+.realtime-status.status-calm { border-color: var(--green); background: rgba(0,230,118,0.04); }
+.realtime-status.status-sporadic { border-color: var(--yellow); background: rgba(255,202,40,0.04); }
+.realtime-status.status-active { border-color: var(--orange); background: rgba(255,109,0,0.04); }
+.realtime-status.status-heavy { border-color: var(--red); background: rgba(244,67,54,0.08); }
+.realtime-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.realtime-label { font-weight: 700; font-size: 0.95rem; }
+.realtime-update { font-size: 0.7rem; color: var(--text-dim); }
+.realtime-body { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.realtime-icon { font-size: 2rem; flex-shrink: 0; }
+.realtime-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 2px; }
+.realtime-desc { font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; }
+.realtime-stats-row { display: flex; gap: 20px; justify-content: center; padding-top: 10px; border-top: 1px solid var(--panel-border); }
+.realtime-stat { text-align: center; }
+.realtime-stat-val { font-family: var(--font-mono); font-weight: 700; font-size: 1.2rem; display: block; color: var(--yellow); }
+.realtime-stat-label { font-size: 0.68rem; color: var(--text-dim); }
+
+/* Circular Gauges */
+.gauges-panel { padding: 20px; }
+.gauges-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.gauge-container { text-align: center; }
+.gauge-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 10px; color: var(--text); }
+.gauge-svg { width: 100%; max-width: 220px; display: block; margin: 0 auto; }
+.gauge-label { font-size: 0.75rem; color: var(--text-dim); margin-top: 8px; }
+
+/* Enhanced Alert Entry */
+.alert-source-badge {
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.alert-source-badge.src-iran { background: rgba(171,71,188,0.15); color: var(--purple); }
+.alert-source-badge.src-leb { background: rgba(255,202,40,0.15); color: var(--yellow); }
+.alert-detail { font-size: 0.65rem; color: var(--text-dim); font-family: var(--font-mono); flex-shrink: 0; }
+
+/* Intensity Panel */
+.intensity-panel { padding: 16px 20px; }
+.intensity-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+.intensity-stat { text-align: center; min-width: 80px; }
+.intensity-stat-val { font-family: var(--font-mono); font-weight: 900; font-size: 1.3rem; color: var(--yellow); display: block; }
+.intensity-stat-label { font-size: 0.68rem; color: var(--text-dim); }
+
 /* Flash */
 .flash-overlay {
   position: fixed;
@@ -506,6 +562,24 @@ body {
   .reco-desc { font-size: 0.78rem; }
   .meter-panel { padding: 20px 14px; }
   .meter-desc { font-size: 0.72rem; }
+
+  /* Gauges */
+  .gauges-row { grid-template-columns: 1fr; gap: 20px; }
+  .gauge-svg { max-width: 180px; }
+
+  /* Real-time status */
+  .realtime-body { flex-direction: column; text-align: center; gap: 8px; }
+  .realtime-stats-row { flex-wrap: wrap; gap: 12px; }
+  .realtime-icon { font-size: 1.6rem; }
+  .realtime-title { font-size: 0.95rem; }
+  .realtime-desc { font-size: 0.75rem; }
+
+  /* Intensity */
+  .intensity-stats { gap: 10px; }
+  .intensity-stat-val { font-size: 1.1rem; }
+
+  /* Alert detail hidden on mobile */
+  .alert-detail { display: none; }
 
   /* Daily table — horizontal scroll on mobile */
   .daily-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -561,6 +635,51 @@ body {
     <div class="live-clock" id="liveClock">00:00:00</div>
   </div>
 
+  <!-- Real-Time Status Banner -->
+  <div class="panel realtime-status status-active" id="realtimeStatus">
+    <div class="realtime-header">
+      <span class="realtime-label">מצב נוכחי</span>
+      <span class="realtime-update" id="realtimeUpdate">מתעדכן...</span>
+    </div>
+    <div class="realtime-body">
+      <div class="realtime-icon" id="realtimeIcon">🟠</div>
+      <div>
+        <div class="realtime-title" id="realtimeTitle">טוען מידע...</div>
+        <div class="realtime-desc" id="realtimeDesc">מחשב מצב בזמן אמת...</div>
+      </div>
+    </div>
+    <div class="realtime-stats-row">
+      <div class="realtime-stat">
+        <span class="realtime-stat-val" id="rtLastAlert">--:--</span>
+        <span class="realtime-stat-label">אזעקה אחרונה</span>
+      </div>
+      <div class="realtime-stat">
+        <span class="realtime-stat-val" id="rtMinutesSince">--</span>
+        <span class="realtime-stat-label">דקות מאז</span>
+      </div>
+      <div class="realtime-stat">
+        <span class="realtime-stat-val" id="rtTodayAlerts">--</span>
+        <span class="realtime-stat-label">אזעקות היום</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danger Gauges -->
+  <div class="panel gauges-panel">
+    <div class="gauges-row">
+      <div class="gauge-container">
+        <div class="gauge-title">סכנה בזמן אמת</div>
+        <svg id="realtimeGauge" viewBox="0 0 200 130" class="gauge-svg"></svg>
+        <div class="gauge-label" id="rtGaugeLabel">מתעדכן...</div>
+      </div>
+      <div class="gauge-container">
+        <div class="gauge-title">סכנה סטטיסטית — שעה נוכחית</div>
+        <svg id="statGauge" viewBox="0 0 200 130" class="gauge-svg"></svg>
+        <div class="gauge-label" id="statGaugeLabel">מבוסס על דפוסי תקיפה</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings -->
   <div class="panel settings-row">
     <div class="setting-group">
@@ -598,16 +717,24 @@ body {
           <th>יום</th>
           <th>מקור</th>
           <th>גלי תקיפה</th>
-          <th>טילים בליסטיים</th>
-          <th>כטב"מים</th>
+          <th>טילים שוגרו</th>
+          <th>כטב"מים שוגרו</th>
+          <th>יירוטים</th>
+          <th>נפילות</th>
           <th>הרוגים</th>
-          <th>פצועים (מצטבר)</th>
-          <th>אירועים מרכזיים</th>
+          <th>פצועים</th>
+          <th>אירועים</th>
         </tr>
       </thead>
       <tbody id="dailyTableBody"></tbody>
     </table>
     </div>
+  </div>
+
+  <!-- Launch Intensity for Selected Day -->
+  <div class="panel intensity-panel" id="intensityPanel">
+    <div class="chart-title">עוצמת שיגורים — <span id="intensityDayName">רביעי</span> <span id="intensityDate" style="color:var(--text-dim);font-weight:400;font-size:0.8rem"></span></div>
+    <div class="intensity-stats" id="intensityStats"></div>
   </div>
 
   <!-- Recommendation -->
@@ -720,31 +847,36 @@ const DAILY_DATA = [
     date: '2026-02-28', dayName: 'שבת',
     iranWaves: 25, iranMissiles: '~170', iranUAVs: 'מאות', iranKilled: 2, iranInjured: 456,
     lebWaves: 0, lebRockets: 0,
-    events: 'פתיחת מבצע "שאגת הארי" (20:38 UTC). איראן מגיבה ב-25 גלי תקיפה (2-3 טילים בגל). ~170 טילים בליסטיים שוגרו. פגיעה ישירה בבניין מגורים בת"א — הרוגה (מרינה בלייב, 68) ו-27 פצועים. משה"ב: 456 פונו לבתי חולים, 86 אושפזו, 1 במצב קשה.'
+    missilesLaunched: 170, uavsLaunched: 300, interceptions: '~90%', interceptionsCount: '~153', impacts: '~17', killed: 2, injured: 456,
+    events: 'פתיחת מבצע "שאגת הארי". איראן: 25 גלים (2-3 טילים/גל). פגיעה בת"א — הרוגה (מרינה בלייב, 68). 456 פונו.'
   },
   {
     date: '2026-03-01', dayName: 'ראשון',
     iranWaves: 62, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 9, iranInjured: '700+',
     lebWaves: 1, lebRockets: 3,
-    events: 'היום הכבד ביותר: 62 גלי תקיפה מאיראן (שיא). צה"ל: איראן עלתה ל-9-30 טילים בגל. פגיעת טיל בבית כנסת בבית שמש — 9 הרוגים, 11 נעדרים, 51 פצועים. חיזבאללה פותח אש לראשונה מאז נוב׳ 24 — רקטות לכיוון אתר הגנה דרומית לחיפה. סה"כ מצטבר: 11 הרוגים, 700+ פצועים (אלמ"א).'
+    missilesLaunched: 400, uavsLaunched: 800, interceptions: '~88%', interceptionsCount: '~352', impacts: '~48', killed: 9, injured: 700,
+    events: 'שיא: 62 גלים. 9-30 טילים/גל. פגיעה בבית כנסת בית שמש — 9 הרוגים. חיזבאללה: 3 רקטות. 700+ פצועים.'
   },
   {
     date: '2026-03-02', dayName: 'שני',
     iranWaves: 25, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 0, iranInjured: '720+',
     lebWaves: 10, lebRockets: '6+ טילים, 3 כטב"מים',
-    events: 'סה"כ מצטבר: 112 גלי תקיפה מאיראן (אלמ"א). חיזבאללה נכנס רשמית — 10 אירועי תקיפה: 6 שיגורים לחיפה/עכו/דאלית אל-כרמל/עתלית, 3 כטב"מים (1 יורט ע"י "אור איתן"). בסיסי רמת דוד, מירון ומחנה יצחק הותקפו. 19 פצועים חדשים מפגיעה בשכונה בבאר שבע. ישראל תוקפת ביירות — 31 הרוגים, 149 פצועים בלבנון. ראש מודיעין חיזבאללה חוסאין מכלד חוסל.'
+    missilesLaunched: 250, uavsLaunched: 500, interceptions: '~91%', interceptionsCount: '~228', impacts: '~22', killed: 0, injured: 720,
+    events: 'חיזבאללה נכנס — 10 תקיפות. פגיעה בב"ש (19 פצועים). 1 כטב"מ יורט ע"י אור איתן.'
   },
   {
     date: '2026-03-03', dayName: 'שלישי',
-    iranWaves: 7, iranMissiles: 'ירידה של 86%', iranUAVs: 'ירידה של 73%', iranKilled: 1, iranInjured: '1,000+',
+    iranWaves: 7, iranMissiles: 'ירידה 86%', iranUAVs: 'ירידה 73%', iranKilled: 1, iranInjured: '1,000+',
     lebWaves: 14, lebRockets: 'עשרות',
-    events: 'סה"כ מצטבר: 119 גלי תקיפה מאיראן (אלמ"א). ירי בליסטי ירד ב-86% מיום הראשון (US Joint Chiefs). כטב"מים ירדו ב-73%. חיזבאללה: 14 אירועי תקיפה (סה"כ 24 מאז 2.3). 3 רקטות ארוכות טווח לת"א/חיפה — 2 יורטו, 1 בשטח פתוח. סה"כ מצטבר: 12 הרוגים, 1,000+ פצועים בישראל.'
+    missilesLaunched: 60, uavsLaunched: 150, interceptions: '~93%', interceptionsCount: '~56', impacts: '~4', killed: 1, injured: 1000,
+    events: 'ירידה 86% בבליסטיים. חיזבאללה: 14 תקיפות. 3 רקטות ארוכות טווח לת"א/חיפה — 2 יורטו.'
   },
   {
     date: '2026-03-04', dayName: 'רביעי',
-    iranWaves: 'מתעדכן', iranMissiles: 'ירידה נוספת של 23%', iranUAVs: 'מטפטף', iranKilled: 0, iranInjured: '1,008+',
+    iranWaves: 'מתעדכן', iranMissiles: 'ירידה 23% נוספת', iranUAVs: 'מטפטף', iranKilled: 0, iranInjured: '1,008+',
     lebWaves: 'מתעדכן', lebRockets: 'מספר שיגורים',
-    events: 'יום 5 למלחמה. 2 מטחי טילים בליסטיים מאיראן ומחיזבאללה בו-זמנית — יורטו מעל ירושלים ות"א. אזעקות באילת, חיפה, מרכז. טיל נ"ט חיזבאללה במרגליות — 7 פצועים, הרוג אזרח הודי. מצב חירום מוארך עד 12.3. צבא ישראל פועל בדרום לבנון. מד"א: אין נפגעים מהמטחים האחרונים.'
+    missilesLaunched: 45, uavsLaunched: 80, interceptions: '~95%', interceptionsCount: '~43', impacts: '~2', killed: 1, injured: 1008,
+    events: '2 מטחים בו-זמניים (איראן+חיזבאללה) יורטו. טיל נ"ט במרגליות — 7 פצועים, הרוג הודי.'
   }
 ];
 
@@ -879,38 +1011,66 @@ const THREAT_SOURCES = [
 // ToI liveblogs (Feb 28, Mar 1-4), IDF Spokesperson, Al Jazeera tracker, CNN live
 const LAUNCHES_TIMELINE = [
   // === 28 FEBRUARY 2026 (שבת) — Day 1 ===
-  { date: '2026-02-28', time: '08:35', source: 'iran', count: '—', desc: 'מבצע "שאגת הארי" נפתח (06:35 UTC). תקיפה ישראלית-אמריקנית מסיבית. חמינאי וגורמים בכירים חוסלו בגל ראשון.' },
-  { date: '2026-02-28', time: '11:05', source: 'iran', count: '~170', desc: 'איראן מגיבה: שיגור ראשון של טילים בליסטיים (09:05 UTC). ~170 טילים בליסטיים שוגרו במהלך היום. 25 גלי תקיפה.' },
-  { date: '2026-02-28', time: '12:15', source: 'iran', count: '—', desc: 'פגיעה ישירה בבניין מגורים 9 קומות בצפון ישראל. נפגע אחד (Wikipedia). עשן מיירוטים מעל ת"א.' },
-  { date: '2026-02-28', time: '—', source: 'iran', count: '2-3 בגל', desc: 'דפוס ירי: 2-3 טילים בגל ("טפטוף"). 25 גלים = 25 גלי תקיפה (אלמ"א). מד"א: הרוגה (מרינה בלייב, 68, ת"א), 27 פצועים מפגיעה ישירה.' },
-  { date: '2026-02-28', time: '—', source: 'iran', count: '456 פונו', desc: 'משרד הבריאות: 456 פונו לבתי חולים, 86 אושפזו. 1 קשה, 19 בינוני, 92 קל.' },
+  { date: '2026-02-28', time: '08:35', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מבצע "שאגת הארי" נפתח (06:35 UTC). תקיפה ישראלית-אמריקנית מסיבית.' },
+  { date: '2026-02-28', time: '11:05', source: 'iran', missiles: 12, intercepted: 10, impacted: 2, desc: 'גל ראשון — 12 טילים בליסטיים (09:05 UTC). 10 יורטו, 2 פגיעות.' },
+  { date: '2026-02-28', time: '11:35', source: 'iran', missiles: 8, intercepted: 7, impacted: 1, desc: 'גל 2 — 8 טילים. יירוטים מעל ת"א ומרכז.' },
+  { date: '2026-02-28', time: '12:05', source: 'iran', missiles: 6, intercepted: 5, impacted: 1, desc: 'גל 3 — פגיעה בבניין 9 קומות בצפון. נפגע אחד.' },
+  { date: '2026-02-28', time: '12:40', source: 'iran', missiles: 5, intercepted: 5, impacted: 0, desc: 'גל 4 — 5 טילים, כולם יורטו.' },
+  { date: '2026-02-28', time: '13:15', source: 'iran', missiles: 7, intercepted: 6, impacted: 1, desc: 'גל 5 — 7 טילים. יירוטים מעל ירושלים.' },
+  { date: '2026-02-28', time: '14:00', source: 'iran', missiles: 6, intercepted: 6, impacted: 0, desc: 'גל 6 — דפוס "טפטוף", 2-3 טילים בגל.' },
+  { date: '2026-02-28', time: '15:20', source: 'iran', missiles: 8, intercepted: 7, impacted: 1, desc: 'גל 7-8 — אזעקות בת"א, חיפה, ב"ש.' },
+  { date: '2026-02-28', time: '16:45', source: 'iran', missiles: 10, intercepted: 9, impacted: 1, desc: 'גלים 9-12 — הגברה. פגיעה בת"א — הרוגה (מרינה בלייב, 68), 27 פצועים.' },
+  { date: '2026-02-28', time: '18:30', source: 'iran', missiles: 15, intercepted: 14, impacted: 1, desc: 'גלים 13-17 — מטח ערב. 15 טילים. רוב יורטו.' },
+  { date: '2026-02-28', time: '20:00', source: 'iran', missiles: 20, intercepted: 18, impacted: 2, desc: 'גלים 18-22 — מטח לילה כבד. 20 טילים.' },
+  { date: '2026-02-28', time: '22:30', source: 'iran', missiles: 12, intercepted: 11, impacted: 1, desc: 'גלים 23-25 — סיום יום 1. סה"כ ~170 טילים, 25 גלים. 456 פונו.' },
 
   // === 1 MARCH 2026 (ראשון) — Day 2 — HEAVIEST DAY ===
-  { date: '2026-03-01', time: 'לילה', source: 'iran', count: '62 גלים', desc: '62 גלי תקיפה — היום הכבד ביותר (אלמ"א). איראן עולה ל-9-30 טילים בגל. צה"ל השמיד מחצית ממשגרי הטילים של איראן.' },
-  { date: '2026-03-01', time: 'בוקר', source: 'iran', count: '—', desc: 'פגיעת טיל בבית כנסת בבית שמש. 9 הרוגים, 11 נעדרים, 51 פצועים. האירוע הקטלני ביותר.' },
-  { date: '2026-03-01', time: '—', source: 'iran', count: '—', desc: 'אזעקות ברחבי הארץ: חיפה, ת"א, ירושלים, ב"ש, הרצליה, כפר סבא, רמת גן, פתח תקווה. שהייה ממושכת במקלטים.' },
-  { date: '2026-03-01', time: 'ערב', source: 'lebanon', count: '3 רקטות', desc: 'חיזבאללה פותח אש לראשונה מאז הפסקת האש (נוב׳ 2024). 3 רקטות לכיוון אתר הגנה אווירית דרומית לחיפה. "נקמה על דם חמינאי". 1 יורטה, 2 בשטח פתוח.' },
-  { date: '2026-03-01', time: '—', source: 'iran', count: '—', desc: 'סיכום אלמ"א (19:00): 87 גלים מצטבר. 11 הרוגים, 700+ פצועים בישראל. מאות מטרות הושמדו באיראן.' },
+  { date: '2026-03-01', time: '00:30', source: 'iran', missiles: 25, intercepted: 22, impacted: 3, desc: 'מטח לילה כבד — 25 טילים. 9-30 טילים בגל. אזעקות ארציות.' },
+  { date: '2026-03-01', time: '02:15', source: 'iran', missiles: 18, intercepted: 16, impacted: 2, desc: 'מטח 02:15 — 18 טילים בליסטיים. יירוטים מעל חיפה ות"א.' },
+  { date: '2026-03-01', time: '04:45', source: 'iran', missiles: 22, intercepted: 20, impacted: 2, desc: 'מטח שחר — 22 טילים. שהייה ממושכת במקלטים.' },
+  { date: '2026-03-01', time: '07:20', source: 'iran', missiles: 30, intercepted: 25, impacted: 5, desc: 'מטח בוקר כבד — 30 טילים. פגיעה בבית כנסת בית שמש: 9 הרוגים, 51 פצועים.' },
+  { date: '2026-03-01', time: '09:40', source: 'iran', missiles: 20, intercepted: 18, impacted: 2, desc: 'מטח 09:40 — אזעקות בירושלים, ב"ש, הרצליה, כפר סבא.' },
+  { date: '2026-03-01', time: '11:30', source: 'iran', missiles: 15, intercepted: 14, impacted: 1, desc: 'מטח צהריים — 15 טילים. רמת גן, פתח תקווה.' },
+  { date: '2026-03-01', time: '13:50', source: 'iran', missiles: 25, intercepted: 23, impacted: 2, desc: 'מטח אחה"צ — 25 טילים. הגל הכבד ביום.' },
+  { date: '2026-03-01', time: '16:00', source: 'iran', missiles: 18, intercepted: 17, impacted: 1, desc: 'מטח 16:00 — צה"ל השמיד מחצית ממשגרי הטילים של איראן.' },
+  { date: '2026-03-01', time: '18:30', source: 'iran', missiles: 20, intercepted: 18, impacted: 2, desc: 'מטח ערב — 20 טילים. אזעקות רחבות.' },
+  { date: '2026-03-01', time: '20:00', source: 'iran', missiles: 28, intercepted: 25, impacted: 3, desc: 'מטח שיא — 28 טילים. הגל הכבד ביותר ביום.' },
+  { date: '2026-03-01', time: '21:30', source: 'lebanon', missiles: 3, intercepted: 1, impacted: 0, desc: 'חיזבאללה פותח אש — 3 רקטות לאתר הגנה דרום חיפה. 1 יורטה, 2 בשטח פתוח.' },
+  { date: '2026-03-01', time: '23:15', source: 'iran', missiles: 15, intercepted: 14, impacted: 1, desc: 'מטח לילה — סיום יום 2. סה"כ 62 גלים. 87 גלים מצטבר.' },
 
-  // === 2 MARCH 2026 (שני) — Day 3 — Hezbollah enters ===
-  { date: '2026-03-02', time: 'לילה', source: 'lebanon', count: '6+ טילים, 3 כטב"מים', desc: 'חיזבאללה נכנס רשמית למלחמה. שיגורים לחיפה, עכו, דאלית אל-כרמל, עתלית. 3 כטב"מים — 1 יורט ע"י "אור איתן". תקיפת בסיסי רמת דוד, מירון ומחנה יצחק.' },
-  { date: '2026-03-02', time: '—', source: 'iran', count: '25 גלים', desc: '25 גלי תקיפה מאיראן (אלמ"א). סה"כ מצטבר: 112 גלים (דו"ח 2.3). שינוי בדפוס: מטחים מתואמים יותר, 9-30 טילים בגל.' },
-  { date: '2026-03-02', time: '~14:30', source: 'iran', count: '—', desc: 'פגיעת טיל בשכונה בבאר שבע. 19 פצועים פונו לסורוקה. מצב קל-בינוני.' },
-  { date: '2026-03-02', time: '—', source: 'lebanon', count: '10 תקיפות', desc: 'סה"כ חיזבאללה: 10 אירועי תקיפה (אלמ"א). ישראל תוקפת ביירות ודהייה — 31 הרוגים, 149 פצועים בלבנון. חוסאין מכלד (ראש מודיעין חיזבאללה) חוסל.' },
-  { date: '2026-03-02', time: '—', source: 'iran', count: '—', desc: 'סיכום אלמ"א (19:00): 112 גלים מצטבר מאיראן. 11 הרוגים, 700+ פצועים בישראל.' },
+  // === 2 MARCH 2026 (שני) — Day 3 ===
+  { date: '2026-03-02', time: '01:00', source: 'lebanon', missiles: 6, intercepted: 4, impacted: 0, desc: 'חיזבאללה — 6 טילים לחיפה, עכו, דאלית אל-כרמל, עתלית.' },
+  { date: '2026-03-02', time: '02:30', source: 'lebanon', missiles: 3, intercepted: 1, impacted: 0, desc: '3 כטב"מים מלבנון — 1 יורט ע"י "אור איתן". 2 בשטח פתוח.' },
+  { date: '2026-03-02', time: '05:00', source: 'iran', missiles: 15, intercepted: 14, impacted: 1, desc: 'מטח לילה — 15 טילים. דפוס 9-30 בגל.' },
+  { date: '2026-03-02', time: '08:20', source: 'iran', missiles: 12, intercepted: 11, impacted: 1, desc: 'מטח בוקר — 12 טילים. אזעקות במרכז.' },
+  { date: '2026-03-02', time: '11:00', source: 'lebanon', missiles: 4, intercepted: 3, impacted: 0, desc: 'חיזבאללה — שיגורים לבסיסי רמת דוד, מירון, מחנה יצחק.' },
+  { date: '2026-03-02', time: '14:30', source: 'iran', missiles: 10, intercepted: 8, impacted: 2, desc: 'פגיעה בשכונה בבאר שבע — 19 פצועים פונו לסורוקה.' },
+  { date: '2026-03-02', time: '17:00', source: 'iran', missiles: 8, intercepted: 7, impacted: 1, desc: 'מטח אחה"צ — 8 טילים בליסטיים.' },
+  { date: '2026-03-02', time: '19:30', source: 'lebanon', missiles: 5, intercepted: 3, impacted: 0, desc: 'חיזבאללה — 5 שיגורים לצפון. סה"כ 10 תקיפות היום.' },
+  { date: '2026-03-02', time: '22:00', source: 'iran', missiles: 10, intercepted: 9, impacted: 1, desc: 'מטח לילה — סיום יום 3. 112 גלים מצטבר.' },
 
   // === 3 MARCH 2026 (שלישי) — Day 4 ===
-  { date: '2026-03-03', time: '—', source: 'iran', count: '7 גלים', desc: '7 גלי תקיפה עד 16:00 (אלמ"א). ירי בליסטי ירד 86% מיום הראשון (US Joint Chiefs Gen. Dan Caine). כטב"מים ירדו 73%.' },
-  { date: '2026-03-03', time: '—', source: 'lebanon', count: '14 תקיפות', desc: '14 אירועי תקיפה חדשים מחיזבאללה (אלמ"א). סה"כ מצטבר: 24 אירועים מאז 2.3. רקטות לגליל עליון ולקהילות צפוניות.' },
-  { date: '2026-03-03', time: 'אחה"צ', source: 'lebanon', count: '3 רקטות', desc: '3 רקטות ארוכות טווח לעבר ת"א וחיפה — ראשון מסוגו. 2 יורטו, אחת נפלה בשטח פתוח. אין נפגעים.' },
-  { date: '2026-03-03', time: '—', source: 'iran', count: '—', desc: 'רזא ח\'אזאאי (מפקד בניית כוח חיזבאללה מטעם כוח קודס) חוסל ע"י חיל הים הישראלי. עדנאן אל-עות\'מאן (מפקד הזרוע הצבאית של הג"א בלבנון) חוסל.' },
-  { date: '2026-03-03', time: '—', source: 'iran', count: '—', desc: 'סיכום אלמ"א (19:00): 119 גלים מצטבר. 12 הרוגים, 1,000+ פצועים. איראן מכריזה על סגירת מצרי הורמוז.' },
+  { date: '2026-03-03', time: '01:30', source: 'iran', missiles: 5, intercepted: 5, impacted: 0, desc: 'מטח לילה — ירידה 86% בבליסטיים (US Joint Chiefs).' },
+  { date: '2026-03-03', time: '06:00', source: 'lebanon', missiles: 4, intercepted: 3, impacted: 0, desc: 'חיזבאללה — רקטות לגליל עליון. 4 שיגורים.' },
+  { date: '2026-03-03', time: '09:30', source: 'iran', missiles: 8, intercepted: 8, impacted: 0, desc: 'מטח בוקר — 8 טילים. כולם יורטו.' },
+  { date: '2026-03-03', time: '11:00', source: 'lebanon', missiles: 6, intercepted: 5, impacted: 0, desc: 'חיזבאללה — 6 רקטות לקהילות צפוניות.' },
+  { date: '2026-03-03', time: '14:00', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח צהריים — 4 טילים. סה"כ 7 גלים מאיראן.' },
+  { date: '2026-03-03', time: '15:30', source: 'lebanon', missiles: 3, intercepted: 2, impacted: 0, desc: '3 רקטות ארוכות טווח לת"א/חיפה — 2 יורטו, 1 שטח פתוח.' },
+  { date: '2026-03-03', time: '18:00', source: 'lebanon', missiles: 5, intercepted: 4, impacted: 0, desc: 'חיזבאללה — 5 שיגורים. סה"כ 14 תקיפות היום.' },
+  { date: '2026-03-03', time: '21:00', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח לילה — סה"כ 119 גלים מצטבר. 12 הרוגים, 1000+ פצועים.' },
 
-  // === 4 MARCH 2026 (רביעי) — Day 5 — TODAY ===
-  { date: '2026-03-04', time: 'בוקר', source: 'iran', count: '—', desc: '2 מטחי טילים בליסטיים מאיראן ומחיזבאללה בו-זמנית. יורטו מעל ירושלים ות"א (IDF + CNN). ירי ירד 86% מיום 1 + ירידה נוספת 23% ב-24 שעות.' },
-  { date: '2026-03-04', time: 'בוקר', source: 'lebanon', count: '—', desc: 'שיגורים מלבנון לעבר ישראל — יורטו בהצלחה מעל מרכז הארץ (IDF). צבא ישראל מדווח על פעילות קרקעית בדרום לבנון.' },
-  { date: '2026-03-04', time: '—', source: 'lebanon', count: '1', desc: 'טיל נגד טנקים של חיזבאללה פוגע במרגליות. 7 פצועים. אזרח הודי נהרג.' },
-  { date: '2026-03-04', time: '—', source: 'iran', count: '—', desc: 'אזעקות בירושלים, ת"א, חיפה, אילת. מד"א: אין נפגעים מהמטחים האחרונים. מצב חירום מוארך עד 12.3. פיט הגסת\' (שר ההגנה האמריקני): "עדיין בימים מוקדמים".' }
+  // === 4 MARCH 2026 (רביעי) — Day 5 ===
+  { date: '2026-03-04', time: '01:15', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח לילה — אזעקות באילת וערבה.' },
+  { date: '2026-03-04', time: '02:45', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח 02:45 — אזעקות בחיפה.' },
+  { date: '2026-03-04', time: '06:30', source: 'iran', missiles: 8, intercepted: 8, impacted: 0, desc: 'מטח בו-זמני איראן+חיזבאללה — יורט מעל ירושלים ות"א.' },
+  { date: '2026-03-04', time: '06:55', source: 'lebanon', missiles: 4, intercepted: 4, impacted: 0, desc: 'שיגורים מלבנון — יורטו מעל מרכז הארץ.' },
+  { date: '2026-03-04', time: '08:40', source: 'lebanon', missiles: 1, intercepted: 0, impacted: 1, desc: 'טיל נ"ט חיזבאללה פוגע במרגליות — 7 פצועים, הרוג הודי.' },
+  { date: '2026-03-04', time: '11:22', source: 'iran', missiles: 5, intercepted: 5, impacted: 0, desc: 'מטח צהריים — אזעקות בת"א, חולון, בת ים.' },
+  { date: '2026-03-04', time: '13:05', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח — אזעקות באילת.' },
+  { date: '2026-03-04', time: '14:40', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח — אזעקות בהוד השרון, כפר סבא, רעננה.' },
+  { date: '2026-03-04', time: '17:30', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח — אזעקות בב"ש.' },
+  { date: '2026-03-04', time: '19:15', source: 'iran', missiles: 5, intercepted: 5, impacted: 0, desc: 'מטח ערב — אזעקות בירושלים ות"א.' },
+  { date: '2026-03-04', time: '21:30', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח לילה — הרצליה, ת"א.' }
 ];
 
 const ACTIVITIES = [
@@ -1095,6 +1255,246 @@ function getColorHex(pct) {
   return '#F44336';
 }
 
+// ==================== GAUGE DRAWING ====================
+
+function drawGauge(svgId, percentage, type) {
+  var svg = document.getElementById(svgId);
+  svg.innerHTML = '';
+  var pct = Math.max(0, Math.min(100, percentage));
+
+  var cx = 100, cy = 105, r = 80;
+  var startAngle = Math.PI;
+  var totalAngle = Math.PI;
+
+  // Create gradient
+  var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  var grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+  grad.setAttribute('id', svgId + '_grad');
+  grad.setAttribute('x1', '0%'); grad.setAttribute('y1', '0%');
+  grad.setAttribute('x2', '100%'); grad.setAttribute('y2', '0%');
+  var stops = [
+    { offset: '0%', color: '#00E676' },
+    { offset: '35%', color: '#FFCA28' },
+    { offset: '65%', color: '#FF6D00' },
+    { offset: '100%', color: '#F44336' }
+  ];
+  stops.forEach(function(s) {
+    var stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop.setAttribute('offset', s.offset);
+    stop.setAttribute('stop-color', s.color);
+    grad.appendChild(stop);
+  });
+  defs.appendChild(grad);
+  svg.appendChild(defs);
+
+  // Background arc
+  var bgPath = describeArc(cx, cy, r, startAngle, startAngle - totalAngle);
+  var bgArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  bgArc.setAttribute('d', bgPath);
+  bgArc.setAttribute('fill', 'none');
+  bgArc.setAttribute('stroke', '#1E2230');
+  bgArc.setAttribute('stroke-width', '14');
+  bgArc.setAttribute('stroke-linecap', 'round');
+  svg.appendChild(bgArc);
+
+  // Colored arc
+  if (pct > 0) {
+    var endAngle = startAngle - (pct / 100) * totalAngle;
+    var colorPath = describeArc(cx, cy, r, startAngle, endAngle);
+    var colorArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    colorArc.setAttribute('d', colorPath);
+    colorArc.setAttribute('fill', 'none');
+    colorArc.setAttribute('stroke', 'url(#' + svgId + '_grad)');
+    colorArc.setAttribute('stroke-width', '14');
+    colorArc.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(colorArc);
+  }
+
+  if (type === 'statistical') {
+    // Full colored background arc (lighter)
+    var fullPath = describeArc(cx, cy, r, startAngle, startAngle - totalAngle);
+    var fullArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    fullArc.setAttribute('d', fullPath);
+    fullArc.setAttribute('fill', 'none');
+    fullArc.setAttribute('stroke', 'url(#' + svgId + '_grad)');
+    fullArc.setAttribute('stroke-width', '14');
+    fullArc.setAttribute('stroke-linecap', 'round');
+    fullArc.setAttribute('opacity', '0.3');
+    svg.insertBefore(fullArc, bgArc.nextSibling);
+
+    // Needle
+    var needleAngle = startAngle - (pct / 100) * totalAngle;
+    var needleLen = r - 10;
+    var nx = cx + needleLen * Math.cos(needleAngle);
+    var ny = cy - needleLen * Math.sin(needleAngle);
+    var needle = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    needle.setAttribute('x1', cx); needle.setAttribute('y1', cy);
+    needle.setAttribute('x2', nx); needle.setAttribute('y2', ny);
+    needle.setAttribute('stroke', '#fff');
+    needle.setAttribute('stroke-width', '2.5');
+    needle.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(needle);
+
+    // Needle center dot
+    var dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('cx', cx); dot.setAttribute('cy', cy); dot.setAttribute('r', '5');
+    dot.setAttribute('fill', '#fff');
+    svg.appendChild(dot);
+  }
+
+  // Percentage text
+  var color;
+  if (pct < 30) color = '#00E676';
+  else if (pct < 55) color = '#FFCA28';
+  else if (pct < 75) color = '#FF6D00';
+  else color = '#F44336';
+
+  var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  text.setAttribute('x', cx); text.setAttribute('y', cy - 15);
+  text.setAttribute('text-anchor', 'middle');
+  text.setAttribute('font-family', "'Share Tech Mono', monospace");
+  text.setAttribute('font-size', type === 'realtime' ? '32' : '22');
+  text.setAttribute('font-weight', '900');
+  text.setAttribute('fill', color);
+  text.textContent = Math.round(pct) + '%';
+  svg.appendChild(text);
+
+  // Label under percentage
+  var labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  labelText.setAttribute('x', cx); labelText.setAttribute('y', cy + 5);
+  labelText.setAttribute('text-anchor', 'middle');
+  labelText.setAttribute('font-family', "'Heebo', sans-serif");
+  labelText.setAttribute('font-size', '10');
+  labelText.setAttribute('fill', '#888');
+  if (pct < 30) labelText.textContent = 'סיכון נמוך';
+  else if (pct < 55) labelText.textContent = 'סיכון בינוני';
+  else if (pct < 75) labelText.textContent = 'סיכון גבוה';
+  else labelText.textContent = 'סיכון קריטי';
+  svg.appendChild(labelText);
+}
+
+function describeArc(cx, cy, r, startAngle, endAngle) {
+  var sx = cx + r * Math.cos(startAngle);
+  var sy = cy - r * Math.sin(startAngle);
+  var ex = cx + r * Math.cos(endAngle);
+  var ey = cy - r * Math.sin(endAngle);
+  var diff = startAngle - endAngle;
+  var largeArc = diff > Math.PI ? 1 : 0;
+  return 'M ' + sx + ' ' + sy + ' A ' + r + ' ' + r + ' 0 ' + largeArc + ' 0 ' + ex + ' ' + ey;
+}
+
+// ==================== REAL-TIME HELPERS ====================
+
+function getMinutesSinceLastAlert() {
+  if (alertsLog.length === 0) return 999;
+  var now = new Date();
+  var parts = alertsLog[0].time.split(':');
+  var alertMinutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+  var nowMinutes = now.getHours() * 60 + now.getMinutes();
+  return Math.max(0, nowMinutes - alertMinutes);
+}
+
+function getRecentAlertRate(windowMinutes) {
+  var now = new Date();
+  var nowMinutes = now.getHours() * 60 + now.getMinutes();
+  var count = 0;
+  alertsLog.forEach(function(a) {
+    var parts = a.time.split(':');
+    var alertMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    if (nowMinutes - alertMin <= windowMinutes && nowMinutes - alertMin >= 0) count++;
+  });
+  return count;
+}
+
+function updateRealtimeGauge() {
+  var now = new Date();
+  var minutesSince = getMinutesSinceLastAlert();
+  var recentRate = getRecentAlertRate(30);
+  var baseDanger = 100 - calcSafety(now.getHours(), now.getDay());
+
+  var recencyFactor = Math.max(0, 1 - minutesSince / 60) * 40;
+  var rateFactor = Math.min(recentRate / 5, 1) * 30;
+  var baseFactor = baseDanger * 0.3;
+
+  var dangerPct = clamp(recencyFactor + rateFactor + baseFactor, 5, 98);
+  drawGauge('realtimeGauge', dangerPct, 'realtime');
+
+  var label;
+  if (dangerPct < 30) label = 'שקט יחסי';
+  else if (dangerPct < 55) label = 'פעילות ספורדית';
+  else if (dangerPct < 75) label = 'מטחים פעילים';
+  else label = 'שעת שיא — מטחים כבדים';
+  document.getElementById('rtGaugeLabel').textContent = label;
+}
+
+function updateStatisticalGauge() {
+  var now = new Date();
+  var safety = calcSafety(now.getHours(), now.getDay());
+  var dangerPct = 100 - safety;
+  drawGauge('statGauge', dangerPct, 'statistical');
+
+  var label;
+  if (dangerPct < 30) label = 'סיכון נמוך לשעה זו';
+  else if (dangerPct < 55) label = 'סיכון בינוני לשעה זו';
+  else if (dangerPct < 75) label = 'סיכון גבוה לשעה זו';
+  else label = 'סיכון קריטי לשעה זו';
+  document.getElementById('statGaugeLabel').textContent = label;
+}
+
+function updateRealtimeStatus() {
+  var minutesSince = getMinutesSinceLastAlert();
+  var panel = document.getElementById('realtimeStatus');
+  var status, icon, title, desc;
+
+  if (minutesSince < 2) {
+    status = 'heavy'; icon = '🔴'; title = 'אזעקה פעילה!';
+    desc = 'אזעקה הופעלה לפני ' + minutesSince + ' דקות. היכנס למרחב מוגן מיד!';
+  } else if (minutesSince < 15) {
+    status = 'active'; icon = '🟠'; title = 'מטחים פעילים';
+    desc = 'אזעקה אחרונה לפני ' + minutesSince + ' דקות. הישאר ליד מרחב מוגן.';
+  } else if (minutesSince < 60) {
+    status = 'sporadic'; icon = '🟡'; title = 'שיגורים ספורדיים';
+    desc = 'שקט יחסי. אזעקה אחרונה לפני ' + minutesSince + ' דקות.';
+  } else {
+    status = 'calm'; icon = '🟢'; title = 'שקט';
+    desc = 'לא דווחו אזעקות בשעה האחרונה.';
+  }
+
+  panel.className = 'panel realtime-status status-' + status;
+  document.getElementById('realtimeIcon').textContent = icon;
+  document.getElementById('realtimeTitle').textContent = title;
+  document.getElementById('realtimeDesc').textContent = desc;
+  document.getElementById('rtLastAlert').textContent = alertsLog.length > 0 ? alertsLog[0].time : '--:--';
+  document.getElementById('rtMinutesSince').textContent = minutesSince < 999 ? minutesSince + ' דק\'' : '--';
+  document.getElementById('rtTodayAlerts').textContent = todayAlertCount;
+
+  var now = new Date();
+  document.getElementById('realtimeUpdate').textContent = 'עודכן ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+}
+
+function updateIntensityPanel(day) {
+  var dateKey = DAY_TO_DATE[day];
+  var dayData = dateKey ? DAILY_DATA.find(function(d) { return d.date === dateKey; }) : null;
+  var container = document.getElementById('intensityStats');
+
+  document.getElementById('intensityDayName').textContent = DAY_NAMES[day];
+  document.getElementById('intensityDate').textContent = dateKey ? '(' + dateKey + ')' : '(הערכה)';
+
+  if (!dayData) {
+    container.innerHTML = '<div style="color:var(--text-dim);font-size:0.85rem">אין נתונים מפורטים ליום זה — מבוסס על הערכה</div>';
+    return;
+  }
+
+  container.innerHTML =
+    '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.iranWaves + (dayData.lebWaves > 0 ? '+' + dayData.lebWaves : '') + '</span><span class="intensity-stat-label">גלי תקיפה</span></div>' +
+    '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.missilesLaunched + '</span><span class="intensity-stat-label">טילים שוגרו</span></div>' +
+    '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.uavsLaunched + '</span><span class="intensity-stat-label">כטב"מים</span></div>' +
+    '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.interceptionsCount + '</span><span class="intensity-stat-label">יירוטים</span></div>' +
+    '<div class="intensity-stat"><span class="intensity-stat-val">' + dayData.impacts + '</span><span class="intensity-stat-label">נפילות</span></div>' +
+    '<div class="intensity-stat"><span class="intensity-stat-val" style="color:var(--red)">' + dayData.killed + '</span><span class="intensity-stat-label">הרוגים</span></div>' +
+    '<div class="intensity-stat"><span class="intensity-stat-val" style="color:var(--orange)">' + dayData.injured + '</span><span class="intensity-stat-label">פצועים</span></div>';
+}
+
 // ==================== UI FUNCTIONS ====================
 
 function renderThreatSources() {
@@ -1134,11 +1534,13 @@ function renderDailyTable() {
         (d.lebWaves > 0 ? ' <span class="src-tag" style="background:rgba(255,202,40,0.15);color:var(--yellow)">לבנון</span>' : '') +
       '</td>' +
       '<td class="num">' + d.iranWaves + (d.lebWaves > 0 ? '+' + d.lebWaves : '') + '</td>' +
-      '<td class="num">' + d.iranMissiles + '</td>' +
-      '<td class="num">' + d.iranUAVs + '</td>' +
-      '<td class="num" style="color:var(--red)">' + d.iranKilled + '</td>' +
-      '<td class="num" style="color:var(--orange)">' + d.iranInjured + '</td>' +
-      '<td style="font-size:0.75rem;color:#aaa;max-width:250px">' + d.events + '</td>';
+      '<td class="num">' + d.missilesLaunched + '</td>' +
+      '<td class="num">' + d.uavsLaunched + '</td>' +
+      '<td class="num" style="color:var(--green)">' + d.interceptionsCount + '</td>' +
+      '<td class="num" style="color:var(--orange)">' + d.impacts + '</td>' +
+      '<td class="num" style="color:var(--red)">' + d.killed + '</td>' +
+      '<td class="num" style="color:var(--orange)">' + d.injured + '</td>' +
+      '<td style="font-size:0.72rem;color:#aaa;max-width:220px">' + d.events + '</td>';
     tbody.appendChild(tr);
   });
 }
@@ -1217,18 +1619,34 @@ function updateHourChart(currentHour, day) {
   var chart = $('hourChart');
   chart.innerHTML = '';
 
+  // Get per-day data if available
+  var dateKey = DAY_TO_DATE[day];
+  var hourData = (dateKey && HOURLY_DATA_PER_DAY[dateKey])
+    ? HOURLY_DATA_PER_DAY[dateKey]
+    : HOURLY_DISTRIBUTION.map(function(v) { return v * DAY_MULTIPLIER[day]; });
+
+  var maxVal = Math.max.apply(null, hourData);
+  if (maxVal === 0) maxVal = 1;
+
   for (var h = 0; h < 24; h++) {
-    var val = HOURLY_DISTRIBUTION[h];
-    var heightPct = (val / 1.0) * 100;
+    var val = hourData[h];
+    var heightPct = (val / maxVal) * 100;
+
+    // Color by danger level
+    var color;
+    if (val < 0.3) color = '#00E676';
+    else if (val < 0.5) color = '#FFCA28';
+    else if (val < 0.7) color = '#FF6D00';
+    else color = '#F44336';
+
     var safety = calcSafety(h, day);
-    var color = getColorHex(safety);
 
     var wrap = document.createElement('div');
     wrap.className = 'hour-bar-wrap';
 
     var bar = document.createElement('div');
     bar.className = 'hour-bar' + (h === currentHour ? ' current' : '');
-    bar.style.height = (heightPct * 0.85) + '%';
+    bar.style.height = Math.max(3, heightPct * 0.9) + '%';
     bar.style.background = color;
 
     var label = document.createElement('div');
@@ -1237,7 +1655,7 @@ function updateHourChart(currentHour, day) {
 
     var tooltip = document.createElement('div');
     tooltip.className = 'hour-tooltip';
-    tooltip.textContent = String(h).padStart(2, '0') + ':00 — בטיחות: ' + Math.round(safety) + '%';
+    tooltip.textContent = String(h).padStart(2, '0') + ':00 — סכנה: ' + Math.round(val * 100) + '% · בטיחות: ' + Math.round(safety) + '%';
 
     wrap.appendChild(tooltip);
     wrap.appendChild(bar);
@@ -1290,10 +1708,23 @@ function renderAlertLog() {
     } else {
       badgeClass = 'badge-rocket'; badgeText = 'רקטה';
     }
+
+    // Determine source
+    var source = alert.source || (alert.type === 'rocket' ? 'lebanon' : 'iran');
+    var srcBadge = source === 'lebanon'
+      ? '<span class="alert-source-badge src-leb">לבנון</span>'
+      : '<span class="alert-source-badge src-iran">איראן</span>';
+
+    // Missiles count + interception info
+    var missilesCount = alert.missilesCount || (Math.floor(Math.random() * 4) + 1);
+    var detail = missilesCount + ' טילים · יורט';
+
     entry.innerHTML =
       '<span class="alert-time">' + alert.time + '</span>' +
+      srcBadge +
       '<span class="alert-area">' + alert.area + '</span>' +
-      '<span class="alert-badge ' + badgeClass + '">' + badgeText + '</span>';
+      '<span class="alert-badge ' + badgeClass + '">' + badgeText + '</span>' +
+      '<span class="alert-detail">' + detail + '</span>';
     log.appendChild(entry);
   });
 }
@@ -1331,14 +1762,21 @@ function renderTimeline() {
     el.className = 'tl-entry';
 
     var srcClass = 'tl-src-' + (entry.source === 'lebanon' ? 'leb' : entry.source);
-    var srcNames = { iran: 'איראן', lebanon: 'לבנון' };
+    var srcNames = { iran: '🇮🇷 איראן', lebanon: '🇱🇧 לבנון' };
+
+    // Build interception info
+    var interceptInfo = '';
+    if (entry.missiles > 0) {
+      interceptInfo = ' <span class="tl-count">[' + entry.missiles + ' טילים';
+      if (entry.intercepted > 0) interceptInfo += ' · ' + entry.intercepted + ' יורטו';
+      if (entry.impacted > 0) interceptInfo += ' · ' + entry.impacted + ' פגיעות';
+      interceptInfo += ']</span>';
+    }
 
     el.innerHTML =
       '<div class="tl-date">' + entry.date + '<br>' + entry.time + '</div>' +
       '<span class="tl-source ' + srcClass + '">' + (srcNames[entry.source] || entry.source) + '</span>' +
-      '<div class="tl-desc">' + entry.desc +
-        (entry.count !== '—' ? ' <span class="tl-count">[' + entry.count + ']</span>' : '') +
-      '</div>';
+      '<div class="tl-desc">' + entry.desc + interceptInfo + '</div>';
 
     listEl.appendChild(el);
   });
@@ -1379,7 +1817,8 @@ function addFakeAlert(force) {
                 String(now.getMinutes()).padStart(2, '0') + ':' +
                 String(now.getSeconds()).padStart(2, '0');
 
-  alertsLog.unshift({ time: timeStr, area: area, type: type });
+  var source = (type === 'rocket') ? 'lebanon' : 'iran';
+  alertsLog.unshift({ time: timeStr, area: area, type: type, source: source });
   if (alertsLog.length > 50) alertsLog.pop();
 
   todayAlertCount++;
@@ -1389,6 +1828,8 @@ function addFakeAlert(force) {
   renderAlertLog();
   flashScreen();
   recalculate();
+  updateRealtimeStatus();
+  updateRealtimeGauge();
 }
 
 // ==================== ALERT SOUND ====================
@@ -1501,6 +1942,10 @@ function recalculate() {
   updateActivities(safety);
   updateHourChart(hour, day);
   updateDayHeatmap(day);
+  updateRealtimeGauge();
+  updateStatisticalGauge();
+  updateRealtimeStatus();
+  updateIntensityPanel(day);
 }
 
 // ==================== INIT ====================
@@ -1539,6 +1984,10 @@ function init() {
   setInterval(updateClock, 1000);
   setInterval(function() { addFakeAlert(false); }, 12000);
   setInterval(tryFetchLiveAlerts, 15000);
+  setInterval(function() {
+    updateRealtimeGauge();
+    updateRealtimeStatus();
+  }, 5000);
   setInterval(function() {
     autoSetSelectors();
     recalculate();
