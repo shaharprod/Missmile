@@ -1120,45 +1120,9 @@ function loadAlerts() {
 // Based on actual data: March 4, 2026 (Day 5)
 // Sources: פיקוד העורף (oref.org.il), IDF Spokesperson, ToI liveblog March 4
 // Includes verified alerts from Pikud HaOref alert history
-var SEED_VERSION = 3; // increment when seed data changes to force refresh
+var SEED_VERSION = 4; // increment when seed data changes to force refresh
 var TODAY_SEED_ALERTS = [
-  { time: '01:12', area: 'אילת', type: 'missile' },
-  { time: '01:12', area: 'ערבה', type: 'missile' },
-  { time: '02:45', area: 'חיפה - כרמל', type: 'missile' },
-  { time: '02:45', area: 'חיפה - מפרץ', type: 'missile' },
-  { time: '02:46', area: 'עכו', type: 'rocket' },
-  { time: '03:18', area: 'מטולה', type: 'rocket' },
-  { time: '03:18', area: 'קריית שמונה', type: 'rocket' },
-  { time: '06:30', area: 'ירושלים - מערב', type: 'missile' },
-  { time: '06:30', area: 'ירושלים - מזרח', type: 'missile' },
-  { time: '06:30', area: 'מעלה אדומים', type: 'missile' },
-  { time: '06:31', area: 'בית שמש', type: 'missile' },
-  { time: '06:55', area: 'תל אביב - מזרח', type: 'missile' },
-  { time: '06:55', area: 'תל אביב - מערב', type: 'missile' },
-  { time: '06:55', area: 'רמת גן', type: 'missile' },
-  { time: '06:56', area: 'בני ברק', type: 'missile' },
-  { time: '06:56', area: 'גבעתיים', type: 'missile' },
-  { time: '08:40', area: 'מרגליות', type: 'rocket' },
-  { time: '09:15', area: 'חיפה - קריות', type: 'uav' },
-  { time: '09:15', area: 'עתלית', type: 'uav' },
-  { time: '11:22', area: 'תל אביב - דרום', type: 'missile' },
-  { time: '11:22', area: 'חולון', type: 'missile' },
-  { time: '11:22', area: 'בת ים', type: 'missile' },
-  { time: '11:23', area: 'ראשון לציון', type: 'missile' },
-  { time: '13:05', area: 'אילת', type: 'missile' },
-  { time: '13:05', area: 'ערבה', type: 'missile' },
-  { time: '14:40', area: 'הוד השרון', type: 'missile' },
-  { time: '14:40', area: 'כפר סבא', type: 'missile' },
-  { time: '14:40', area: 'רעננה', type: 'missile' },
-  { time: '14:41', area: 'נתניה', type: 'missile' },
-  { time: '16:10', area: 'חיפה - כרמל', type: 'rocket' },
-  { time: '16:10', area: 'נהריה', type: 'rocket' },
-  { time: '17:30', area: 'באר שבע - צפון', type: 'missile' },
-  { time: '17:30', area: 'באר שבע - מזרח', type: 'missile' },
-  { time: '19:15', area: 'ירושלים - מערב', type: 'missile' },
-  { time: '19:15', area: 'תל אביב - מזרח', type: 'missile' },
-  { time: '19:16', area: 'פתח תקווה', type: 'missile' },
-  { time: '19:16', area: 'ראש העין', type: 'missile' },
+  // כל האזעקות מפיקוד העורף בלבד (oref.org.il)
   // פיקוד העורף — חדירת כטב"מ 19:21
   { time: '19:21', area: 'שומרה', type: 'uav', source: 'lebanon' },
   { time: '19:21', area: 'זרעית', type: 'uav', source: 'lebanon' },
@@ -1184,11 +1148,6 @@ var TODAY_SEED_ALERTS = [
   { time: '20:29', area: 'שניר', type: 'rocket', source: 'lebanon' },
   { time: '20:30', area: 'עין קנייא', type: 'uav', source: 'lebanon' },
   { time: '20:31', area: 'מטולה', type: 'rocket', source: 'lebanon' },
-  { time: '20:45', area: 'חיפה - מפרץ', type: 'uav' },
-  { time: '20:45', area: 'עכו', type: 'uav' },
-  { time: '21:30', area: 'תל אביב - מערב', type: 'missile' },
-  { time: '21:30', area: 'הרצליה', type: 'missile' },
-  { time: '22:10', area: 'אילת', type: 'missile' },
   // פיקוד העורף — חדירת כטב"מ 22:31-22:33
   { time: '22:31', area: 'שאר ישוב', type: 'uav', source: 'lebanon' },
   { time: '22:31', area: 'קיבוץ דן', type: 'uav', source: 'lebanon' },
@@ -1204,8 +1163,10 @@ var TODAY_SEED_ALERTS = [
   { time: '22:33', area: 'נאות מרדכי', type: 'uav', source: 'lebanon' },
   { time: '22:33', area: 'עמיר', type: 'uav', source: 'lebanon' },
   { time: '22:33', area: 'כפר בלום', type: 'uav', source: 'lebanon' },
-  { time: '23:05', area: 'גדרה', type: 'missile' },
-  { time: '23:05', area: 'יבנה', type: 'missile' }
+  // פיקוד העורף — רקטות + כטב"מ 23:57-23:58
+  { time: '23:57', area: 'מנרה', type: 'rocket', source: 'lebanon' },
+  { time: '23:57', area: 'קריית שמונה', type: 'uav', source: 'lebanon' },
+  { time: '23:58', area: 'מרגליות', type: 'uav', source: 'lebanon' }
 ];
 
 function seedTodayAlerts() {
