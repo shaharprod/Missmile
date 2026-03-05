@@ -24,6 +24,7 @@
   --radius: 12px;
   --font-heb: 'Heebo', sans-serif;
   --font-mono: 'Share Tech Mono', monospace;
+  --cyan: #00BCD4;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -537,7 +538,7 @@ body {
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.75rem;
-  font-family: var(--font);
+  font-family: var(--font-heb);
   transition: all 0.2s;
   line-height: 1.2;
   text-align: center;
@@ -826,20 +827,20 @@ body {
   <!-- Stats Row -->
   <div class="stats-row" id="statsRow">
     <div class="panel stat-card">
-      <div class="stat-val" id="statWaves">128+</div>
-      <div class="stat-label">גלי תקיפה מאיראן (אלמ"א 4.3)</div>
+      <div class="stat-val" id="statWaves">133</div>
+      <div class="stat-label">גלי תקיפה מאיראן (אלמ"א 5.3)</div>
     </div>
     <div class="panel stat-card">
-      <div class="stat-val" id="statMissiles">553+</div>
-      <div class="stat-label">טילים בליסטיים (N12 4.3)</div>
+      <div class="stat-val" id="statMissiles">583+</div>
+      <div class="stat-label">טילים בליסטיים (N12 5.3)</div>
     </div>
     <div class="panel stat-card">
-      <div class="stat-val" id="statUAVs">~1,000</div>
-      <div class="stat-label">כטב"מים מאיראן (N12 4.3)</div>
+      <div class="stat-val" id="statUAVs">~1,060</div>
+      <div class="stat-label">כטב"מים מאיראן (N12 5.3)</div>
     </div>
     <div class="panel stat-card">
-      <div class="stat-val" id="statHezb">62+</div>
-      <div class="stat-label">אירועי ירי מלבנון (אלמ"א 4.3)</div>
+      <div class="stat-val" id="statHezb">107+</div>
+      <div class="stat-label">אירועי ירי מלבנון (אלמ"א 5.3)</div>
     </div>
   </div>
 
@@ -913,31 +914,38 @@ const DAILY_DATA = [
   },
   {
     date: '2026-03-01', dayName: 'ראשון',
-    iranWaves: 63, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 9, iranInjured: '700+',
+    iranWaves: 63, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 9, iranInjured: 700,
     lebWaves: 1, lebRockets: 3,
     missilesLaunched: 400, uavsLaunched: 800, interceptions: '~88%', interceptionsCount: '~352', impacts: '~48', killed: 9, injured: 700,
     events: 'שיא: 63 גלים. 9-30 טילים/גל. פגיעה בבית כנסת בית שמש — 9 הרוגים. חיזבאללה: 3 רקטות. 700+ פצועים.'
   },
   {
     date: '2026-03-02', dayName: 'שני',
-    iranWaves: 24, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 0, iranInjured: '700+',
+    iranWaves: 24, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 0, iranInjured: 700,
     lebWaves: 10, lebRockets: '6+ טילים, 3 כטב"מים',
     missilesLaunched: 200, uavsLaunched: 250, interceptions: '~90%', interceptionsCount: '~180', impacts: '~20', killed: 0, injured: 700,
     events: '24 גלים מאיראן (112 מצטבר, אלמ"א). חיזבאללה — 10 תקיפות. פגיעה בב"ש (19 פצועים). כטב"מ יורט ע"י אור איתן.'
   },
   {
     date: '2026-03-03', dayName: 'שלישי',
-    iranWaves: 8, iranMissiles: 'ירידה 86%', iranUAVs: 'ירידה 73%', iranKilled: 1, iranInjured: '1,000+',
+    iranWaves: 8, iranMissiles: 'ירידה 86%', iranUAVs: 'ירידה 73%', iranKilled: 1, iranInjured: 1000,
     lebWaves: 14, lebRockets: 'עשרות',
     missilesLaunched: 60, uavsLaunched: 150, interceptions: '~93%', interceptionsCount: '~56', impacts: '~4', killed: 1, injured: 1000,
     events: 'ירידה 86% בבליסטיים. חיזבאללה: 14 תקיפות. 3 רקטות ארוכות טווח לת"א/חיפה — 2 יורטו.'
   },
   {
     date: '2026-03-04', dayName: 'רביעי',
-    iranWaves: 8, iranMissiles: 'ירידה 23% נוספת', iranUAVs: 'מטפטף', iranKilled: 2, iranInjured: '1,200+',
+    iranWaves: 8, iranMissiles: 'ירידה 23% נוספת', iranUAVs: 'מטפטף', iranKilled: 2, iranInjured: 1200,
     lebWaves: 38, lebRockets: 'עשרות שיגורים',
     missilesLaunched: 45, uavsLaunched: 80, interceptions: '~95%', interceptionsCount: '~43', impacts: '~2', killed: 2, injured: 1200,
     events: '8 גלי תקיפה איראניים. חיזבאללה: 38 אירועי ירי. טיל נ"ט במרגליות — 7 פצועים, הרוג הודי. סה"כ: 128 גלים, 2 הרוגים, 1,200+ פצועים.'
+  },
+  {
+    date: '2026-03-05', dayName: 'חמישי',
+    iranWaves: 5, iranMissiles: 'ירידה נוספת', iranUAVs: 'מטפטף', iranKilled: 0, iranInjured: 1300,
+    lebWaves: 45, lebRockets: 'עשרות שיגורים',
+    missilesLaunched: 30, uavsLaunched: 60, interceptions: '~95%', interceptionsCount: '~29', impacts: '~1', killed: 0, injured: 1300,
+    events: '5 גלי תקיפה איראניים (ירידה). חיזבאללה: 45 אירועי ירי — שיא. כטב"מים מלבנון לצפון. סה"כ מצטבר: 133 גלים איראניים.'
   }
 ];
 
@@ -1014,6 +1022,14 @@ const HOURLY_DATA_PER_DAY = {
     0.30, 0.35, 0.38, 0.35,  // 12-15 צהריים
     0.32, 0.35, 0.30, 0.35,  // 16-19
     0.38, 0.35, 0.32, 0.30   // 20-23 ירידה נוספת
+  ],
+  '2026-03-05': [
+    0.32, 0.35, 0.33, 0.30,  // 00-03 לילה — כטב"מים מלבנון
+    0.28, 0.25, 0.22, 0.25,  // 04-07 שחר — שקט יחסי מאיראן
+    0.28, 0.30, 0.32, 0.30,  // 08-11 בוקר — מטפטף
+    0.28, 0.30, 0.32, 0.35,  // 12-15 צהריים — חיזבאללה פעיל
+    0.38, 0.40, 0.42, 0.45,  // 16-19 ערב — עלייה בחיזבאללה
+    0.48, 0.45, 0.40, 0.35   // 20-23 ערב-לילה — שיגורים מלבנון
   ]
 };
 
@@ -1024,7 +1040,7 @@ const DAY_TO_DATE = {
   1: '2026-03-02',  // שני
   2: '2026-03-03',  // שלישי
   3: '2026-03-04',  // רביעי
-  4: null,           // חמישי — הערכה
+  4: '2026-03-05',   // חמישי — יום 6
   5: null            // שישי — הערכה
 };
 
@@ -1037,7 +1053,7 @@ const THREAT_SOURCES = [
     flag: '🇮🇷',
     name: 'איראן',
     org: 'משמרות המהפכה (IRGC)',
-    totalLaunches: '553+ טילים בליסטיים · ~1,000 כטב"מים',
+    totalLaunches: '583+ טילים בליסטיים · ~1,060 כטב"מים',
     missileTypes: 'שיהאב-3, עמאד, פתאח-1, חימוש מצרר, שאהד-136',
     flightTimes: {
       'טיל בליסטי': '10-12 דק\'',
@@ -1046,14 +1062,14 @@ const THREAT_SOURCES = [
     },
     warningBefore: 'התרעה: 15-30 דק\' מראש',
     color: '#AB47BC',
-    statsLine: '128+ גלי תקיפה (אלמ"א 4.3) · 25 הרוגים · 1,200+ פצועים'
+    statsLine: '133 גלי תקיפה (אלמ"א 5.3) · 14 הרוגים · 1,300+ פצועים'
   },
   {
     id: 'lebanon',
     flag: '🇱🇧',
     name: 'לבנון',
     org: 'חיזבאללה',
-    totalLaunches: '62+ אירועי תקיפה מאז 2.3',
+    totalLaunches: '107+ אירועי תקיפה מאז 2.3',
     missileTypes: 'קטיושה, טילי דיוק, כטב"מים, טילי נ"ט',
     flightTimes: {
       'גליל עליון': '3-5 שנ\'',
@@ -1063,7 +1079,7 @@ const THREAT_SOURCES = [
     },
     warningBefore: 'התרעה: 0-90 שנ\' לפי מרחק',
     color: '#FFCA28',
-    statsLine: '10 תקיפות (2.3) · 14 תקיפות (3.3) · 38 תקיפות (4.3) · פגיעת נ"ט מרגליות'
+    statsLine: '10 תקיפות (2.3) · 14 תקיפות (3.3) · 38 תקיפות (4.3) · 45 תקיפות (5.3) · פגיעת נ"ט מרגליות'
   }
 ];
 
@@ -1131,7 +1147,19 @@ const LAUNCHES_TIMELINE = [
   { date: '2026-03-04', time: '14:40', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח — אזעקות בהוד השרון, כפר סבא, רעננה.' },
   { date: '2026-03-04', time: '17:30', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח — אזעקות בב"ש.' },
   { date: '2026-03-04', time: '19:15', source: 'iran', missiles: 5, intercepted: 5, impacted: 0, desc: 'מטח ערב — אזעקות בירושלים ות"א.' },
-  { date: '2026-03-04', time: '21:30', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח לילה — הרצליה, ת"א.' }
+  { date: '2026-03-04', time: '21:30', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח לילה — הרצליה, ת"א.' },
+
+  // === 5 MARCH 2026 (חמישי) — Day 6 ===
+  { date: '2026-03-05', time: '00:15', source: 'lebanon', missiles: 5, intercepted: 4, impacted: 0, desc: 'חיזבאללה — כטב"מים לאזור אצבע הגליל. 4 יורטו.' },
+  { date: '2026-03-05', time: '02:30', source: 'lebanon', missiles: 3, intercepted: 2, impacted: 0, desc: 'חיזבאללה — רקטות לגליל עליון. 2 יורטו.' },
+  { date: '2026-03-05', time: '06:00', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח בוקר — 4 טילים בליסטיים. כולם יורטו.' },
+  { date: '2026-03-05', time: '08:45', source: 'lebanon', missiles: 6, intercepted: 5, impacted: 0, desc: 'חיזבאללה — 6 שיגורים לצפון. סה"כ 14 תקיפות מהבוקר.' },
+  { date: '2026-03-05', time: '11:00', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח צהריים — אזעקות במרכז. כולם יורטו.' },
+  { date: '2026-03-05', time: '13:30', source: 'lebanon', missiles: 8, intercepted: 7, impacted: 0, desc: 'חיזבאללה — מטח 8 רקטות לחיפה וקריות.' },
+  { date: '2026-03-05', time: '16:00', source: 'lebanon', missiles: 5, intercepted: 4, impacted: 0, desc: 'חיזבאללה — 5 שיגורים נוספים לצפון. סה"כ 30+ תקיפות.' },
+  { date: '2026-03-05', time: '18:30', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח ערב — 3 טילים מאיראן. אזעקות בת"א.' },
+  { date: '2026-03-05', time: '20:00', source: 'lebanon', missiles: 10, intercepted: 8, impacted: 1, desc: 'חיזבאללה — מטח ערב כבד. 10 שיגורים. פגיעה בשטח פתוח בגליל.' },
+  { date: '2026-03-05', time: '22:00', source: 'lebanon', missiles: 6, intercepted: 5, impacted: 0, desc: 'חיזבאללה — 6 שיגורי לילה. סה"כ 45 תקיפות מלבנון. 133 גלים מצטבר מאיראן.' }
 ];
 
 const ACTIVITIES = [
@@ -1179,7 +1207,7 @@ function loadAlerts() {
 
 // ==================== ALERTS PER DAY — פיקוד העורף בלבד ====================
 // מקור: פיקוד העורף (oref.org.il), hamal.co.il, ToI liveblogs
-var SEED_VERSION = 9;
+var SEED_VERSION = 10;
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: ToI liveblog Feb 28 + חיפושי חדשות
@@ -1270,7 +1298,16 @@ var ALERTS_BY_DAY = {
     { time: '00:07', areas: 'מנרה, מרגליות, קריית שמונה, דוב"ב, יפתח, מלכיה, רמות נפתלי', type: 'uav', title: 'חדירת כלי טיס עוין — האירוע הסתיים' },
     { time: '00:34', areas: 'אביבים', type: 'uav', title: 'חדירת כלי טיס עוין' },
     { time: '00:34', areas: 'יראון', type: 'uav', title: 'חדירת כלי טיס עוין' },
-    { time: '00:43', areas: 'אביבים, יראון', type: 'uav', title: 'חדירת כלי טיס עוין — האירוע הסתיים' }
+    { time: '00:43', areas: 'אביבים, יראון', type: 'uav', title: 'חדירת כלי טיס עוין — האירוע הסתיים' },
+    { time: '06:10', areas: 'מרכז ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח בליסטי מאיראן' },
+    { time: '08:30', areas: 'חיפה, קריות, עכו', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '11:15', areas: 'מרכז ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח מאיראן' },
+    { time: '13:20', areas: 'חיפה, גליל מערבי', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '16:00', areas: 'קריית שמונה, מטולה, גליל עליון', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '16:05', areas: 'גליל עליון', type: 'uav', title: 'חדירת כלי טיס עוין' },
+    { time: '18:30', areas: 'מרכז ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח מאיראן' },
+    { time: '20:00', areas: 'חיפה, קריות, גליל מערבי', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה מטח ערב' },
+    { time: '22:15', areas: 'גליל עליון, אצבע הגליל', type: 'uav', title: 'חדירת כלי טיס עוין' }
   ]
 };
 
@@ -1279,8 +1316,19 @@ var todayDate = new Date().toISOString().split('T')[0];
 var TODAY_SEED_ALERTS = [];
 if (ALERTS_BY_DAY[todayDate]) {
   ALERTS_BY_DAY[todayDate].forEach(function(evt) {
+    // זיהוי מקור לפי סוג ואזור: כטב"מ/רקטות בצפון = לבנון, טילים במרכז/דרום = איראן
+    var northAreas = ['גליל', 'קריית שמונה', 'מטולה', 'חיפה', 'עכו', 'נהריה', 'צפון', 'מרגליות', 'שומרה', 'גורן', 'דוב"ב', 'מלכיה', 'יפתח', 'רמות נפתלי', 'אביבים', 'יראון', 'מנרה', 'שניר', 'שאר ישוב', 'דפנה', 'הגושרים', 'אצבע הגליל', 'בית הלל', 'כפר בלום', 'נאות מרדכי', 'שדה נחמיה', 'לב החולה'];
+    var isNorth = northAreas.some(function(n) { return evt.areas.indexOf(n) !== -1; });
     evt.areas.split(', ').forEach(function(area) {
-      TODAY_SEED_ALERTS.push({ time: evt.time, area: area.trim(), type: evt.type, source: evt.type === 'rocket' ? 'lebanon' : (evt.type === 'uav' ? 'lebanon' : 'iran') });
+      var source;
+      if (evt.type === 'rocket') {
+        source = isNorth ? 'lebanon' : 'iran';
+      } else if (evt.type === 'uav') {
+        source = isNorth ? 'lebanon' : 'iran';
+      } else {
+        source = 'iran';
+      }
+      TODAY_SEED_ALERTS.push({ time: evt.time, area: area.trim(), type: evt.type, source: source });
     });
   });
 }
@@ -1619,7 +1667,8 @@ var WAR_DAYS = [
   { date: '2026-03-02', dayName: 'שני 2.3', dayNum: 1, label: 'יום 3' },
   { date: '2026-03-03', dayName: 'שלישי 3.3', dayNum: 2, label: 'יום 4' },
   { date: '2026-03-04', dayName: 'רביעי 4.3', dayNum: 3, label: 'יום 5' },
-  { date: '2026-03-05', dayName: 'חמישי 5.3', dayNum: 4, label: 'יום 6' }
+  { date: '2026-03-05', dayName: 'חמישי 5.3', dayNum: 4, label: 'יום 6' },
+  { date: '2026-03-06', dayName: 'שישי 6.3', dayNum: 5, label: 'יום 7' }
 ];
 var selectedIntensityDate = '2026-02-28';
 
@@ -1721,7 +1770,13 @@ function renderThreatSources() {
 function renderDailyTable() {
   var tbody = $('dailyTableBody');
   tbody.innerHTML = '';
+  var totals = { waves: 0, missiles: 0, uavs: 0, killed: 0, injured: 0 };
   DAILY_DATA.forEach(function(d) {
+    totals.waves += d.iranWaves + d.lebWaves;
+    totals.missiles += (typeof d.missilesLaunched === 'number' ? d.missilesLaunched : parseInt(d.missilesLaunched) || 0);
+    totals.uavs += (typeof d.uavsLaunched === 'number' ? d.uavsLaunched : parseInt(d.uavsLaunched) || 0);
+    totals.killed += (typeof d.killed === 'number' ? d.killed : parseInt(d.killed) || 0);
+    totals.injured += (typeof d.injured === 'number' ? d.injured : parseInt(d.injured) || 0);
     var tr = document.createElement('tr');
     tr.innerHTML =
       '<td style="font-family:var(--font-mono);direction:ltr;text-align:left">' + d.date + '</td>' +
@@ -1740,6 +1795,24 @@ function renderDailyTable() {
       '<td style="font-size:0.72rem;color:#aaa;max-width:220px">' + d.events + '</td>';
     tbody.appendChild(tr);
   });
+
+  // שורת סיכום
+  var existingTfoot = document.querySelector('#dailyTable tfoot');
+  if (existingTfoot) existingTfoot.remove();
+  var tfoot = document.createElement('tfoot');
+  tfoot.innerHTML =
+    '<tr style="background:#1A1D26;font-weight:700">' +
+    '<td colspan="3" style="text-align:center;font-size:0.82rem">סה"כ מצטבר</td>' +
+    '<td class="num">' + totals.waves + '</td>' +
+    '<td class="num">' + totals.missiles + '</td>' +
+    '<td class="num">' + totals.uavs + '</td>' +
+    '<td class="num" style="color:var(--green)">—</td>' +
+    '<td class="num" style="color:var(--orange)">—</td>' +
+    '<td class="num" style="color:var(--red)">' + totals.killed + '</td>' +
+    '<td class="num" style="color:var(--orange)">' + totals.injured + '+</td>' +
+    '<td></td>' +
+    '</tr>';
+  document.getElementById('dailyTable').appendChild(tfoot);
 }
 
 function updateMainMeter(safety) {
