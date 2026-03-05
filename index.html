@@ -2202,10 +2202,18 @@ var connectionState = {
 //
 // מסקנה: לזמן אמת — שימוש ב-oref + proxies (כפי שמיושם). מ-28.2.2026 — אין ארכיון ציבורי;
 // האפליקציה משתמשת בנתוני seed מבוססי דיווחים + אזעקות חיות כש-oref זמין.
+// ========== מקורות נתונים — סדר עדיפות ==========
+// 1. צבע אדום WebSocket (זמן אמת, ללא CORS)
+var TZEVAADOM_WS_URL = 'wss://ws.tzevaadom.co.il:8443/socket?platform=WEB';
+// 2. צבע אדום REST API (polling, ללא CORS)
+var TZEVAADOM_API_URL = 'https://api.tzevaadom.co.il/alerts-history';
+// 3. פיקוד העורף (דורש CORS proxy מחוץ לישראל)
 var OREF_URL = 'https://www.oref.org.il/WarningMessages/alert/alerts.json';
 var OREF_HISTORY_URL = 'https://www.oref.org.il/WarningMessages/alert/History/AlertsHistory.json';
-// מקור היסטורי אופציונלי (2014–2021): israel-alerts-data CSV
-var ISRAEL_ALERTS_CSV_URL = 'https://raw.githubusercontent.com/dleshem/israel-alerts-data/main/israel-alerts.csv';
+var OREF_HEADERS = {
+  'Referer': 'https://www.oref.org.il/11226-he/pakar.aspx',
+  'X-Requested-With': 'XMLHttpRequest'
+};
 var CORS_PROXIES = [
   function(u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
   function(u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); },
@@ -2213,19 +2221,135 @@ var CORS_PROXIES = [
   function(u) { return 'https://thingproxy.freeboard.io/fetch/' + u; },
   function(u) { return 'https://api.cors.lol/?url=' + encodeURIComponent(u); }
 ];
+// WebSocket state
+var wsConnection = null;
+var wsReconnectTimer = null;
+var wsConnected = false;
 
-function updateConnectionUI(connected, proxyName) {
+function updateConnectionUI(connected, sourceName) {
   var dot = $('connDot');
   var text = $('connText');
   connectionState.connected = connected;
   if (connected) {
     dot.className = 'conn-dot connected';
-    text.textContent = 'מחובר לפיקוד העורף';
+    text.textContent = sourceName || 'מחובר — זמן אמת';
+    text.title = '';
     connectionState.lastSuccess = Date.now();
   } else {
     dot.className = 'conn-dot disconnected';
     text.textContent = 'נתונים מקומיים';
-    text.title = 'לא ניתן להתחבר לפיקוד העורף — מציג נתונים שמורים. האפליקציה תנסה שוב אוטומטית.';
+    text.title = 'לא ניתן להתחבר — מציג נתונים שמורים. האפליקציה תנסה שוב אוטומטית.';
+  }
+}
+
+// ==================== צבע אדום WebSocket ====================
+function connectTzevaadomWS() {
+  if (wsConnection && (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING)) return;
+  try {
+    wsConnection = new WebSocket(TZEVAADOM_WS_URL);
+    wsConnection.onopen = function() {
+      wsConnected = true;
+      connectionState.failCount = 0;
+      updateConnectionUI(true, 'צבע אדום — זמן אמת');
+    };
+    wsConnection.onmessage = function(event) {
+      try {
+        var data = JSON.parse(event.data);
+        if (data && data.cities && data.cities.length > 0) {
+          processTzevaadomAlert(data);
+        }
+      } catch(e) {}
+    };
+    wsConnection.onclose = function() {
+      wsConnected = false;
+      if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
+      wsReconnectTimer = setTimeout(connectTzevaadomWS, 5000);
+    };
+    wsConnection.onerror = function() {
+      wsConnected = false;
+    };
+  } catch(e) {
+    wsConnected = false;
+  }
+}
+
+function processTzevaadomAlert(data) {
+  var now = new Date();
+  var timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  var areas = (data.cities || []).join(', ');
+  var threat = data.threat || 0;
+  var type = threat >= 3 ? 'missile' : 'uav';
+  var title = threat >= 3 ? 'ירי רקטות וטילים' : 'חדירת כלי טיס עוין';
+
+  var isDuplicate = alertsLog.some(function(existing) {
+    return existing.area === areas && existing.time === timeStr;
+  });
+  if (!isDuplicate) {
+    alertsLog.unshift({
+      time: timeStr, alertDate: now.toISOString().split('T')[0] + ' ' + timeStr,
+      area: areas, type: type, title: title, source: 'live', live: true
+    });
+    todayAlertCount++;
+    flashScreen();
+    if (alertsLog.length > 200) alertsLog.length = 200;
+    $('todayCount').textContent = todayAlertCount;
+    saveAlerts();
+    renderAlertLog();
+    recalculate();
+    var dateKey = now.toISOString().split('T')[0];
+    saveDynamicAlert(dateKey, timeStr, areas, type, title);
+  }
+}
+
+// ==================== צבע אדום REST API ====================
+async function tryFetchTzevaadomAPI() {
+  try {
+    var res = await fetch(TZEVAADOM_API_URL, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return false;
+
+    var newAlerts = false;
+    var fiveMinAgo = Date.now() - 5 * 60 * 1000;
+
+    data.forEach(function(group) {
+      if (!group.alerts) return;
+      group.alerts.forEach(function(a) {
+        var alertTime = a.time * 1000;
+        if (alertTime < fiveMinAgo) return;
+        var date = new Date(alertTime);
+        var timeStr = String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+        var areas = (a.cities || []).join(', ');
+        var type = (a.threat || 0) >= 3 ? 'missile' : 'uav';
+        var title = type === 'missile' ? 'ירי רקטות וטילים' : 'חדירת כלי טיס עוין';
+
+        var isDuplicate = alertsLog.some(function(existing) {
+          return existing.area === areas && existing.time === timeStr;
+        });
+        if (!isDuplicate) {
+          alertsLog.unshift({
+            time: timeStr, alertDate: date.toISOString().split('T')[0] + ' ' + timeStr,
+            area: areas, type: type, title: title, source: 'live', live: true
+          });
+          todayAlertCount++;
+          newAlerts = true;
+          var dateKey = date.toISOString().split('T')[0];
+          saveDynamicAlert(dateKey, timeStr, areas, type, title);
+        }
+      });
+    });
+
+    if (newAlerts) {
+      flashScreen();
+      if (alertsLog.length > 200) alertsLog.length = 200;
+      $('todayCount').textContent = todayAlertCount;
+      saveAlerts();
+      renderAlertLog();
+      recalculate();
+    }
+    return true;
+  } catch(e) {
+    return false;
   }
 }
 
@@ -2250,7 +2374,11 @@ async function fetchWithProxies(targetUrl, timeout) {
   var promises = ordered.map(function(proxyFn, idx) {
     var url = proxyFn(targetUrl);
     return fetch(url, {
-      headers: { 'Accept': 'application/json' },
+      headers: {
+        'Accept': 'application/json',
+        'Referer': 'https://www.oref.org.il/11226-he/pakar.aspx',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
       signal: AbortSignal.timeout(timeout)
     }).then(function(res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -2346,14 +2474,36 @@ async function tryFetchLiveAlerts() {
   var btn = $('connRefresh');
   if (btn) btn.classList.add('spinning');
 
+  // אם WebSocket מחובר — לא צריך polling, רק אימות
+  if (wsConnected) {
+    updateConnectionUI(true, 'צבע אדום — זמן אמת');
+    connectionState.failCount = 0;
+    connectionState.pollInterval = 30000;
+    if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
+    scheduleNextPoll();
+    return;
+  }
+
+  // עדיפות 1: צבע אדום REST API (ללא CORS)
+  var tzSuccess = await tryFetchTzevaadomAPI();
+  if (tzSuccess) {
+    connectionState.failCount = 0;
+    connectionState.pollInterval = 15000;
+    updateConnectionUI(true, 'צבע אדום — polling');
+    connectTzevaadomWS(); // נסה לשדרג ל-WebSocket
+    if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
+    scheduleNextPoll();
+    return;
+  }
+
+  // עדיפות 2: Oref ישיר (עובד מישראל)
   try {
-    // ניסיון מקבילי לכל ה-proxies
     var result = await fetchWithProxies(OREF_URL, 6000);
     var parsed = JSON.parse(result.text);
     connectionState.lastProxyIndex = result.proxyIndex;
     connectionState.failCount = 0;
     connectionState.pollInterval = 10000;
-    updateConnectionUI(true);
+    updateConnectionUI(true, 'פיקוד העורף — זמן אמת');
 
     var newAlerts = processOrefAlerts(parsed);
     if (newAlerts) {
@@ -2364,32 +2514,38 @@ async function tryFetchLiveAlerts() {
       renderAlertLog();
       recalculate();
     }
-  } catch (e) {
-    // כל ה-proxies נכשלו — נסה AlertsHistory כ-fallback
-    try {
-      var histResult = await fetchWithProxies(OREF_HISTORY_URL, 8000);
-      var histParsed = JSON.parse(histResult.text);
-      connectionState.lastProxyIndex = histResult.proxyIndex;
-      connectionState.failCount = 0;
-      updateConnectionUI(true);
+    if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
+    scheduleNextPoll();
+    return;
+  } catch (e) {}
 
-      var newAlerts = processOrefAlerts(histParsed);
-      if (newAlerts) {
-        flashScreen();
-        if (alertsLog.length > 200) alertsLog.length = 200;
-        $('todayCount').textContent = todayAlertCount;
-        saveAlerts();
-        renderAlertLog();
-        recalculate();
-      }
-    } catch (e2) {
-      // גם ה-fallback נכשל
-      connectionState.failCount++;
-      updateConnectionUI(false);
-      // Exponential backoff: 10s → 20s → 40s → 60s max
-      connectionState.pollInterval = Math.min(60000, 10000 * Math.pow(2, connectionState.failCount - 1));
+  // עדיפות 3: Oref History
+  try {
+    var histResult = await fetchWithProxies(OREF_HISTORY_URL, 8000);
+    var histParsed = JSON.parse(histResult.text);
+    connectionState.lastProxyIndex = histResult.proxyIndex;
+    connectionState.failCount = 0;
+    updateConnectionUI(true, 'פיקוד העורף — היסטוריה');
+
+    var newAlerts = processOrefAlerts(histParsed);
+    if (newAlerts) {
+      flashScreen();
+      if (alertsLog.length > 200) alertsLog.length = 200;
+      $('todayCount').textContent = todayAlertCount;
+      saveAlerts();
+      renderAlertLog();
+      recalculate();
     }
-  }
+    if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
+    scheduleNextPoll();
+    return;
+  } catch (e2) {}
+
+  // הכל נכשל
+  connectionState.failCount++;
+  updateConnectionUI(false);
+  connectionState.pollInterval = Math.min(60000, 10000 * Math.pow(2, connectionState.failCount - 1));
+  connectTzevaadomWS(); // נסה WebSocket גם אם הכל נכשל
 
   if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
   scheduleNextPoll();
@@ -2481,7 +2637,8 @@ function init() {
 
   setInterval(updateClock, 1000);
   setInterval(updateConnectionAgo, 5000);
-  // אזעקות בזמן אמת מפיקוד העורף — polling מהיר עם backoff
+  // אזעקות בזמן אמת — עדיפות: 1) צבע אדום WebSocket 2) צבע אדום REST 3) Oref proxies
+  connectTzevaadomWS();
   tryFetchLiveAlerts(); // מפעיל scheduleNextPoll אוטומטית
   setInterval(function() {
     updateRealtimeGauge();
