@@ -780,15 +780,12 @@ body {
     </div>
   </div>
 
-  <!-- Launch Intensity for Selected Day -->
-  <div class="panel intensity-panel" id="intensityPanel">
-    <div class="chart-title">עוצמת שיגורים ואזעקות — מ-28.2.2026</div>
-    <div class="intensity-day-tabs" id="intensityDayTabs"></div>
-    <div class="intensity-day-header">
-      <span id="intensityDayName" style="font-weight:700;font-size:1rem"></span>
-      <span id="intensityDate" style="color:var(--text-dim);font-size:0.8rem;margin-right:6px"></span>
+  <!-- Live Alerts Log -->
+  <div class="panel">
+    <div class="alerts-title">יומן אזעקות אחרונות (נתוני זמן אמת מפיקוד העורף)</div>
+    <div class="alerts-log" id="alertsLog">
+      <div class="no-alerts">✅ אין אזעקות פעילות כרגע</div>
     </div>
-    <div class="intensity-stats" id="intensityStats"></div>
   </div>
 
   <!-- Recommendation -->
@@ -848,12 +845,15 @@ body {
     <div class="day-heatmap" id="dayHeatmap"></div>
   </div>
 
-  <!-- Live Alerts Log -->
-  <div class="panel">
-    <div class="alerts-title">יומן אזעקות אחרונות (נתוני זמן אמת מפיקוד העורף)</div>
-    <div class="alerts-log" id="alertsLog">
-      <div class="no-alerts">✅ אין אזעקות פעילות כרגע</div>
+  <!-- Launch Intensity for Selected Day -->
+  <div class="panel intensity-panel" id="intensityPanel">
+    <div class="chart-title">עוצמת שיגורים ואזעקות — מ-28.2.2026</div>
+    <div class="intensity-day-tabs" id="intensityDayTabs"></div>
+    <div class="intensity-day-header">
+      <span id="intensityDayName" style="font-weight:700;font-size:1rem"></span>
+      <span id="intensityDate" style="color:var(--text-dim);font-size:0.8rem;margin-right:6px"></span>
     </div>
+    <div class="intensity-stats" id="intensityStats"></div>
   </div>
 
   <!-- Timeline -->
