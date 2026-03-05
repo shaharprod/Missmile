@@ -691,7 +691,7 @@ body {
     <div class="live-clock" id="liveClock">00:00:00</div>
     <div class="connection-status" id="connectionStatus">
       <span class="conn-dot" id="connDot"></span>
-      <span class="conn-text" id="connText">מתחבר...</span>
+      <span class="conn-text" id="connText">בודק חיבור...</span>
       <span class="conn-ago" id="connAgo"></span>
       <button class="conn-refresh" id="connRefresh" title="רענן עכשיו">⟳</button>
     </div>
@@ -2208,7 +2208,8 @@ function updateConnectionUI(connected, proxyName) {
     connectionState.lastSuccess = Date.now();
   } else {
     dot.className = 'conn-dot disconnected';
-    text.textContent = 'לא מחובר';
+    text.textContent = 'נתונים מקומיים';
+    text.title = 'לא ניתן להתחבר לפיקוד העורף — מציג נתונים שמורים. האפליקציה תנסה שוב אוטומטית.';
   }
 }
 
