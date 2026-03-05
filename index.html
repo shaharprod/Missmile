@@ -2339,6 +2339,23 @@ function renderTimeline() {
 
 // ==================== ALERT SOUND ====================
 var audioCtx = null;
+var audioUnlocked = false;
+// דפדפנים חוסמים אודיו עד אינטראקציה ראשונה — נפתח AudioContext בלחיצה
+document.addEventListener('click', function unlockAudio() {
+  if (!audioUnlocked) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // צליל שקט כדי "לפתוח" את האודיו
+      var buf = audioCtx.createBuffer(1, 1, 22050);
+      var src = audioCtx.createBufferSource();
+      src.buffer = buf;
+      src.connect(audioCtx.destination);
+      src.start(0);
+      audioUnlocked = true;
+    } catch(e) {}
+  }
+}, { once: false });
+
 function playAlertSound() {
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2724,7 +2741,34 @@ async function tryFetchLiveAlerts() {
     return;
   }
 
-  // עדיפות 2: Oref ישיר (עובד מישראל)
+  // עדיפות 2: Oref ישיר ללא proxy (עובד מישראל!)
+  try {
+    var directRes = await fetch(OREF_URL, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'https://www.oref.org.il/' },
+      signal: AbortSignal.timeout(5000)
+    });
+    if (directRes.ok) {
+      var directText = await directRes.text();
+      if (directText && directText.trim().length > 2) {
+        var directParsed = JSON.parse(directText);
+        connectionState.failCount = 0;
+        connectionState.pollInterval = 5000; // Oref ישיר = כל 5 שניות!
+        updateConnectionUI(true, 'מחובר לפיקוד העורף — זמן אמת');
+        var newAlerts = processOrefAlerts(directParsed);
+        if (newAlerts) {
+          flashScreen();
+          if (alertsLog.length > 200) alertsLog.length = 200;
+          $('todayCount').textContent = todayAlertCount;
+          saveAlerts(); renderAlertLog(); recalculate();
+        }
+        if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
+        scheduleNextPoll();
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // עדיפות 3: Oref דרך proxy (מחוץ לישראל)
   try {
     var result = await fetchWithProxies(OREF_URL, 6000);
     var parsed = JSON.parse(result.text);
