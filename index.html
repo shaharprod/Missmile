@@ -2445,8 +2445,8 @@ function updateConnectionUI(connected, sourceName) {
     connectionState.lastSuccess = Date.now();
   } else {
     dot.className = 'conn-dot disconnected';
-    text.textContent = 'נתונים מקומיים';
-    text.title = 'לא ניתן להתחבר — מציג נתונים שמורים. האפליקציה תנסה שוב אוטומטית.';
+    text.textContent = 'מתחבר...';
+    text.title = 'מנסה להתחבר לפיקוד העורף / צבע אדום. ניסיון חוזר אוטומטי.';
   }
 }
 
@@ -2458,7 +2458,7 @@ function connectTzevaadomWS() {
     wsConnection.onopen = function() {
       wsConnected = true;
       connectionState.failCount = 0;
-      updateConnectionUI(true, 'צבע אדום — זמן אמת');
+      updateConnectionUI(true, 'מחובר — ממתין למידע חדש בזמן אמת');
     };
     wsConnection.onmessage = function(event) {
       try {
@@ -2511,11 +2511,29 @@ function processTzevaadomAlert(data) {
 }
 
 // ==================== צבע אדום REST API ====================
+async function fetchTzevaadomWithFallback() {
+  // נסיון 1: fetch ישיר (יעבוד אם אין CORS block)
+  try {
+    var res = await fetch(TZEVAADOM_API_URL, { signal: AbortSignal.timeout(6000) });
+    if (res.ok) return await res.json();
+  } catch(e) {}
+  // נסיון 2: דרך CORS proxies
+  for (var i = 0; i < CORS_PROXIES.length; i++) {
+    try {
+      var proxyUrl = CORS_PROXIES[i](TZEVAADOM_API_URL);
+      var res2 = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+      if (res2.ok) {
+        var text = await res2.text();
+        return JSON.parse(text);
+      }
+    } catch(e) {}
+  }
+  return null;
+}
+
 async function tryFetchTzevaadomAPI() {
   try {
-    var res = await fetch(TZEVAADOM_API_URL, { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    var data = await res.json();
+    var data = await fetchTzevaadomWithFallback();
     if (!Array.isArray(data) || data.length === 0) return false;
 
     var newAlerts = false;
@@ -2686,7 +2704,7 @@ async function tryFetchLiveAlerts() {
 
   // אם WebSocket מחובר — לא צריך polling, רק אימות
   if (wsConnected) {
-    updateConnectionUI(true, 'צבע אדום — זמן אמת');
+    updateConnectionUI(true, 'מחובר — ממתין למידע חדש בזמן אמת');
     connectionState.failCount = 0;
     connectionState.pollInterval = 30000;
     if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
@@ -2699,7 +2717,7 @@ async function tryFetchLiveAlerts() {
   if (tzSuccess) {
     connectionState.failCount = 0;
     connectionState.pollInterval = 10000;
-    updateConnectionUI(true, 'צבע אדום — polling כל 10 שניות');
+    updateConnectionUI(true, 'מחובר — ממתין למידע חדש בזמן אמת');
     connectTzevaadomWS(); // נסה לשדרג ל-WebSocket
     if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
     scheduleNextPoll();
@@ -2713,7 +2731,7 @@ async function tryFetchLiveAlerts() {
     connectionState.lastProxyIndex = result.proxyIndex;
     connectionState.failCount = 0;
     connectionState.pollInterval = 10000;
-    updateConnectionUI(true, 'פיקוד העורף — זמן אמת');
+    updateConnectionUI(true, 'מחובר — ממתין למידע חדש בזמן אמת');
 
     var newAlerts = processOrefAlerts(parsed);
     if (newAlerts) {
@@ -2735,7 +2753,7 @@ async function tryFetchLiveAlerts() {
     var histParsed = JSON.parse(histResult.text);
     connectionState.lastProxyIndex = histResult.proxyIndex;
     connectionState.failCount = 0;
-    updateConnectionUI(true, 'פיקוד העורף — היסטוריה');
+    updateConnectionUI(true, 'מחובר — ממתין למידע חדש בזמן אמת');
 
     var newAlerts = processOrefAlerts(histParsed);
     if (newAlerts) {
