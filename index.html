@@ -2160,39 +2160,27 @@ function renderAverageHourChart(currentHour) {
   if (!chart) return;
   chart.innerHTML = '';
 
-  // חישוב ממוצע אירועים לכל שעה מכל הימים
-  // שעות שעדיין לא הגיעו ביום הנוכחי לא נספרות (כדי לא לדלל את הממוצע)
+  // חישוב ממוצע אזעקות פיקוד העורף לכל שעה — סכום כל הימים חלקי מספר ימים
   var hourTotals = new Array(24).fill(0);
-  var hourDayCounts = new Array(24).fill(0);
   var allDates = Object.keys(ALERTS_BY_DAY);
-  var todayStr = new Date().toISOString().split('T')[0];
-  var nowHour = new Date().getHours();
+  var dayCount = 0;
 
   allDates.forEach(function(dateKey) {
-    var dayData = countEventsPerHour(dateKey);
-    var dayHasData = false;
-    for (var hh = 0; hh < 24; hh++) {
-      var total = dayData.alerts[hh] + dayData.launches[hh];
-      if (total > 0) dayHasData = true;
-    }
-    if (!dayHasData) return;
-    var isToday = (dateKey === todayStr);
-    for (var h = 0; h < 24; h++) {
-      // ביום הנוכחי — לא כולל שעות עתידיות בממוצע
-      if (isToday && h > nowHour) continue;
-      var total = dayData.alerts[h] + dayData.launches[h];
-      hourTotals[h] += total;
-      hourDayCounts[h]++;
-    }
+    var alerts = ALERTS_BY_DAY[dateKey] || [];
+    if (alerts.length === 0) return;
+    dayCount++;
+    alerts.forEach(function(a) {
+      var h = parseInt(a.time.split(':')[0]);
+      if (h >= 0 && h < 24) hourTotals[h]++;
+    });
   });
 
-  var totalDays = Math.max.apply(null, hourDayCounts);
-  if (totalDays === 0) {
+  if (dayCount === 0) {
     chart.innerHTML = '<div style="text-align:center;color:#888;padding:20px">אין מספיק נתונים</div>';
     return;
   }
 
-  var hourAvg = hourTotals.map(function(t, i) { return hourDayCounts[i] > 0 ? t / hourDayCounts[i] : 0; });
+  var hourAvg = hourTotals.map(function(t) { return t / dayCount; });
   var maxAvg = Math.max.apply(null, hourAvg);
   if (maxAvg === 0) maxAvg = 1;
 
