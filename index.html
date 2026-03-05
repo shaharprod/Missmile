@@ -1477,7 +1477,18 @@ function drawGauge(svgId, percentage, type) {
   bgArc.setAttribute('stroke-linecap', 'round');
   svg.appendChild(bgArc);
 
-  // Colored arc
+  // Full colored background arc (all gauges)
+  var fullPath = describeArc(cx, cy, r, startAngle, startAngle - totalAngle);
+  var fullArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  fullArc.setAttribute('d', fullPath);
+  fullArc.setAttribute('fill', 'none');
+  fullArc.setAttribute('stroke', 'url(#' + svgId + '_grad)');
+  fullArc.setAttribute('stroke-width', '14');
+  fullArc.setAttribute('stroke-linecap', 'round');
+  fullArc.setAttribute('opacity', '0.3');
+  svg.insertBefore(fullArc, bgArc.nextSibling);
+
+  // Colored arc (filled portion)
   if (pct > 0) {
     var endAngle = startAngle - (pct / 100) * totalAngle;
     var colorPath = describeArc(cx, cy, r, startAngle, endAngle);
@@ -1490,37 +1501,35 @@ function drawGauge(svgId, percentage, type) {
     svg.appendChild(colorArc);
   }
 
-  if (type === 'statistical') {
-    // Full colored background arc (lighter)
-    var fullPath = describeArc(cx, cy, r, startAngle, startAngle - totalAngle);
-    var fullArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    fullArc.setAttribute('d', fullPath);
-    fullArc.setAttribute('fill', 'none');
-    fullArc.setAttribute('stroke', 'url(#' + svgId + '_grad)');
-    fullArc.setAttribute('stroke-width', '14');
-    fullArc.setAttribute('stroke-linecap', 'round');
-    fullArc.setAttribute('opacity', '0.3');
-    svg.insertBefore(fullArc, bgArc.nextSibling);
+  // Needle (both gauges)
+  var needleAngle = startAngle - (pct / 100) * totalAngle;
+  var needleLen = r - 10;
+  var nx = cx + needleLen * Math.cos(needleAngle);
+  var ny = cy - needleLen * Math.sin(needleAngle);
 
-    // Needle
-    var needleAngle = startAngle - (pct / 100) * totalAngle;
-    var needleLen = r - 10;
-    var nx = cx + needleLen * Math.cos(needleAngle);
-    var ny = cy - needleLen * Math.sin(needleAngle);
-    var needle = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    needle.setAttribute('x1', cx); needle.setAttribute('y1', cy);
-    needle.setAttribute('x2', nx); needle.setAttribute('y2', ny);
-    needle.setAttribute('stroke', '#fff');
-    needle.setAttribute('stroke-width', '2.5');
-    needle.setAttribute('stroke-linecap', 'round');
-    svg.appendChild(needle);
+  // Needle shadow
+  var needleShadow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  needleShadow.setAttribute('x1', cx + 1); needleShadow.setAttribute('y1', cy + 1);
+  needleShadow.setAttribute('x2', nx + 1); needleShadow.setAttribute('y2', ny + 1);
+  needleShadow.setAttribute('stroke', 'rgba(0,0,0,0.4)');
+  needleShadow.setAttribute('stroke-width', '3.5');
+  needleShadow.setAttribute('stroke-linecap', 'round');
+  svg.appendChild(needleShadow);
 
-    // Needle center dot
-    var dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    dot.setAttribute('cx', cx); dot.setAttribute('cy', cy); dot.setAttribute('r', '5');
-    dot.setAttribute('fill', '#fff');
-    svg.appendChild(dot);
-  }
+  // Needle line
+  var needle = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  needle.setAttribute('x1', cx); needle.setAttribute('y1', cy);
+  needle.setAttribute('x2', nx); needle.setAttribute('y2', ny);
+  needle.setAttribute('stroke', '#fff');
+  needle.setAttribute('stroke-width', '2.5');
+  needle.setAttribute('stroke-linecap', 'round');
+  svg.appendChild(needle);
+
+  // Needle center dot
+  var dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  dot.setAttribute('cx', cx); dot.setAttribute('cy', cy); dot.setAttribute('r', '5');
+  dot.setAttribute('fill', '#fff');
+  svg.appendChild(dot);
 
   // Percentage text
   var color;
