@@ -442,13 +442,16 @@ body {
   padding: 10px 12px;
   font-size: 0.75rem;
   color: var(--text-dim);
-  text-align: right;
+  text-align: center;
   border-bottom: 1px solid var(--panel-border);
+  white-space: nowrap;
 }
 .daily-table td {
   padding: 10px 12px;
   font-size: 0.82rem;
   border-bottom: 1px solid #1A1D26;
+  text-align: center;
+  vertical-align: middle;
 }
 .daily-table tr:hover { background: rgba(33,150,243,0.05); }
 .daily-table .num {
@@ -1786,10 +1789,10 @@ function showIntensityForDate(dateKey) {
       var icon = a.type === 'uav' ? '🛩️' : (a.type === 'rocket' ? '🚀' : '🚀');
       var typeColor = a.type === 'uav' ? 'var(--yellow)' : 'var(--red)';
       var typeName = a.type === 'uav' ? 'כטב"מ' : (a.type === 'rocket' ? 'רקטות' : 'טילים');
-      alertsHtml += '<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.8rem;direction:rtl">' +
-        '<span style="font-weight:700;color:var(--cyan);white-space:nowrap;min-width:40px;font-family:monospace">' + a.time + '</span>' +
-        '<span style="background:' + typeColor + '22;color:' + typeColor + ';padding:1px 6px;border-radius:4px;font-size:0.7rem;white-space:nowrap">' + icon + ' ' + typeName + '</span>' +
-        '<span style="color:var(--text)">' + a.areas + '</span>' +
+      alertsHtml += '<div style="display:flex;gap:8px;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.8rem;direction:rtl">' +
+        '<span style="font-weight:700;color:var(--cyan);white-space:nowrap;min-width:44px;font-family:var(--font-mono);text-align:center;display:inline-block">' + a.time + '</span>' +
+        '<span style="background:' + typeColor + '22;color:' + typeColor + ';padding:1px 6px;border-radius:4px;font-size:0.7rem;white-space:nowrap;min-width:46px;text-align:center;display:inline-block">' + icon + ' ' + typeName + '</span>' +
+        '<span style="color:var(--text);flex:1">' + a.areas + '</span>' +
         '</div>';
     });
     alertsHtml += '</div>';
@@ -1841,7 +1844,7 @@ function renderDailyTable() {
     totals.injured += (typeof d.injured === 'number' ? d.injured : parseInt(d.injured) || 0);
     var tr = document.createElement('tr');
     tr.innerHTML =
-      '<td style="font-family:var(--font-mono);direction:ltr;text-align:left">' + d.date + '</td>' +
+      '<td style="font-family:var(--font-mono);direction:ltr;white-space:nowrap">' + d.date + '</td>' +
       '<td>' + d.dayName + '</td>' +
       '<td>' +
         '<span class="src-tag" style="background:rgba(171,71,188,0.15);color:var(--purple)">איראן</span>' +
@@ -1854,7 +1857,7 @@ function renderDailyTable() {
       '<td class="num" style="color:var(--orange)">' + d.impacts + '</td>' +
       '<td class="num" style="color:var(--red)">' + d.killed + '</td>' +
       '<td class="num" style="color:var(--orange)">' + d.injured + '</td>' +
-      '<td style="font-size:0.72rem;color:#aaa;max-width:220px">' + d.events + '</td>';
+      '<td style="font-size:0.72rem;color:#aaa;max-width:220px;text-align:right">' + d.events + '</td>';
     tbody.appendChild(tr);
   });
 
@@ -1864,7 +1867,7 @@ function renderDailyTable() {
   var tfoot = document.createElement('tfoot');
   tfoot.innerHTML =
     '<tr style="background:#1A1D26;font-weight:700">' +
-    '<td colspan="3" style="text-align:center;font-size:0.82rem">סה"כ מצטבר</td>' +
+    '<td colspan="3" style="font-size:0.82rem">סה"כ מצטבר</td>' +
     '<td class="num">' + totals.waves + '</td>' +
     '<td class="num">' + totals.missiles + '</td>' +
     '<td class="num">' + totals.uavs + '</td>' +
