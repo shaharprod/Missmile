@@ -698,7 +698,7 @@ body {
   </div>
 
   <!-- Real-Time Status Banner -->
-  <div class="panel realtime-status status-calm" id="realtimeStatus">
+  <div class="panel realtime-status status-sporadic" id="realtimeStatus">
     <div class="realtime-header">
       <span class="realtime-label">מצב נוכחי (לפי פיקוד העורף)</span>
       <span class="realtime-update" id="realtimeUpdate">מתעדכן...</span>
@@ -1711,7 +1711,7 @@ function updateRealtimeGauge() {
   drawGauge('realtimeGauge', dangerPct, 'realtime');
 
   var label;
-  if (dangerPct < 30) label = 'שקט יחסי';
+  if (dangerPct < 30) label = 'כוננות';
   else if (dangerPct < 55) label = 'פעילות ספורדית';
   else if (dangerPct < 75) label = 'מטחים פעילים';
   else label = 'שעת שיא — מטחים כבדים';
@@ -1741,6 +1741,7 @@ function updateRealtimeStatus() {
   var now = new Date();
   var hourDanger = 1 - calcSafety(now.getHours(), now.getDay()) / 100;
 
+  // אנחנו במלחמה — אין סטטוס "שקט" בכלל!
   if (minutesSince < 2) {
     status = 'heavy'; icon = '🔴'; title = 'אזעקה פעילה!';
     desc = 'אזעקה הופעלה לפני ' + minutesSince + ' דקות. היכנס למרחב מוגן מיד!';
@@ -1748,18 +1749,12 @@ function updateRealtimeStatus() {
     status = 'active'; icon = '🟠'; title = 'מטחים פעילים';
     desc = 'אזעקה אחרונה לפני ' + minutesSince + ' דקות. הישאר ליד מרחב מוגן.';
   } else if (minutesSince < 60) {
-    status = 'sporadic'; icon = '🟡'; title = 'שיגורים ספורדיים';
-    desc = 'אזעקה אחרונה לפני ' + minutesSince + ' דקות. הישאר בכוננות.';
-  } else if (hourDanger > 0.5) {
-    // שעה מסוכנת היסטורית — לא להגיד "שקט" גם אם אין אזעקות אחרונות!
-    status = 'sporadic'; icon = '🟡'; title = 'שעה מסוכנת — הישאר בכוננות';
-    desc = 'לא דווחו אזעקות לאחרונה, אך שעה זו מסוכנת היסטורית (' + Math.round(hourDanger * 100) + '% סכנה). הישאר ליד מרחב מוגן.';
-  } else if (hourDanger > 0.3) {
-    status = 'sporadic'; icon = '🟡'; title = 'כוננות — סיכון בינוני';
-    desc = 'אין אזעקות אחרונות. שעה זו ברמת סיכון בינונית (' + Math.round(hourDanger * 100) + '%). הישאר ערני.';
+    status = 'active'; icon = '🟠'; title = 'כוננות גבוהה';
+    desc = 'אזעקה אחרונה לפני ' + minutesSince + ' דקות. מטחים יכולים להתחדש בכל רגע — הישאר ליד מרחב מוגן.';
   } else {
-    status = 'calm'; icon = '🟢'; title = 'שקט יחסי';
-    desc = 'לא דווחו אזעקות בשעה האחרונה. שעה זו בטוחה יחסית (' + Math.round(hourDanger * 100) + '% סכנה). אנחנו במלחמה — הישאר ערני.';
+    // גם אם עברה שעה+ — אנחנו במלחמה, תמיד כוננות
+    status = 'sporadic'; icon = '🟡'; title = 'כוננות — הישאר ערני';
+    desc = 'אזעקה אחרונה לפני ' + (minutesSince < 999 ? minutesSince + ' דקות' : 'זמן לא ידוע') + '. סכנת שעה נוכחית: ' + Math.round(hourDanger * 100) + '%. מטחים יכולים להתחדש — הישאר ליד מרחב מוגן.';
   }
 
   panel.className = 'panel realtime-status status-' + status;
@@ -1940,7 +1935,7 @@ function updateMainMeter(safety) {
 
   var status, desc;
   if (safety >= 70) {
-    status = 'שקט יחסי';
+    status = 'כוננות';
     desc = 'קצב השיגורים נמוך יחסית בשעה ויום אלה. עדיין מומלץ להישאר ליד מרחב מוגן.';
   } else if (safety >= 45) {
     status = 'זהירות — שיגורים ספורדיים';
@@ -1964,8 +1959,8 @@ function updateReco(safety) {
   if (safety >= 70) {
     box.classList.add('reco-safe');
     $('recoIcon').textContent = '✅';
-    $('recoTitle').textContent = 'שקט יחסי — ניתן לבצע פעולות';
-    $('recoDesc').textContent = 'קצב השיגורים ירד. עדיין חובה להישאר ליד מרחב מוגן. אין ביטחון מלא.';
+    $('recoTitle').textContent = 'כוננות — סיכון נמוך יחסית';
+    $('recoDesc').textContent = 'קצב השיגורים נמוך יחסית בשעה זו. עדיין חובה להישאר ליד מרחב מוגן. אנחנו במלחמה.';
   } else if (safety >= 45) {
     box.classList.add('reco-caution');
     $('recoIcon').textContent = '⚠️';
