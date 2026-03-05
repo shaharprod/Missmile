@@ -840,7 +840,7 @@ body {
 
   <!-- Hourly Chart -->
   <div class="panel">
-    <div class="chart-title">פיזור גלי תקיפה לפי שעה (24 שעות) — מ-28.2.2026</div>
+    <div class="chart-title">אזעקות ושיגורים לפי שעה (נתוני אמת) — מ-28.2.2026</div>
     <div class="hour-chart" id="hourChart"></div>
   </div>
 
@@ -1892,31 +1892,86 @@ function updateActivities(safety) {
   });
 }
 
+function countEventsPerHour(dateKey) {
+  // ספירת אירועים אמיתיים לכל שעה — מאזעקות פיקוד העורף + שיגורים
+  var hourAlerts = new Array(24).fill(0);
+  var hourLaunches = new Array(24).fill(0);
+  var hourMissiles = new Array(24).fill(0);
+
+  // אזעקות מפיקוד העורף
+  var alerts = ALERTS_BY_DAY[dateKey] || [];
+  alerts.forEach(function(a) {
+    var h = parseInt(a.time.split(':')[0]);
+    if (h >= 0 && h < 24) hourAlerts[h]++;
+  });
+
+  // שיגורים מ-LAUNCHES_TIMELINE
+  LAUNCHES_TIMELINE.forEach(function(l) {
+    if (l.date === dateKey) {
+      var h = parseInt(l.time.split(':')[0]);
+      if (h >= 0 && h < 24) {
+        hourLaunches[h]++;
+        hourMissiles[h] += (l.missiles || 0);
+      }
+    }
+  });
+
+  return { alerts: hourAlerts, launches: hourLaunches, missiles: hourMissiles };
+}
+
 function updateHourChart(currentHour, day) {
   var chart = $('hourChart');
   chart.innerHTML = '';
 
-  // Get per-day data if available
   var dateKey = DAY_TO_DATE[day];
-  var hourData = (dateKey && HOURLY_DATA_PER_DAY[dateKey])
-    ? HOURLY_DATA_PER_DAY[dateKey]
-    : HOURLY_DISTRIBUTION.map(function(v) { return v * DAY_MULTIPLIER[day]; });
+  var data = dateKey ? countEventsPerHour(dateKey) : null;
 
-  var maxVal = Math.max.apply(null, hourData);
+  // אם אין נתונים ליום — fallback להערכה
+  if (!data || (Math.max.apply(null, data.alerts) === 0 && Math.max.apply(null, data.launches) === 0)) {
+    var fallback = HOURLY_DISTRIBUTION.map(function(v) { return v * DAY_MULTIPLIER[day]; });
+    var maxF = Math.max.apply(null, fallback) || 1;
+    for (var h = 0; h < 24; h++) {
+      var val = fallback[h];
+      var color = val < 0.3 ? '#00E676' : val < 0.5 ? '#FFCA28' : val < 0.7 ? '#FF6D00' : '#F44336';
+      var wrap = document.createElement('div');
+      wrap.className = 'hour-bar-wrap';
+      var bar = document.createElement('div');
+      bar.className = 'hour-bar' + (h === currentHour ? ' current' : '');
+      bar.style.height = Math.max(3, (val / maxF) * 90) + '%';
+      bar.style.background = color;
+      var label = document.createElement('div');
+      label.className = 'hour-label';
+      label.textContent = String(h).padStart(2, '0');
+      var tooltip = document.createElement('div');
+      tooltip.className = 'hour-tooltip';
+      tooltip.textContent = String(h).padStart(2, '0') + ':00 — הערכה (אין נתונים מפורטים)';
+      wrap.appendChild(tooltip);
+      wrap.appendChild(bar);
+      wrap.appendChild(label);
+      chart.appendChild(wrap);
+    }
+    return;
+  }
+
+  // חישוב סה"כ לכל שעה
+  var hourTotal = [];
+  for (var h = 0; h < 24; h++) {
+    hourTotal[h] = data.alerts[h] + data.launches[h];
+  }
+  var maxVal = Math.max.apply(null, hourTotal);
   if (maxVal === 0) maxVal = 1;
 
   for (var h = 0; h < 24; h++) {
-    var val = hourData[h];
-    var heightPct = (val / maxVal) * 100;
+    var total = hourTotal[h];
+    var heightPct = (total / maxVal) * 100;
 
-    // Color by danger level
+    // צבע לפי עוצמה יחסית
+    var ratio = total / maxVal;
     var color;
-    if (val < 0.3) color = '#00E676';
-    else if (val < 0.5) color = '#FFCA28';
-    else if (val < 0.7) color = '#FF6D00';
+    if (ratio < 0.15) color = '#00E676';
+    else if (ratio < 0.35) color = '#FFCA28';
+    else if (ratio < 0.6) color = '#FF6D00';
     else color = '#F44336';
-
-    var safety = calcSafety(h, day);
 
     var wrap = document.createElement('div');
     wrap.className = 'hour-bar-wrap';
@@ -1930,9 +1985,16 @@ function updateHourChart(currentHour, day) {
     label.className = 'hour-label';
     label.textContent = String(h).padStart(2, '0');
 
+    // טולטיפ עם נתונים אמיתיים
+    var tipParts = [String(h).padStart(2, '0') + ':00'];
+    if (data.alerts[h] > 0) tipParts.push(data.alerts[h] + ' אזעקות');
+    if (data.launches[h] > 0) tipParts.push(data.launches[h] + ' שיגורים');
+    if (data.missiles[h] > 0) tipParts.push(data.missiles[h] + ' טילים');
+    if (total === 0) tipParts.push('שקט');
+
     var tooltip = document.createElement('div');
     tooltip.className = 'hour-tooltip';
-    tooltip.textContent = String(h).padStart(2, '0') + ':00 — סכנה: ' + Math.round(val * 100) + '% · בטיחות: ' + Math.round(safety) + '%';
+    tooltip.textContent = tipParts.join(' · ');
 
     wrap.appendChild(tooltip);
     wrap.appendChild(bar);
