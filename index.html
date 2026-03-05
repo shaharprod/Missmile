@@ -2485,9 +2485,10 @@ function processTzevaadomAlert(data) {
   var now = new Date();
   var timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
   var areas = (data.cities || []).join(', ');
-  var threat = data.threat || 0;
-  var type = threat >= 3 ? 'missile' : 'uav';
-  var title = threat >= 3 ? 'ירי רקטות וטילים' : 'חדירת כלי טיס עוין';
+  var threat = data.threat;
+  // צבע אדום API: threat 0 = רקטות/טילים, threat 5 = כטב"מ
+  var type = (threat === 5) ? 'uav' : 'missile';
+  var title = (threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים';
 
   var isDuplicate = alertsLog.some(function(existing) {
     return existing.area === areas && existing.time === timeStr;
@@ -2518,18 +2519,19 @@ async function tryFetchTzevaadomAPI() {
     if (!Array.isArray(data) || data.length === 0) return false;
 
     var newAlerts = false;
-    var fiveMinAgo = Date.now() - 5 * 60 * 1000;
+    var thirtyMinAgo = Date.now() - 30 * 60 * 1000;
 
     data.forEach(function(group) {
       if (!group.alerts) return;
       group.alerts.forEach(function(a) {
         var alertTime = a.time * 1000;
-        if (alertTime < fiveMinAgo) return;
+        if (alertTime < thirtyMinAgo) return;
         var date = new Date(alertTime);
         var timeStr = String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
         var areas = (a.cities || []).join(', ');
-        var type = (a.threat || 0) >= 3 ? 'missile' : 'uav';
-        var title = type === 'missile' ? 'ירי רקטות וטילים' : 'חדירת כלי טיס עוין';
+        // צבע אדום API: threat 0 = רקטות/טילים, threat 5 = כטב"מ
+        var type = (a.threat === 5) ? 'uav' : 'missile';
+        var title = (a.threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים';
 
         var isDuplicate = alertsLog.some(function(existing) {
           return existing.area === areas && existing.time === timeStr;
@@ -2696,8 +2698,8 @@ async function tryFetchLiveAlerts() {
   var tzSuccess = await tryFetchTzevaadomAPI();
   if (tzSuccess) {
     connectionState.failCount = 0;
-    connectionState.pollInterval = 15000;
-    updateConnectionUI(true, 'צבע אדום — polling');
+    connectionState.pollInterval = 10000;
+    updateConnectionUI(true, 'צבע אדום — polling כל 10 שניות');
     connectTzevaadomWS(); // נסה לשדרג ל-WebSocket
     if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
     scheduleNextPoll();
