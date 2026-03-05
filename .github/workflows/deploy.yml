@@ -5,6 +5,7 @@ on:
     branches:
       - claude/safetime-app-nQm5j
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
