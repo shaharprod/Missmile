@@ -677,8 +677,8 @@ body {
 
   <!-- Header -->
   <div class="header">
-    <h1>מנבא בטיחות חכם — <span>SafeTime</span></h1>
-    <p class="subtitle">מבצע "שאגת הארי" — שיגורים מאיראן ומלבנון · 28 בפברואר 2026 — היום</p>
+    <h1><span>SafeTime</span> — מתי בטוח לצאת?</h1>
+    <p class="subtitle">מבצע "שאגת הארי" · מתעדכן בזמן אמת מפיקוד העורף</p>
   </div>
 
   <!-- Live Status Bar -->
@@ -726,22 +726,6 @@ body {
     </div>
   </div>
 
-  <!-- Danger Gauges -->
-  <div class="panel gauges-panel">
-    <div class="gauges-row">
-      <div class="gauge-container">
-        <div class="gauge-title">סכנה בזמן אמת</div>
-        <svg id="realtimeGauge" viewBox="0 0 200 130" class="gauge-svg"></svg>
-        <div class="gauge-label" id="rtGaugeLabel">מתעדכן...</div>
-      </div>
-      <div class="gauge-container">
-        <div class="gauge-title">סכנה סטטיסטית — שעה נוכחית</div>
-        <svg id="statGauge" viewBox="0 0 200 130" class="gauge-svg"></svg>
-        <div class="gauge-label" id="statGaugeLabel">מבוסס על דפוסי תקיפה</div>
-      </div>
-    </div>
-  </div>
-
   <!-- Hidden selectors (used by JS, auto-set to current time) -->
   <select id="daySelect" style="display:none">
     <option value="0">ראשון</option>
@@ -754,15 +738,96 @@ body {
   </select>
   <select id="hourSelect" style="display:none"></select>
 
-  <!-- Threat Sources -->
+  <!-- Recommendation — הדבר הכי חשוב: מה לעשות עכשיו -->
+  <div class="panel reco-box reco-safe" id="recoBox" style="font-size:1.05rem">
+    <div class="reco-icon" id="recoIcon" style="font-size:2.5rem">✅</div>
+    <div>
+      <div class="reco-title" id="recoTitle" style="font-size:1.25rem">בטוח לפעילות רגילה</div>
+      <div class="reco-desc" id="recoDesc">ניתן לבצע פעולות ארוכות. הסיכוי לאזעקה נמוך יחסית.</div>
+    </div>
+  </div>
+
+  <!-- Safety Meter — ציון בטיחות ברור -->
+  <div class="panel meter-panel" id="meterPanel">
+    <div class="meter-value" id="meterValue">--<span class="pct">%</span></div>
+    <div class="meter-bar-wrap">
+      <div class="meter-bar" id="meterBar"></div>
+    </div>
+    <div class="meter-status" id="meterStatus">מחשב...</div>
+    <div class="meter-desc" id="meterDesc">ציון בטיחות — ככל שגבוה יותר, כך בטוח יותר לצאת</div>
+  </div>
+
+  <!-- Danger Gauges — חוגה אחת לזמן אמת + אחת סטטיסטית -->
+  <div class="panel gauges-panel">
+    <div class="gauges-row">
+      <div class="gauge-container">
+        <div class="gauge-title">רמת סכנה עכשיו</div>
+        <svg id="realtimeGauge" viewBox="0 0 200 130" class="gauge-svg"></svg>
+        <div class="gauge-label" id="rtGaugeLabel">מתעדכן...</div>
+      </div>
+      <div class="gauge-container">
+        <div class="gauge-title">סכנה ממוצעת לשעה זו</div>
+        <svg id="statGauge" viewBox="0 0 200 130" class="gauge-svg"></svg>
+        <div class="gauge-label" id="statGaugeLabel">לפי דפוסי תקיפה</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activities — כמה בטוח לעשות כל פעולה -->
+  <div class="panel">
+    <div class="activities-title">כמה בטוח לעשות עכשיו?</div>
+    <div class="activities-grid" id="activitiesGrid"></div>
+  </div>
+
+  <!-- Live Alerts Log -->
+  <div class="panel">
+    <div class="alerts-title">אזעקות אחרונות (פיקוד העורף)</div>
+    <div class="alerts-log" id="alertsLog">
+      <div class="no-alerts">✅ אין אזעקות פעילות כרגע</div>
+    </div>
+  </div>
+
+  <!-- Hourly Chart -->
+  <div class="panel">
+    <div class="chart-title">אזעקות ושיגורים לפי שעה (נתוני אמת)</div>
+    <div class="hour-chart" id="hourChart"></div>
+  </div>
+
+  <!-- Day Heatmap -->
+  <div class="panel">
+    <div class="heatmap-title">עוצמת שיגורים לפי יום</div>
+    <div class="day-heatmap" id="dayHeatmap"></div>
+  </div>
+
+  <!-- Stats Row — סיכום מספרים -->
+  <div class="stats-row" id="statsRow">
+    <div class="panel stat-card">
+      <div class="stat-val" id="statWaves">133</div>
+      <div class="stat-label">גלי תקיפה מאיראן</div>
+    </div>
+    <div class="panel stat-card">
+      <div class="stat-val" id="statMissiles">583+</div>
+      <div class="stat-label">טילים בליסטיים</div>
+    </div>
+    <div class="panel stat-card">
+      <div class="stat-val" id="statUAVs">~1,060</div>
+      <div class="stat-label">כטב"מים</div>
+    </div>
+    <div class="panel stat-card">
+      <div class="stat-val" id="statHezb">107+</div>
+      <div class="stat-label">אירועי ירי מלבנון</div>
+    </div>
+  </div>
+
+  <!-- Threat Sources — מידע מפורט -->
   <div class="panel threat-sources">
-    <div class="threat-sources-title">מקורות איום פעילים — איראן ולבנון</div>
+    <div class="threat-sources-title">מקורות איום — פרטים</div>
     <div class="threat-grid" id="threatGrid"></div>
   </div>
 
   <!-- Daily Summary Table -->
   <div class="panel">
-    <div class="chart-title">סיכום יומי — שיגורים ואזעקות מ-28.2.2026</div>
+    <div class="chart-title">סיכום יומי מפורט</div>
     <div class="daily-table-wrap">
     <table class="daily-table" id="dailyTable">
       <thead>
@@ -771,8 +836,8 @@ body {
           <th>יום</th>
           <th>מקור</th>
           <th>גלי תקיפה</th>
-          <th>טילים שוגרו</th>
-          <th>כטב"מים שוגרו</th>
+          <th>טילים</th>
+          <th>כטב"מים</th>
           <th>יירוטים</th>
           <th>נפילות</th>
           <th>הרוגים</th>
@@ -783,71 +848,6 @@ body {
       <tbody id="dailyTableBody"></tbody>
     </table>
     </div>
-  </div>
-
-  <!-- Live Alerts Log -->
-  <div class="panel">
-    <div class="alerts-title">יומן אזעקות אחרונות (נתוני זמן אמת מפיקוד העורף)</div>
-    <div class="alerts-log" id="alertsLog">
-      <div class="no-alerts">✅ אין אזעקות פעילות כרגע</div>
-    </div>
-  </div>
-
-  <!-- Recommendation -->
-  <div class="panel reco-box reco-safe" id="recoBox">
-    <div class="reco-icon" id="recoIcon">✅</div>
-    <div>
-      <div class="reco-title" id="recoTitle">בטוח לפעילות רגילה</div>
-      <div class="reco-desc" id="recoDesc">ניתן לבצע פעולות ארוכות. הסיכוי לאזעקה נמוך יחסית.</div>
-    </div>
-  </div>
-
-  <!-- Safety Meter -->
-  <div class="panel meter-panel" id="meterPanel">
-    <div class="meter-value" id="meterValue">--<span class="pct">%</span></div>
-    <div class="meter-bar-wrap">
-      <div class="meter-bar" id="meterBar"></div>
-    </div>
-    <div class="meter-status" id="meterStatus">מחשב...</div>
-    <div class="meter-desc" id="meterDesc">ציון בטיחות מבוסס על דפוסי תקיפה מ-28.2.2026</div>
-  </div>
-
-  <!-- Activities -->
-  <div class="panel">
-    <div class="activities-title">בחר פעולה — מה הסיכוי שתסיים בלי אזעקה?</div>
-    <div class="activities-grid" id="activitiesGrid"></div>
-  </div>
-
-  <!-- Stats Row -->
-  <div class="stats-row" id="statsRow">
-    <div class="panel stat-card">
-      <div class="stat-val" id="statWaves">133</div>
-      <div class="stat-label">גלי תקיפה מאיראן (אלמ"א 5.3)</div>
-    </div>
-    <div class="panel stat-card">
-      <div class="stat-val" id="statMissiles">583+</div>
-      <div class="stat-label">טילים בליסטיים (N12 5.3)</div>
-    </div>
-    <div class="panel stat-card">
-      <div class="stat-val" id="statUAVs">~1,060</div>
-      <div class="stat-label">כטב"מים מאיראן (N12 5.3)</div>
-    </div>
-    <div class="panel stat-card">
-      <div class="stat-val" id="statHezb">107+</div>
-      <div class="stat-label">אירועי ירי מלבנון (אלמ"א 5.3)</div>
-    </div>
-  </div>
-
-  <!-- Hourly Chart -->
-  <div class="panel">
-    <div class="chart-title">אזעקות ושיגורים לפי שעה (נתוני אמת) — מ-28.2.2026</div>
-    <div class="hour-chart" id="hourChart"></div>
-  </div>
-
-  <!-- Day Heatmap -->
-  <div class="panel">
-    <div class="heatmap-title">עוצמת שיגורים לפי יום בשבוע — מ-28.2.2026</div>
-    <div class="day-heatmap" id="dayHeatmap"></div>
   </div>
 
   <!-- Launch Intensity for Selected Day -->
