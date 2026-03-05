@@ -1245,7 +1245,7 @@ function loadAlerts() {
 // ║  מידע שגוי עלול לגרום למוות. אנשים מסתמכים על נתונים אלה.          ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 //
-var SEED_VERSION = 15;
+var SEED_VERSION = 16; // תיקון ספירה — אירוע=רשומה אחת, לא פיצול ערים
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: Xinhua timeline, JPost, CNN liveblog
@@ -1345,23 +1345,20 @@ var ALERTS_BY_DAY = {
 };
 
 // TODAY_SEED_ALERTS — נגזר מ-ALERTS_BY_DAY של היום
+// כל אירוע = רשומה אחת (לא פיצול לערים!) כדי שהספירה תהיה קבועה ומדויקת
 var todayDate = new Date().toISOString().split('T')[0];
 var TODAY_SEED_ALERTS = [];
 if (ALERTS_BY_DAY[todayDate]) {
+  var northAreas = ['גליל', 'קריית שמונה', 'מטולה', 'חיפה', 'עכו', 'נהריה', 'צפון', 'מרגליות', 'שומרה', 'גורן', 'דוב"ב', 'מלכיה', 'יפתח', 'רמות נפתלי', 'אביבים', 'יראון', 'מנרה', 'שניר', 'שאר ישוב', 'דפנה', 'הגושרים', 'אצבע הגליל', 'בית הלל', 'כפר בלום', 'נאות מרדכי', 'שדה נחמיה', 'לב החולה'];
   ALERTS_BY_DAY[todayDate].forEach(function(evt) {
-    // זיהוי מקור לפי סוג ואזור: כטב"מ/רקטות בצפון = לבנון, טילים במרכז/דרום = איראן
-    var northAreas = ['גליל', 'קריית שמונה', 'מטולה', 'חיפה', 'עכו', 'נהריה', 'צפון', 'מרגליות', 'שומרה', 'גורן', 'דוב"ב', 'מלכיה', 'יפתח', 'רמות נפתלי', 'אביבים', 'יראון', 'מנרה', 'שניר', 'שאר ישוב', 'דפנה', 'הגושרים', 'אצבע הגליל', 'בית הלל', 'כפר בלום', 'נאות מרדכי', 'שדה נחמיה', 'לב החולה'];
     var isNorth = northAreas.some(function(n) { return evt.areas.indexOf(n) !== -1; });
-    evt.areas.split(', ').forEach(function(area) {
-      var source;
-      if (evt.type === 'rocket') {
-        source = isNorth ? 'lebanon' : 'iran';
-      } else if (evt.type === 'uav') {
-        source = isNorth ? 'lebanon' : 'iran';
-      } else {
-        source = 'iran';
-      }
-      TODAY_SEED_ALERTS.push({ time: evt.time, area: area.trim(), type: evt.type, source: source });
+    var source = isNorth ? 'lebanon' : 'iran';
+    TODAY_SEED_ALERTS.push({
+      time: evt.time,
+      area: evt.areas,  // אזור שלם — לא מפצלים!
+      type: evt.type,
+      title: evt.title || '',
+      source: source
     });
   });
 }
@@ -1390,19 +1387,16 @@ function seedTodayAlerts() {
     var seeded = TODAY_SEED_ALERTS.filter(function(a) {
       return a.time <= currentTimeStr;
     });
-    var added = 0;
     seeded.forEach(function(a) {
       var exists = alertsLog.some(function(stored) {
         return stored.time === a.time && stored.area === a.area;
       });
       if (!exists) {
-        alertsLog.push({ time: a.time, area: a.area, type: a.type, source: a.source || 'unknown' });
-        added++;
+        alertsLog.push({ time: a.time, area: a.area, type: a.type, title: a.title || '', source: a.source || 'unknown' });
       }
     });
-    if (added > 0) todayAlertCount += added;
     alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
-    if (alertsLog.length > 50) alertsLog.length = 50;
+    todayAlertCount = alertsLog.length;
     $('todayCount').textContent = todayAlertCount;
     saveAlerts();
     return;
@@ -1416,11 +1410,10 @@ function seedTodayAlerts() {
     return a.time <= currentTimeStr;
   });
   seeded.forEach(function(a) {
-    alertsLog.push({ time: a.time, area: a.area, type: a.type, source: a.source || 'unknown' });
+    alertsLog.push({ time: a.time, area: a.area, type: a.type, title: a.title || '', source: a.source || 'unknown' });
   });
   alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
-  todayAlertCount = seeded.length;
-  if (alertsLog.length > 50) alertsLog.length = 50;
+  todayAlertCount = alertsLog.length;
   $('todayCount').textContent = todayAlertCount;
   try { localStorage.setItem('safetime_seed_version', String(SEED_VERSION)); } catch(e) {}
   saveAlerts();
