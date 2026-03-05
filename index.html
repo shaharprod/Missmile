@@ -1937,8 +1937,13 @@ function updateReco(safety) {
 function updateActivities(safety) {
   var grid = $('activitiesGrid');
   grid.innerHTML = '';
-  ACTIVITIES.forEach(function(act) {
-    var pct = Math.round(activitySafety(safety, act.minutes));
+  // מיון לפי בטיחות: הבטוח ביותר למעלה, המסוכן למטה
+  var sorted = ACTIVITIES.map(function(act) {
+    return { act: act, pct: Math.round(activitySafety(safety, act.minutes)) };
+  }).sort(function(a, b) { return b.pct - a.pct; });
+  sorted.forEach(function(item) {
+    var act = item.act;
+    var pct = item.pct;
     var card = document.createElement('div');
     card.className = 'activity-card' + (selectedActivity === act.id ? ' selected' : '');
     card.innerHTML =
