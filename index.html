@@ -793,6 +793,13 @@ body {
     <div class="hour-chart" id="hourChart"></div>
   </div>
 
+  <!-- Average Hourly Chart -->
+  <div class="panel">
+    <div class="chart-title">ממוצע אזעקות לפי שעה — כל הימים</div>
+    <div style="text-align:center;font-size:11px;color:#aaa;margin-bottom:6px">ירוק = השעות הבטוחות ביותר בממוצע · אדום = השעות המסוכנות ביותר</div>
+    <div class="hour-chart" id="avgHourChart"></div>
+  </div>
+
   <!-- Day Heatmap -->
   <div class="panel">
     <div class="heatmap-title">עוצמת שיגורים לפי יום</div>
@@ -1673,8 +1680,8 @@ var WAR_DAYS = [
   { date: '2026-03-02', dayName: 'שני 2.3', dayNum: 1, label: 'יום 3' },
   { date: '2026-03-03', dayName: 'שלישי 3.3', dayNum: 2, label: 'יום 4' },
   { date: '2026-03-04', dayName: 'רביעי 4.3', dayNum: 3, label: 'יום 5' },
-  { date: '2026-03-05', dayName: 'חמישי 5.3', dayNum: 4, label: 'יום 6' },
-  { date: '2026-03-06', dayName: 'שישי 6.3', dayNum: 5, label: 'יום 7' }
+  { date: '2026-03-05', dayName: 'חמישי 5.3', dayNum: 4, label: 'יום 6' }
+  // יום 7 (6.3 שישי) — יתווסף כשיגיע
 ];
 var selectedIntensityDate = '2026-02-28';
 
@@ -2002,14 +2009,95 @@ function updateHourChart(currentHour, day) {
   }
 }
 
+function renderAverageHourChart(currentHour) {
+  var chart = $('avgHourChart');
+  if (!chart) return;
+  chart.innerHTML = '';
+
+  // חישוב ממוצע אירועים לכל שעה מכל הימים
+  var hourTotals = new Array(24).fill(0);
+  var dayCount = 0;
+  var allDates = Object.keys(ALERTS_BY_DAY);
+
+  allDates.forEach(function(dateKey) {
+    var dayData = countEventsPerHour(dateKey);
+    var dayHasData = false;
+    for (var h = 0; h < 24; h++) {
+      var total = dayData.alerts[h] + dayData.launches[h];
+      hourTotals[h] += total;
+      if (total > 0) dayHasData = true;
+    }
+    if (dayHasData) dayCount++;
+  });
+
+  if (dayCount === 0) {
+    chart.innerHTML = '<div style="text-align:center;color:#888;padding:20px">אין מספיק נתונים</div>';
+    return;
+  }
+
+  var hourAvg = hourTotals.map(function(t) { return t / dayCount; });
+  var maxAvg = Math.max.apply(null, hourAvg);
+  if (maxAvg === 0) maxAvg = 1;
+
+  // מצא את 3 השעות הכי בטוחות
+  var sorted = hourAvg.map(function(v, i) { return { h: i, v: v }; });
+  sorted.sort(function(a, b) { return a.v - b.v; });
+  var safestHours = {};
+  for (var i = 0; i < Math.min(3, sorted.length); i++) {
+    if (sorted[i].v <= maxAvg * 0.2) safestHours[sorted[i].h] = true;
+  }
+
+  for (var h = 0; h < 24; h++) {
+    var avg = hourAvg[h];
+    var ratio = avg / maxAvg;
+    var color;
+    if (ratio < 0.1) color = '#00E676';
+    else if (ratio < 0.25) color = '#66BB6A';
+    else if (ratio < 0.45) color = '#FFCA28';
+    else if (ratio < 0.65) color = '#FF6D00';
+    else color = '#F44336';
+
+    var wrap = document.createElement('div');
+    wrap.className = 'hour-bar-wrap';
+
+    var bar = document.createElement('div');
+    bar.className = 'hour-bar' + (h === currentHour ? ' current' : '');
+    bar.style.height = Math.max(3, ratio * 90) + '%';
+    bar.style.background = color;
+    if (safestHours[h]) {
+      bar.style.boxShadow = '0 0 6px #00E676';
+      bar.style.border = '1px solid #00E676';
+    }
+
+    var label = document.createElement('div');
+    label.className = 'hour-label';
+    label.textContent = String(h).padStart(2, '0');
+    if (safestHours[h]) label.style.color = '#00E676';
+
+    var tooltip = document.createElement('div');
+    tooltip.className = 'hour-tooltip';
+    var avgRound = Math.round(avg * 10) / 10;
+    var tipText = String(h).padStart(2, '0') + ':00 — ממוצע: ' + avgRound + ' אירועים';
+    if (safestHours[h]) tipText += ' ✓ שעה בטוחה יחסית';
+    if (ratio >= 0.65) tipText += ' ⚠ שעה מסוכנת';
+    tooltip.textContent = tipText;
+
+    wrap.appendChild(tooltip);
+    wrap.appendChild(bar);
+    wrap.appendChild(label);
+    chart.appendChild(wrap);
+  }
+}
+
 function updateDayHeatmap(currentDay) {
   var heatmap = $('dayHeatmap');
   heatmap.innerHTML = '';
 
   // סדר כרונולוגי של המלחמה: שבת 28.2 ראשון (מימין ב-RTL)
-  var warOrder = [6, 0, 1, 2, 3, 4, 5]; // שבת, ראשון, שני, ..., שישי
-  var warDateLabels = { 6: '28.2', 0: '1.3', 1: '2.3', 2: '3.3', 3: '4.3', 4: '5.3', 5: '6.3' };
-  var warDayLabels = { 6: 'יום 1', 0: 'יום 2', 1: 'יום 3', 2: 'יום 4', 3: 'יום 5', 4: 'יום 6', 5: 'יום 7' };
+  // רק ימים שכבר עברו (עד היום כולל)
+  var warOrder = [6, 0, 1, 2, 3, 4]; // שבת 28.2 עד חמישי 5.3
+  var warDateLabels = { 6: '28.2', 0: '1.3', 1: '2.3', 2: '3.3', 3: '4.3', 4: '5.3' };
+  var warDayLabels = { 6: 'יום 1', 0: 'יום 2', 1: 'יום 3', 2: 'יום 4', 3: 'יום 5', 4: 'יום 6' };
 
   warOrder.forEach(function(i) {
     var mult = DAY_MULTIPLIER[i];
@@ -2594,6 +2682,7 @@ function recalculate() {
   updateReco(safety);
   updateActivities(safety);
   updateHourChart(hour, day);
+  renderAverageHourChart(hour);
   updateDayHeatmap(day);
   updateRealtimeGauge();
   updateStatisticalGauge();
