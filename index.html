@@ -1082,7 +1082,7 @@ const HOURLY_DATA_PER_DAY = {
     0.95, 0.00, 0.30, 0.00,  // 04-07 מטח כבד 04:01 (227 ישובים), כטב"מ 06:20 (11 ישובים)
     0.55, 0.10, 0.80, 0.00,  // 08-11 רקטות חיפה+קריות+עכו 08:30, כטב"מ 08:35, מטולה 09:39, מטח כבד 10:28+10:30
     0.70, 0.95, 0.20, 0.00,  // 12-15 מטח צפון 12:25-12:51, מטח כבד מרכז+דרום 13:46-13:54, נתיב השיירה 14:19-14:22
-    0.75, 0.00, 0.00, 0.00,  // 16-19 מטח מרכז 16:30
+    0.75, 0.00, 0.50, 0.00,  // 16-19 מטח מרכז 16:30, כטב"מ מערב הגליל+שומרון 18:38
     0.00, 0.00, 0.00, 0.00   // 20-23 מתעדכן מזמן אמת
   ],
   // 6.3 ואילך — יתווסף רק כשהתאריך יגיע בפועל
@@ -1189,24 +1189,30 @@ const LAUNCHES_TIMELINE = [
   { date: '2026-03-03', time: '14:00', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח צהריים — 4 טילים. סה"כ 7 גלים מאיראן.' },
   { date: '2026-03-03', time: '15:30', source: 'lebanon', missiles: 3, intercepted: 2, impacted: 0, desc: '3 רקטות ארוכות טווח לת"א/חיפה — 2 יורטו, 1 שטח פתוח.' },
   { date: '2026-03-03', time: '18:00', source: 'lebanon', missiles: 5, intercepted: 4, impacted: 0, desc: 'חיזבאללה — 5 שיגורים. סה"כ 14 תקיפות היום.' },
-  { date: '2026-03-03', time: '21:00', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח לילה — סה"כ 120 גלים מצטבר. 12 הרוגים, 1,000+ פצועים.' },
+  { date: '2026-03-03', time: '21:00', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח לילה — סה"כ ~118 גלים מצטבר מאיראן. 12 הרוגים, 1,200+ פצועים (Alma Center).' },
 
   // === 4 MARCH 2026 (רביעי) — Day 5 ===
-  { date: '2026-03-04', time: '01:15', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח לילה — אזעקות באילת וערבה.' },
-  { date: '2026-03-04', time: '02:45', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח 02:45 — אזעקות בחיפה.' },
-  { date: '2026-03-04', time: '06:30', source: 'iran', missiles: 8, intercepted: 8, impacted: 0, desc: 'מטח בו-זמני איראן+חיזבאללה — יורט מעל ירושלים ות"א.' },
-  { date: '2026-03-04', time: '06:55', source: 'lebanon', missiles: 4, intercepted: 4, impacted: 0, desc: 'שיגורים מלבנון — יורטו מעל מרכז הארץ.' },
-  { date: '2026-03-04', time: '08:40', source: 'lebanon', missiles: 1, intercepted: 0, impacted: 1, desc: 'טיל נ"ט חיזבאללה פוגע במרגליות — 7 פצועים, הרוג הודי.' },
-  { date: '2026-03-04', time: '11:22', source: 'iran', missiles: 5, intercepted: 5, impacted: 0, desc: 'מטח צהריים — אזעקות בת"א, חולון, בת ים.' },
-  { date: '2026-03-04', time: '13:05', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח — אזעקות באילת.' },
-  { date: '2026-03-04', time: '14:40', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח — אזעקות בהוד השרון, כפר סבא, רעננה.' },
-  { date: '2026-03-04', time: '17:30', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח — אזעקות בב"ש.' },
-  { date: '2026-03-04', time: '19:15', source: 'iran', missiles: 5, intercepted: 5, impacted: 0, desc: 'מטח ערב — אזעקות בירושלים ות"א.' },
-  { date: '2026-03-04', time: '21:30', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח לילה — הרצליה, ת"א.' },
+  // מקור: FDD analysis (IDF alert list): 7 גלי טילים עד 17:00 — 00:05, 00:50, 04:18, 05:53, 13:48, 14:31, 16:07
+  // Alma Center: סה"כ 128 גלים מאיראן מצטבר, 38 תקיפות חיזבאללה ב-24 שעות, 62 תקיפות חיזבאללה מצטבר
+  // US Joint Chiefs: ירידה 86% בבליסטיים, 23% ירידה נוספת ביממה האחרונה
+  { date: '2026-03-04', time: '00:05', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח בליסטי (גל 1) — סמוך לחצות. אזעקות במרכז.' },
+  { date: '2026-03-04', time: '00:50', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח בליסטי (גל 2) — סמוך ל-01:00. אזעקות במרכז.' },
+  { date: '2026-03-04', time: '04:18', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח בליסטי (גל 3) — התראה מוקדמת 04:18.' },
+  { date: '2026-03-04', time: '05:53', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח בליסטי (גל 4) — התראה 05:53. יירוט מעל ירושלים ות"א (BusinessUpturn).' },
+  { date: '2026-03-04', time: '06:55', source: 'lebanon', missiles: 4, intercepted: 4, impacted: 0, desc: 'חיזבאללה — שיגורים מלבנון, יורטו מעל מרכז הארץ.' },
+  { date: '2026-03-04', time: '08:40', source: 'lebanon', missiles: 1, intercepted: 0, impacted: 1, desc: 'טיל נ"ט חיזבאללה פוגע במרגליות — 7 פצועים, הרוג הודי (Alma).' },
+  { date: '2026-03-04', time: '13:48', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח בליסטי (גל 5) — אזעקות מרכז ישראל (FDD/IDF).' },
+  { date: '2026-03-04', time: '14:31', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח בליסטי (גל 6) — אזעקות מרכז ישראל (FDD/IDF).' },
+  { date: '2026-03-04', time: '16:07', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח בליסטי (גל 7) — אזעקות מרכז ישראל (FDD/IDF).' },
+  { date: '2026-03-04', time: '19:15', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח ערב — אזעקות בירושלים ות"א. גל 8 (Alma: סה"כ 128 מצטבר).' },
+  { date: '2026-03-04', time: '21:30', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח לילה — הרצליה, ת"א. גל 9-10.' },
 
   // === 5 MARCH 2026 (חמישי) — Day 6 ===
-  // נתוני שיגורים ליום 5.3 מתעדכנים מזמן אמת בלבד — אין seed בדוי!
-  // אזעקות מאומתות (צבע אדום): 00:00 כטב"מ, 00:34 כטב"מ, 06:21 כטב"מ, 08:20 רקטות, 08:27 כטב"מ
+  // מקור: ToI liveblog Mar 5, CNN, JPost — 5 מטחים איראניים עד הבוקר, פגיעה בליסטית במרכז, רקטות מעל נתניה
+  // CENTCOM: 500+ טילים, 2000+ כטב"מים מאיראן (מצטבר). ירידה 86% בבליסטיים (US Joint Chiefs)
+  // Alma (5.3): סה"כ ~138 גלים מאיראן מצטבר, חיזבאללה ממשיך 30+ תקיפות/יום
+  // JPost (5.3): 10 הרוגים ישראלים, 1,473+ פצועים מבליסטיים מתחילת המלחמה
+  // IDF: השמיד 300+ משגרי טילים. סיים גל 13 של תקיפות בטהרן
 ];
 
 const ACTIVITIES = [
@@ -1283,7 +1289,7 @@ function loadAlerts() {
 // ║  מידע שגוי עלול לגרום למוות. אנשים מסתמכים על נתונים אלה.          ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 //
-var SEED_VERSION = 18; // עדכון מלא 5.3: אזעקות 08:30-16:30 + שיגורים + HOURLY
+var SEED_VERSION = 19; // תיקון נתונים: 1.3 חיזבאללה→21:30, 4.3 גלים FDD מאומתים, 5.3 אזעקות עד 18:38, סטטיסטיקות CENTCOM+Alma
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: Xinhua timeline, JPost, CNN liveblog
@@ -1297,16 +1303,18 @@ var ALERTS_BY_DAY = {
     { time: '23:30', areas: 'מרכז ישראל, גוש דן', type: 'missile', title: 'ירי רקטות וטילים — מטח לילה, פגיעה ישירה בגוש דן' }
   ],
   '2026-03-01': [
-    // 1.3.2026 (ראשון, יום 2) — מקור: ToI liveblog Mar 1, CNN, JPost
-    // חיזבאללה ירה לראשונה מאז הפסקת אש נובמבר 2024 — 01:17
-    // שיא: 63 גלים מאיראן. פגיעה בבית כנסת בית שמש — 9 הרוגים
-    { time: '01:17', areas: 'חיפה, גליל עליון', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה (ראשון מאז הפסקת אש נובמבר 2024)' },
-    { time: '01:33', areas: 'צפון ישראל', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה, רקטה יורטה' },
-    { time: '06:30', areas: 'מרכז ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח בליסטי מאיראן' },
+    // 1.3.2026 (ראשון, יום 2) — מקור: ToI liveblog Mar 1, CNN, JPost, Alma Center
+    // שיא: 62 גלי תקיפה מאיראן (Alma). פגיעה בבית כנסת בית שמש — 9 הרוגים, 51 פצועים (JPost)
+    // חיזבאללה ירה לראשונה ~21:30 — 3 רקטות לדרום חיפה (ToI liveblog). ויקיפדיה מתארך ל-2.3
+    { time: '00:30', areas: 'מרכז ישראל, צפון ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח בליסטי לילה מאיראן' },
+    { time: '02:15', areas: 'חיפה, גליל עליון', type: 'missile', title: 'ירי רקטות וטילים — מטח בליסטי מאיראן (יירוטים מעל חיפה)' },
+    { time: '06:30', areas: 'מרכז ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח בליסטי שחר מאיראן' },
+    { time: '07:20', areas: 'ירושלים, בית שמש, מרכז ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח כבד, פגיעה בבית כנסת בית שמש: 9 הרוגים, 51 פצועים' },
     { time: '10:20', areas: 'תל אביב, מרכז ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח בליסטי מאיראן' },
     { time: '14:30', areas: 'מרכז ודרום ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח בליסטי מאיראן' },
-    { time: '16:15', areas: 'ירושלים, בית שמש', type: 'missile', title: 'ירי רקטות וטילים — פגיעה בבית כנסת, 9 הרוגים' },
-    { time: '20:10', areas: 'מרכז ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח ערב' },
+    { time: '18:30', areas: 'מרכז ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח ערב מאיראן' },
+    { time: '20:10', areas: 'מרכז ישראל', type: 'missile', title: 'ירי רקטות וטילים — מטח ערב מאיראן' },
+    { time: '21:30', areas: 'חיפה, משמר הכרמל', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה פותח אש (ראשון מאז הפסקת אש נובמבר 2024): 3 רקטות' },
     { time: '23:55', areas: 'גליל עליון', type: 'uav', title: 'חדירת כלי טיס עוין' }
   ],
   '2026-03-02': [
@@ -1376,8 +1384,12 @@ var ALERTS_BY_DAY = {
     { time: '08:20', areas: 'משגב עם', type: 'missile', title: 'ירי רקטות וטילים' },
     { time: '08:27', areas: 'פארן, צוקים, שיטים', type: 'uav', title: 'חדירת כלי טיס עוין — דרום (3 ישובים)' },
     { time: '10:28', areas: 'תל אביב, פתח תקווה, ראש העין, אלעד, מודיעין, אריאל ועוד 207 ישובים', type: 'missile', title: 'ירי רקטות וטילים — מטח כבד מרכז+שומרון (212 ישובים)' },
-    { time: '10:30', areas: 'תל אביב דרום+מרכז+עבר הירקון, בת ים, יבנה, גאליה, רמות מאיר, נס ציונה, רחובות, רמלה, סתריה, עזריה', type: 'missile', title: 'ירי רקטות וטילים — המשך מטח (גוש דן+שפלה)' }
-    // 10:30+ — מתעדכן מזמן אמת בלבד
+    { time: '10:30', areas: 'תל אביב דרום+מרכז+עבר הירקון, בת ים, יבנה, גאליה, רמות מאיר, נס ציונה, רחובות, רמלה, סתריה, עזריה', type: 'missile', title: 'ירי רקטות וטילים — המשך מטח (גוש דן+שפלה)' },
+    // אחה"צ-ערב — מקור: פיקוד העורף צבע אדום בזמן אמת
+    { time: '13:42', areas: 'מרכז אזורי דרום השרון, תנובות, עין החורש, עולש, נעורים, ניצני עוז, נורדיה, משמר השרון, מעברות, מסוף אורנית, מכמורת, כפר מונש, כפר יונה, כפר ידידיה, כפר חיים, כפר ויתקין', type: 'missile', title: 'ירי רקטות וטילים — מטח דרום השרון (16+ ישובים)' },
+    { time: '18:38', areas: 'שתולה, שלומי, ראש הנקרה, ערב אל עראמשה, עבדון, מצובה, לימן, יערה, חניתה, חוף בצת, בצת, אזור תעשייה מילואות', type: 'uav', title: 'חדירת כלי טיס עוין — מערב הגליל (12 ישובים)' },
+    { time: '18:38', areas: 'אבני חפץ, רבבה, קרני שומרון, קריית נטפים, עמנואל, נופים, יקיר, חוות יאיר, ברקן', type: 'uav', title: 'חדירת כלי טיס עוין — שומרון (9 ישובים)' }
+    // 18:38+ — מתעדכן מזמן אמת בלבד
   ],
   // 6.3 ואילך — יתווסף רק כשהתאריך יגיע בפועל
 };
@@ -2149,27 +2161,38 @@ function renderAverageHourChart(currentHour) {
   chart.innerHTML = '';
 
   // חישוב ממוצע אירועים לכל שעה מכל הימים
+  // שעות שעדיין לא הגיעו ביום הנוכחי לא נספרות (כדי לא לדלל את הממוצע)
   var hourTotals = new Array(24).fill(0);
-  var dayCount = 0;
+  var hourDayCounts = new Array(24).fill(0);
   var allDates = Object.keys(ALERTS_BY_DAY);
+  var todayStr = new Date().toISOString().split('T')[0];
+  var nowHour = new Date().getHours();
 
   allDates.forEach(function(dateKey) {
     var dayData = countEventsPerHour(dateKey);
     var dayHasData = false;
-    for (var h = 0; h < 24; h++) {
-      var total = dayData.alerts[h] + dayData.launches[h];
-      hourTotals[h] += total;
+    for (var hh = 0; hh < 24; hh++) {
+      var total = dayData.alerts[hh] + dayData.launches[hh];
       if (total > 0) dayHasData = true;
     }
-    if (dayHasData) dayCount++;
+    if (!dayHasData) return;
+    var isToday = (dateKey === todayStr);
+    for (var h = 0; h < 24; h++) {
+      // ביום הנוכחי — לא כולל שעות עתידיות בממוצע
+      if (isToday && h > nowHour) continue;
+      var total = dayData.alerts[h] + dayData.launches[h];
+      hourTotals[h] += total;
+      hourDayCounts[h]++;
+    }
   });
 
-  if (dayCount === 0) {
+  var totalDays = Math.max.apply(null, hourDayCounts);
+  if (totalDays === 0) {
     chart.innerHTML = '<div style="text-align:center;color:#888;padding:20px">אין מספיק נתונים</div>';
     return;
   }
 
-  var hourAvg = hourTotals.map(function(t) { return t / dayCount; });
+  var hourAvg = hourTotals.map(function(t, i) { return hourDayCounts[i] > 0 ? t / hourDayCounts[i] : 0; });
   var maxAvg = Math.max.apply(null, hourAvg);
   if (maxAvg === 0) maxAvg = 1;
 
