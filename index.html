@@ -737,25 +737,17 @@ body {
     </div>
   </div>
 
-  <!-- Settings -->
-  <div class="panel settings-row">
-    <div class="setting-group">
-      <label for="daySelect">יום בשבוע</label>
-      <select id="daySelect">
-        <option value="0">ראשון</option>
-        <option value="1">שני</option>
-        <option value="2">שלישי</option>
-        <option value="3">רביעי</option>
-        <option value="4">חמישי</option>
-        <option value="5">שישי</option>
-        <option value="6">שבת</option>
-      </select>
-    </div>
-    <div class="setting-group">
-      <label for="hourSelect">שעה</label>
-      <select id="hourSelect"></select>
-    </div>
-  </div>
+  <!-- Hidden selectors (used by JS, auto-set to current time) -->
+  <select id="daySelect" style="display:none">
+    <option value="0">ראשון</option>
+    <option value="1">שני</option>
+    <option value="2">שלישי</option>
+    <option value="3">רביעי</option>
+    <option value="4">חמישי</option>
+    <option value="5">שישי</option>
+    <option value="6">שבת</option>
+  </select>
+  <select id="hourSelect" style="display:none"></select>
 
   <!-- Threat Sources -->
   <div class="panel threat-sources">
@@ -2397,8 +2389,7 @@ function init() {
   showIntensityForDate(selectedIntensityDate);
   seedTodayAlerts();
 
-  $('daySelect').addEventListener('change', recalculate);
-  $('hourSelect').addEventListener('change', recalculate);
+  // Selectors hidden — auto-set by autoSetSelectors()
 
   recalculate();
   updateClock();
