@@ -1460,14 +1460,17 @@ function seedTodayAlerts() {
     });
     seeded.forEach(function(a) {
       var exists = alertsLog.some(function(stored) {
-        return stored.time === a.time && stored.area === a.area;
+        return stored.time === a.time;
       });
       if (!exists) {
         alertsLog.push({ time: a.time, area: a.area, type: a.type, title: a.title || '', source: a.source || 'unknown' });
       }
     });
     alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
-    todayAlertCount = alertsLog.length;
+    // ספירת גלים ייחודיים (לפי זמן), לא רשומות בודדות
+    var uniqueTimes = {};
+    alertsLog.forEach(function(a) { uniqueTimes[a.time] = true; });
+    todayAlertCount = Object.keys(uniqueTimes).length;
     $('todayCount').textContent = todayAlertCount;
     saveAlerts();
     return;
@@ -1480,7 +1483,10 @@ function seedTodayAlerts() {
   var seeded = TODAY_SEED_ALERTS.filter(function(a) {
     return a.time <= currentTimeStr;
   });
+  var seenSeedTimes = {};
   seeded.forEach(function(a) {
+    if (seenSeedTimes[a.time]) return;
+    seenSeedTimes[a.time] = true;
     alertsLog.push({ time: a.time, area: a.area, type: a.type, title: a.title || '', source: a.source || 'unknown' });
   });
   alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
@@ -1713,7 +1719,10 @@ function getRecentAlertRate(windowMinutes) {
   var now = new Date();
   var nowMinutes = now.getHours() * 60 + now.getMinutes();
   var count = 0;
+  var seenTimes = {};
   source.forEach(function(a) {
+    if (seenTimes[a.time]) return;
+    seenTimes[a.time] = true;
     var parts = a.time.split(':');
     var alertMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
     if (nowMinutes - alertMin <= windowMinutes && nowMinutes - alertMin >= 0) count++;
@@ -1873,7 +1882,7 @@ function showIntensityForDate(dateKey) {
   var alertsHtml = '';
   if (alerts.length > 0) {
     alertsHtml = '<div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.08);padding-top:10px">' +
-      '<div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:8px;font-weight:600">אזעקות פיקוד העורף (' + alerts.length + ' אירועים)</div>';
+      '<div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:8px;font-weight:600">אזעקות פיקוד העורף (' + alerts.filter(function(a,i,arr) { return arr.findIndex(function(b) { return b.time === a.time; }) === i; }).length + ' גלים)</div>';
     alerts.forEach(function(a) {
       var icon = a.type === 'uav' ? '🛩️' : (a.type === 'rocket' ? '🚀' : '🚀');
       var typeColor = a.type === 'uav' ? 'var(--yellow)' : 'var(--red)';
@@ -2060,9 +2069,13 @@ function countEventsPerHour(dateKey) {
     if (h >= 0 && h < 24) hourAlerts[h]++;
   });
 
-  // שיגורים מ-LAUNCHES_TIMELINE
+  // שיגורים מ-LAUNCHES_TIMELINE — ספירת זמנים ייחודיים
+  var seenLaunchTimes = {};
   LAUNCHES_TIMELINE.forEach(function(l) {
     if (l.date === dateKey) {
+      var key = l.time + '_' + l.source;
+      if (seenLaunchTimes[key]) return;
+      seenLaunchTimes[key] = true;
       var h = parseInt(l.time.split(':')[0]);
       if (h >= 0 && h < 24) {
         hourLaunches[h]++;
