@@ -813,11 +813,11 @@ body {
       <div class="stat-label">גלי תקיפה מאיראן</div>
     </div>
     <div class="panel stat-card">
-      <div class="stat-val" id="statMissiles">875+</div>
+      <div class="stat-val" id="statMissiles">545+</div>
       <div class="stat-label">טילים בליסטיים</div>
     </div>
     <div class="panel stat-card">
-      <div class="stat-val" id="statUAVs">1,580+</div>
+      <div class="stat-val" id="statUAVs">2,080+</div>
       <div class="stat-label">כטב"מים</div>
     </div>
     <div class="panel stat-card">
@@ -905,51 +905,61 @@ body {
 // INSS, Walla, Wikipedia (2026 Iran conflict), Al Jazeera tracker,
 // US Joint Chiefs (Gen. Dan Caine briefing), Times of Israel liveblogs
 
-// Daily data — verified per-day breakdown
-// Attack waves: Alma Center exact counts
-// Casualties: MDA + Ministry of Health official updates
+// Daily data — מאומת ממקורות רשמיים בלבד
+// גלי תקיפה: מרכז אלמ"א (Alma Research Center) — ספירת גלים מאומתת
+// נפגעים: מד"א + משרד הבריאות — דיווחים רשמיים
+// טילים+כטב"מים: CENTCOM (Admiral Cooper) — 500 טילים + 2,000 כטב"מים ב-4 ימים ראשונים
+// חלוקה יומית: משוערת פרופורציונלית לגלים. מסומן ב-~ כי אין פירוט יומי מדויק מ-CENTCOM.
 const DAILY_DATA = [
   {
+    // מקור: reganews (100-150 טילים), JPost (~200 במטח ראשון, 35 נכנסו), ToI liveblog, MDA
     date: '2026-02-28', dayName: 'שבת',
-    iranWaves: 25, iranMissiles: '~170', iranUAVs: 'מאות', iranKilled: 2, iranInjured: 456,
+    iranWaves: 25, iranMissiles: '100-150', iranUAVs: 'עשרות', iranKilled: 2, iranInjured: 456,
     lebWaves: 0, lebRockets: 0,
-    missilesLaunched: 170, uavsLaunched: 300, interceptions: '~90%', interceptionsCount: '~153', impacts: '~17', killed: 2, injured: 456,
-    events: 'פתיחת מבצע "שאגת הארי". איראן: 25 גלים (2-3 טילים/גל). פגיעה בת"א — הרוגה (מרינה בלייב, 68). 456 פונו.'
+    missilesLaunched: 150, uavsLaunched: 500, interceptions: '~90%', interceptionsCount: '~135', impacts: '~15', killed: 2, injured: 456,
+    events: 'פתיחת מבצע "שאגת הארי" ~08:20. תגובת איראן מ-10:00. 3 מטחים (10:00, 15:45, 23:30). הרוגה מטיל בגוש דן (מטפלת זרה). מרינה בלייב (68) נפטרה מדום לב בריצה למרחב מוגן. מד"א: 456 פונו.'
   },
   {
+    // מקור: ToI liveblog 1.3, Al Jazeera (בית שמש), MDA סיכום יום 2 (סה"כ 10 הרוגים מצטבר)
     date: '2026-03-01', dayName: 'ראשון',
-    iranWaves: 63, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 9, iranInjured: 700,
+    iranWaves: 63, iranMissiles: 'שיא — גלים גדולים', iranUAVs: 'מאות', iranKilled: 9, iranInjured: 700,
     lebWaves: 1, lebRockets: 3,
-    missilesLaunched: 400, uavsLaunched: 800, interceptions: '~88%', interceptionsCount: '~352', impacts: '~48', killed: 9, injured: 700,
-    events: 'שיא: 63 גלים. 9-30 טילים/גל. פגיעה בבית כנסת בית שמש — 9 הרוגים. חיזבאללה: 3 רקטות. 700+ פצועים.'
+    missilesLaunched: 200, uavsLaunched: 800, interceptions: '~88%', interceptionsCount: '~176', impacts: '~24', killed: 9, injured: 700,
+    events: 'שיא: 63 גלים (אלמ"א). פגיעה ישירה בבית כנסת בית שמש — 9 הרוגים (Al Jazeera). חיזבאללה: ירי ראשון מאז הפסקת אש 2024 — 01:17. מד"א: 700+ פונו.'
   },
   {
+    // מקור: אלמ"א (112 גלים מצטבר), NPR, Al Jazeera (ב"ש), Middle East Monitor
     date: '2026-03-02', dayName: 'שני',
-    iranWaves: 24, iranMissiles: '9-30 בגל', iranUAVs: 'מאות', iranKilled: 0, iranInjured: 700,
-    lebWaves: 10, lebRockets: '6+ טילים, 3 כטב"מים',
-    missilesLaunched: 200, uavsLaunched: 250, interceptions: '~90%', interceptionsCount: '~180', impacts: '~20', killed: 0, injured: 700,
-    events: '24 גלים מאיראן (112 מצטבר, אלמ"א). חיזבאללה — 10 תקיפות. פגיעה בב"ש (19 פצועים). כטב"מ יורט ע"י אור איתן.'
+    iranWaves: 24, iranMissiles: 'ירידה', iranUAVs: 'מאות', iranKilled: 0, iranInjured: 700,
+    lebWaves: 10, lebRockets: 'טילי דיוק + כטב"מים',
+    missilesLaunched: 100, uavsLaunched: 500, interceptions: '~90%', interceptionsCount: '~90', impacts: '~10', killed: 0, injured: 700,
+    events: '24 גלים מאיראן (112 מצטבר, אלמ"א). חיזבאללה — 10 תקיפות כנגד משמר הכרמל. פגיעה בב"ש — 19 פצועים (Al Jazeera). כטב"מ יורט ע"י אור איתן.'
   },
   {
+    // מקור: US Joint Chiefs (ירידה 86%), ToI/Haaretz liveblogs
     date: '2026-03-03', dayName: 'שלישי',
-    iranWaves: 8, iranMissiles: 'ירידה 86%', iranUAVs: 'ירידה 73%', iranKilled: 1, iranInjured: 1000,
+    iranWaves: 8, iranMissiles: 'ירידה 86%', iranUAVs: 'ירידה', iranKilled: 1, iranInjured: 1000,
     lebWaves: 14, lebRockets: 'עשרות',
-    missilesLaunched: 60, uavsLaunched: 150, interceptions: '~93%', interceptionsCount: '~56', impacts: '~4', killed: 1, injured: 1000,
-    events: 'ירידה 86% בבליסטיים. חיזבאללה: 14 תקיפות. 3 רקטות ארוכות טווח לת"א/חיפה — 2 יורטו.'
+    missilesLaunched: 50, uavsLaunched: 200, interceptions: '~93%', interceptionsCount: '~47', impacts: '~3', killed: 1, injured: 1000,
+    events: 'ירידה 86% בבליסטיים (US Joint Chiefs). 8 גלים מאיראן. חיזבאללה: 14 תקיפות. 7 פצועים קל מרסיסי יירוט (CNN). סה"כ 4 ימים (CENTCOM): 500 טילים + 2,000 כטב"מים.'
   },
   {
+    // מקור: FDD analysis (7+ גלים), hamal.co.il (אזעקות מ-19:03)
+    // נפגעים: ToI (הרוג הודי במרגליות, 7 פצועים)
+    // טילים/כטב"מים: לא כלולים בספירת CENTCOM (שכיסתה 4 ימים עד 3.3)
     date: '2026-03-04', dayName: 'רביעי',
-    iranWaves: 8, iranMissiles: 'ירידה 23% נוספת', iranUAVs: 'מטפטף', iranKilled: 2, iranInjured: 1200,
+    iranWaves: 8, iranMissiles: 'מטפטף', iranUAVs: 'מטפטף', iranKilled: 2, iranInjured: 1200,
     lebWaves: 38, lebRockets: 'עשרות שיגורים',
     missilesLaunched: 45, uavsLaunched: 80, interceptions: '~95%', interceptionsCount: '~43', impacts: '~2', killed: 2, injured: 1200,
-    events: '8 גלי תקיפה איראניים. חיזבאללה: 38 אירועי ירי. טיל נ"ט במרגליות — 7 פצועים, הרוג הודי. סה"כ: 128 גלים, 2 הרוגים, 1,200+ פצועים.'
+    events: '7+ גלי תקיפה מאיראן (FDD). חיזבאללה: 38 אירועי ירי (hamal.co.il). טיל נ"ט במרגליות — הרוג הודי, 7 פצועים (ToI). סה"כ 128 גלים מצטבר.'
   },
   {
+    // מקור: צבע אדום — אזעקות מאומתות בלבד. היום בעיצומו.
     date: '2026-03-05', dayName: 'חמישי',
     iranWaves: 0, iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 0, iranInjured: 0,
     lebWaves: 0, lebRockets: 'מתעדכן',
     missilesLaunched: 0, uavsLaunched: 0, interceptions: 'מתעדכן', interceptionsCount: '0', impacts: '0', killed: 0, injured: 0,
-    events: 'היום בעיצומו — נתונים מתעדכנים מזמן אמת. אזעקות מאומתות: 00:00 כטב"מ, 06:21 כטב"מ שתולה, 08:20 רקטות משגב עם, 08:27 כטב"מ פארן/צוקים.'
+    events: 'היום בעיצומו — נתונים מזמן אמת בלבד. אזעקות מאומתות (צבע אדום): 00:00 כטב"מ, 06:21 כטב"מ שתולה, 08:20 רקטות משגב עם, 08:27 כטב"מ פארן/צוקים.'
   }
 ];
 
@@ -1082,7 +1092,7 @@ const THREAT_SOURCES = [
     },
     warningBefore: 'התרעה: 0-90 שנ\' לפי מרחק',
     color: '#FFCA28',
-    statsLine: '10 תקיפות (2.3) · 14 תקיפות (3.3) · 38 תקיפות (4.3) · 45 תקיפות (5.3) · פגיעת נ"ט מרגליות'
+    statsLine: '10 תקיפות (2.3) · 14 תקיפות (3.3) · 38 תקיפות (4.3) · מתעדכן (5.3) · פגיעת נ"ט מרגליות'
   }
 ];
 
