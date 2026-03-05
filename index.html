@@ -1096,7 +1096,7 @@ const DAY_TO_DATE = {
   2: '2026-03-03',  // שלישי
   3: '2026-03-04',  // רביעי
   4: '2026-03-05'    // חמישי — יום 6
-  // 5 (שישי) — יתווסף רק כשהתאריך 6.3 יגיע
+  // ימים נוספים מתווספים דינמית ב-WAR_DAYS IIFE
 };
 
 // ==================== THREAT SOURCES — Iran & Lebanon Only ====================
@@ -1789,8 +1789,29 @@ var WAR_DAYS = [
   { date: '2026-03-03', dayName: 'שלישי 3.3', dayNum: 2, label: 'יום 4' },
   { date: '2026-03-04', dayName: 'רביעי 4.3', dayNum: 3, label: 'יום 5' },
   { date: '2026-03-05', dayName: 'חמישי 5.3', dayNum: 4, label: 'יום 6' }
-  // 6.3 ואילך — יתווסף רק כשהתאריך יגיע בפועל
 ];
+// הרחבה דינמית: הוספת ימים מ-6.3 ועד היום הנוכחי (אם הגיע)
+(function() {
+  var lastDate = new Date('2026-03-05');
+  var today = new Date(); today.setHours(0,0,0,0);
+  var dayNum = 7; // יום 7 ואילך
+  while (lastDate < today) {
+    lastDate.setDate(lastDate.getDate() + 1);
+    if (lastDate > today) break;
+    var iso = lastDate.toISOString().split('T')[0];
+    var d = lastDate.getDate();
+    var m = lastDate.getMonth() + 1;
+    var dow = lastDate.getDay();
+    WAR_DAYS.push({
+      date: iso,
+      dayName: DAY_NAMES[dow] + ' ' + d + '.' + m,
+      dayNum: dow,
+      label: 'יום ' + dayNum
+    });
+    if (!DAY_TO_DATE[dow]) DAY_TO_DATE[dow] = iso;
+    dayNum++;
+  }
+})();
 var selectedIntensityDate = '2026-02-28';
 
 function renderIntensityTabs() {
@@ -2042,8 +2063,8 @@ function updateHourChart(currentHour, day) {
   var chart = $('hourChart');
   chart.innerHTML = '';
 
-  var dateKey = DAY_TO_DATE[day];
-  var data = dateKey ? countEventsPerHour(dateKey) : null;
+  var dateKey = DAY_TO_DATE[day] || new Date().toISOString().split('T')[0];
+  var data = countEventsPerHour(dateKey);
 
   // אם אין נתונים ליום — fallback להערכה
   if (!data || (Math.max.apply(null, data.alerts) === 0 && Math.max.apply(null, data.launches) === 0)) {
