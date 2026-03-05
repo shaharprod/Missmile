@@ -1108,7 +1108,7 @@ const THREAT_SOURCES = [
     flag: '🇮🇷',
     name: 'איראן',
     org: 'משמרות המהפכה (IRGC)',
-    totalLaunches: '875+ טילים בליסטיים · 1,580+ כטב"מים (עד 4.3)',
+    totalLaunches: '500+ טילים בליסטיים · 2,000+ כטב"מים (CENTCOM עד 5.3)',
     missileTypes: 'שיהאב-3, עמאד, פתאח-1, חימוש מצרר, שאהד-136',
     flightTimes: {
       'טיל בליסטי': '10-12 דק\'',
@@ -1117,14 +1117,14 @@ const THREAT_SOURCES = [
     },
     warningBefore: 'התרעה: 15-30 דק\' מראש',
     color: '#AB47BC',
-    statsLine: '128 גלי תקיפה (אלמ"א עד 4.3) · 14 הרוגים · 1,200+ פצועים'
+    statsLine: '~138 גלי תקיפה (אלמ"א עד 5.3) · 10-11 הרוגים · 1,473+ פצועים (JPost 5.3)'
   },
   {
     id: 'lebanon',
     flag: '🇱🇧',
     name: 'לבנון',
     org: 'חיזבאללה',
-    totalLaunches: '63+ אירועי תקיפה מאז 1.3 (עד 4.3)',
+    totalLaunches: '62+ אירועי תקיפה מאז 2.3 (Alma עד 4.3), 30+ תקיפות/יום (5.3)',
     missileTypes: 'קטיושה, טילי דיוק, כטב"מים, טילי נ"ט',
     flightTimes: {
       'גליל עליון': '3-5 שנ\'',
@@ -1134,7 +1134,7 @@ const THREAT_SOURCES = [
     },
     warningBefore: 'התרעה: 0-90 שנ\' לפי מרחק',
     color: '#FFCA28',
-    statsLine: '10 תקיפות (2.3) · 14 תקיפות (3.3) · 38 תקיפות (4.3) · מתעדכן (5.3) · פגיעת נ"ט מרגליות'
+    statsLine: '10 תקיפות (2.3) · 14 תקיפות (3.3) · 38 תקיפות (4.3) · 30+ תקיפות (5.3) · פגיעת נ"ט מרגליות'
   }
 ];
 
@@ -1192,27 +1192,53 @@ const LAUNCHES_TIMELINE = [
   { date: '2026-03-03', time: '21:00', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח לילה — סה"כ ~118 גלים מצטבר מאיראן. 12 הרוגים, 1,200+ פצועים (Alma Center).' },
 
   // === 4 MARCH 2026 (רביעי) — Day 5 ===
-  // מקור: FDD analysis (IDF alert list): 7 גלי טילים עד 17:00 — 00:05, 00:50, 04:18, 05:53, 13:48, 14:31, 16:07
-  // Alma Center: סה"כ 128 גלים מאיראן מצטבר, 38 תקיפות חיזבאללה ב-24 שעות, 62 תקיפות חיזבאללה מצטבר
-  // US Joint Chiefs: ירידה 86% בבליסטיים, 23% ירידה נוספת ביממה האחרונה
+  // מקור: FDD analysis (IDF alert list) + צבע אדום API + Alma Center
+  // Alma: סה"כ 128 גלים מאיראן מצטבר, 38 תקיפות חיזבאללה ב-24 שעות, 62 מצטבר
+  // US Joint Chiefs: ירידה 86% בבליסטיים. 12 הרוגים, 1,200+ פצועים (מצטבר)
   { date: '2026-03-04', time: '00:05', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח בליסטי (גל 1) — סמוך לחצות. אזעקות במרכז.' },
   { date: '2026-03-04', time: '00:50', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח בליסטי (גל 2) — סמוך ל-01:00. אזעקות במרכז.' },
   { date: '2026-03-04', time: '04:18', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח בליסטי (גל 3) — התראה מוקדמת 04:18.' },
-  { date: '2026-03-04', time: '05:53', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח בליסטי (גל 4) — התראה 05:53. יירוט מעל ירושלים ות"א (BusinessUpturn).' },
-  { date: '2026-03-04', time: '06:55', source: 'lebanon', missiles: 4, intercepted: 4, impacted: 0, desc: 'חיזבאללה — שיגורים מלבנון, יורטו מעל מרכז הארץ.' },
+  { date: '2026-03-04', time: '05:53', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח בליסטי (גל 4) — יירוט מעל ירושלים ות"א.' },
+  { date: '2026-03-04', time: '06:55', source: 'lebanon', missiles: 4, intercepted: 4, impacted: 0, desc: 'חיזבאללה — שיגורים מלבנון, יורטו.' },
   { date: '2026-03-04', time: '08:40', source: 'lebanon', missiles: 1, intercepted: 0, impacted: 1, desc: 'טיל נ"ט חיזבאללה פוגע במרגליות — 7 פצועים, הרוג הודי (Alma).' },
-  { date: '2026-03-04', time: '13:48', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח בליסטי (גל 5) — אזעקות מרכז ישראל (FDD/IDF).' },
-  { date: '2026-03-04', time: '14:31', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח בליסטי (גל 6) — אזעקות מרכז ישראל (FDD/IDF).' },
-  { date: '2026-03-04', time: '16:07', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח בליסטי (גל 7) — אזעקות מרכז ישראל (FDD/IDF).' },
-  { date: '2026-03-04', time: '19:15', source: 'iran', missiles: 4, intercepted: 4, impacted: 0, desc: 'מטח ערב — אזעקות בירושלים ות"א. גל 8 (Alma: סה"כ 128 מצטבר).' },
-  { date: '2026-03-04', time: '21:30', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח לילה — הרצליה, ת"א. גל 9-10.' },
+  { date: '2026-03-04', time: '13:25', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — נחיל כטב"מים לאצבע הגליל (13:25-13:48). סירנות ב-20+ ישובים (צבע אדום API).' },
+  { date: '2026-03-04', time: '14:01', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי כבד (גל 5) — סירנות ב-500+ ישובים (14:01-14:09). ת"א, ירושלים, מרכז (צבע אדום API).' },
+  { date: '2026-03-04', time: '14:30', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי (גל 6) — סירנות ב-390+ ישובים (14:30-14:38). חיפה, רחובות, ירושלים (צבע אדום API).' },
+  { date: '2026-03-04', time: '15:21', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי (גל 7) — סירנות חיפה, יקנעם, נשר (15:21-15:22). (צבע אדום API).' },
+  { date: '2026-03-04', time: '16:00', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — כטב"מים לבקעת הירדן+שומרון (16:00-16:06). ארגמן, פצאל, תומר (צבע אדום API).' },
+  { date: '2026-03-04', time: '16:11', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי מסיבי — סירנות ב-340+ ישובים (16:11-16:13). ירושלים, ת"א, שפלה (צבע אדום API).' },
+  { date: '2026-03-04', time: '17:14', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — כטב"מים לגולן (17:14-17:15). דן, שאר ישוב, מג\'דל שמס (צבע אדום API).' },
+  { date: '2026-03-04', time: '18:07', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — כטב"מים מערב הגליל (18:07-18:08). חניתה, שלומי, מצובה (צבע אדום API).' },
+  { date: '2026-03-04', time: '19:01', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי כבד — סירנות ב-270+ ישובים (19:01-19:03). ת"א, אור יהודה, גבעת שמואל (צבע אדום API).' },
+  { date: '2026-03-04', time: '19:10', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — כטב"מים לגליל (19:10-19:11). שומרה, גורנות הגליל, גורן (צבע אדום API).' },
+  { date: '2026-03-04', time: '19:43', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — כטב"מים+רקטות (19:43-19:57). יפתח, דוב"ב, מלכיה (צבע אדום API).' },
+  { date: '2026-03-04', time: '20:29', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — רקטות+כטב"מ שניר, שאר ישוב, מטולה (20:29-20:31). (צבע אדום API).' },
+  { date: '2026-03-04', time: '22:31', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — כטב"מים אצבע הגליל (22:31-22:33). בית הלל, דפנה, הגושרים (צבע אדום API).' },
+  { date: '2026-03-04', time: '23:57', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — רקטות+כטב"מ (23:57-23:59). מנרה, קריית שמונה, מרגליות (צבע אדום API).' },
 
   // === 5 MARCH 2026 (חמישי) — Day 6 ===
-  // מקור: ToI liveblog Mar 5, CNN, JPost — 5 מטחים איראניים עד הבוקר, פגיעה בליסטית במרכז, רקטות מעל נתניה
-  // CENTCOM: 500+ טילים, 2000+ כטב"מים מאיראן (מצטבר). ירידה 86% בבליסטיים (US Joint Chiefs)
-  // Alma (5.3): סה"כ ~138 גלים מאיראן מצטבר, חיזבאללה ממשיך 30+ תקיפות/יום
-  // JPost (5.3): 10 הרוגים ישראלים, 1,473+ פצועים מבליסטיים מתחילת המלחמה
-  // IDF: השמיד 300+ משגרי טילים. סיים גל 13 של תקיפות בטהרן
+  // מקור: צבע אדום API (57 אזעקות) + ToI liveblog + CENTCOM + Alma + JPost
+  // Chicago Tribune: לפחות 3 גלי טילים איראניים יורטו ב-5.3
+  // CENTCOM (מצטבר): 500+ טילים בליסטיים, 2,000+ כטב"מים מאיראן
+  // Alma: ~138 גלים מאיראן מצטבר. חיזבאללה 30+ תקיפות/יום
+  // JPost: 10-11 הרוגים ישראלים, 1,473+ פצועים. IDF השמיד 300+ משגרי טילים
+  { date: '2026-03-05', time: '00:34', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — כטב"מ לאביבים, יראון (צבע אדום API).' },
+  { date: '2026-03-05', time: '02:22', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי כבד — סירנות ב-158+ ישובים (02:22-02:29). ת"א, מרגליות, מנרה + כטב"מ (צבע אדום API).' },
+  { date: '2026-03-05', time: '02:48', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח נוסף — סירנות ב-60+ ישובים (02:48-03:10). מטולה, קריית שמונה, ת"א, קצרין (צבע אדום API).' },
+  { date: '2026-03-05', time: '03:19', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — רקטות קריית שמונה, מטולה (03:19-03:35). (צבע אדום API).' },
+  { date: '2026-03-05', time: '04:01', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי מסיבי — סירנות ב-227+ ישובים (04:01-04:02). ירושלים, בית שמש, אפרת (צבע אדום API).' },
+  { date: '2026-03-05', time: '06:20', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — כטב"מים+רקטות מערב הגליל (06:20-06:21). חניתה, שלומי, מצובה (צבע אדום API).' },
+  { date: '2026-03-05', time: '08:20', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — רקטות משגב עם + כטב"מ דרום (08:20-08:31). פארן, צוקים, שיטים (צבע אדום API).' },
+  { date: '2026-03-05', time: '10:28', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי כבד — סירנות ב-212+ ישובים (10:28-10:30). ת"א, מודיעין, בת ים, רחובות (צבע אדום API).' },
+  { date: '2026-03-05', time: '12:25', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — רקטות גליל (12:25-12:46). זרעית, נהריה, סער, מרגליות (צבע אדום API).' },
+  { date: '2026-03-05', time: '13:46', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי מסיבי — סירנות ב-460+ ישובים (13:46-13:54). ת"א, ירושלים, גוש דן, שומרון (צבע אדום API).' },
+  { date: '2026-03-05', time: '14:19', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — רקטות נתיב השיירה (צבע אדום API).' },
+  { date: '2026-03-05', time: '16:30', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי כבד — סירנות ב-258+ ישובים (16:30-16:34). ת"א, רחובות, שומרון (צבע אדום API).' },
+  { date: '2026-03-05', time: '17:20', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — כטב"מים אצבע הגליל (17:20-17:22). מנרה, קריית שמונה, כפר גלעדי (צבע אדום API).' },
+  { date: '2026-03-05', time: '18:02', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — כטב"מים+רקטות מערב הגליל (18:02-18:27). חניתה, שלומי, בצת, ראש הנקרה (צבע אדום API).' },
+  { date: '2026-03-05', time: '20:08', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — רקטות מטולה (צבע אדום API).' },
+  { date: '2026-03-05', time: '20:31', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי — סירנות ב-169+ ישובים (20:31-20:34). מנרה, כפר גלעדי, מטולה, גולן (צבע אדום API).' },
+  // מתעדכן מזמן אמת
 ];
 
 const ACTIVITIES = [
