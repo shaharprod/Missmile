@@ -1714,7 +1714,7 @@ function updateRealtimeStatus() {
   } else {
     // גם אם עברה שעה+ — אנחנו במלחמה, תמיד כוננות
     status = 'sporadic'; icon = '🟡'; title = 'כוננות — הישאר ערני';
-    desc = 'אזעקה אחרונה לפני ' + (minutesSince < 999 ? minutesSince + ' דקות' : 'זמן לא ידוע') + '. סכנת שעה נוכחית: ' + Math.round(hourDanger * 100) + '%. מטחים יכולים להתחדש — הישאר ליד מרחב מוגן.';
+    desc = 'אזעקה אחרונה לפני ' + (minutesSince < 999 ? minutesSince + ' דקות' : 'זמן לא ידוע') + '. סיכון סטטיסטי לשעה זו: ' + Math.round(hourDanger * 100) + '% (מבוסס ימים קודמים, לא זמן אמת). מטחים יכולים להגיע בכל רגע.';
   }
 
   panel.className = 'panel realtime-status status-' + status;
@@ -1896,7 +1896,7 @@ function updateMainMeter(safety) {
   var status, desc;
   if (safety >= 70) {
     status = 'כוננות';
-    desc = 'קצב השיגורים נמוך יחסית בשעה ויום אלה. עדיין מומלץ להישאר ליד מרחב מוגן.';
+    desc = 'לפי ניתוח סטטיסטי של ימים קודמים, קצב השיגורים נמוך יחסית בשעה ויום אלה. זה לא מידע בזמן אמת — מטח יכול להגיע בכל רגע.';
   } else if (safety >= 45) {
     status = 'זהירות — שיגורים ספורדיים';
     desc = 'קצב ירי בינוני. הישאר בקרבת מרחב מוגן, בצע פעולות קצרות בלבד.';
@@ -1920,7 +1920,7 @@ function updateReco(safety) {
     box.classList.add('reco-safe');
     $('recoIcon').textContent = '✅';
     $('recoTitle').textContent = 'כוננות — סיכון נמוך יחסית';
-    $('recoDesc').textContent = 'קצב השיגורים נמוך יחסית בשעה זו. עדיין חובה להישאר ליד מרחב מוגן. אנחנו במלחמה.';
+    $('recoDesc').textContent = 'לפי ניתוח סטטיסטי של ימים קודמים, קצב השיגורים נמוך יחסית בשעה זו. זה לא מידע בזמן אמת — מטח יכול להגיע בכל רגע. חובה להישאר ליד מרחב מוגן.';
   } else if (safety >= 45) {
     box.classList.add('reco-caution');
     $('recoIcon').textContent = '⚠️';
