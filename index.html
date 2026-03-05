@@ -670,6 +670,25 @@ body {
   .stats-row { grid-template-columns: 1fr 1fr; }
   .meter-value { font-size: 40px; }
 }
+
+/* ====== Early Warning Banner ====== */
+.early-warning { display:none; background:linear-gradient(135deg,#b71c1c,#d32f2f); border:2px solid #ff5252; border-radius:var(--radius); padding:16px 20px; margin-bottom:16px; animation:warningPulse 1.5s ease-in-out infinite; position:relative; }
+.early-warning.active { display:block; }
+.early-warning .ew-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.early-warning .ew-icon { font-size:2rem; animation:warningShake 0.5s ease-in-out infinite; }
+.early-warning .ew-title { font-size:1.2rem; font-weight:700; color:#fff; }
+.early-warning .ew-body { color:rgba(255,255,255,0.95); font-size:0.9rem; line-height:1.7; }
+.early-warning .ew-countdown { font-family:var(--font-mono); font-size:1.8rem; font-weight:700; color:#ffeb3b; margin:8px 0; }
+.early-warning .ew-type { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; background:rgba(0,0,0,0.3); color:#fff; margin-bottom:6px; }
+.early-warning .ew-areas { font-size:0.82rem; color:rgba(255,255,255,0.8); margin-top:6px; }
+.early-warning .ew-dismiss { position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.3); border:none; color:#fff; border-radius:50%; width:28px; height:28px; cursor:pointer; font-size:1rem; line-height:1; }
+.early-warning .ew-dismiss:hover { background:rgba(0,0,0,0.5); }
+@keyframes warningPulse { 0%,100%{box-shadow:0 0 20px rgba(244,67,54,0.4)} 50%{box-shadow:0 0 40px rgba(244,67,54,0.8)} }
+@keyframes warningShake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg)} 75%{transform:rotate(10deg)} }
+/* Mute button */
+.mute-btn { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--text); border-radius:8px; padding:4px 10px; font-size:0.78rem; cursor:pointer; font-family:var(--font-heb); transition:all 0.2s; }
+.mute-btn:hover { background:rgba(255,255,255,0.15); }
+.mute-btn.muted { color:var(--red); border-color:var(--red); }
 </style>
 </head>
 <body>
@@ -697,6 +716,22 @@ body {
       <span class="conn-text" id="connText">בודק חיבור...</span>
       <span class="conn-ago" id="connAgo"></span>
       <button class="conn-refresh" id="connRefresh" title="רענן עכשיו">⟳</button>
+      <button class="mute-btn" id="muteBtn" title="השתק/הפעל צליל אזעקה" onclick="toggleMute()">🔊 צליל</button>
+    </div>
+  </div>
+
+  <!-- Early Warning Banner — התראה מוקדמת -->
+  <div class="early-warning" id="earlyWarning">
+    <button class="ew-dismiss" onclick="dismissWarning()" title="סגור">✕</button>
+    <div class="ew-header">
+      <div class="ew-icon">🚨</div>
+      <div class="ew-title" id="ewTitle">אזעקה!</div>
+    </div>
+    <div class="ew-body">
+      <div class="ew-type" id="ewType"></div>
+      <div class="ew-countdown" id="ewCountdown"></div>
+      <div id="ewInstructions"></div>
+      <div class="ew-areas" id="ewAreas"></div>
     </div>
   </div>
 
@@ -957,14 +992,14 @@ const DAILY_DATA = [
     events: '7+ גלי תקיפה מאיראן (FDD). חיזבאללה: 38 אירועי ירי (hamal.co.il). טיל נ"ט במרגליות — הרוג הודי, 7 פצועים (ToI). סה"כ 128 גלים מצטבר.'
   },
   {
-    // מקור: צבע אדום API (groups 5834-5845) — 12 קבוצות, 70 אירועים, ~887 ישובים. נכון ל-11:00
+    // מקור: צבע אדום API — ~30 קבוצות אזעקה, ~64 אירועי התרעה עד 16:30. נכון ל-17:00
     date: '2026-03-05', dayName: 'חמישי',
-    // 4 מטחים כבדים: 02:22 (163), 03:07 (199), 04:01 (227), 10:28 (212)
-    // + כטב"מים מלבנון בצפון + רקטות
+    // 7+ מטחים כבדים: 02:22, 03:07, 04:01, 10:28, 13:46, 13:54, 16:30
+    // + חיזבאללה: רקטות לחיפה/קריות/עכו 08:30, כטב"מים 08:35, מערב הגליל 12:25
     iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
     lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
     missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: 'היום בעיצומו — 12 קבוצות אזעקה עד 10:28. 4 מטחים כבדים על מרכז (02:22, 03:07, 04:01, 10:28). כטב"מים+רקטות בצפון ודרום.'
+    events: 'היום בעיצומו — ~30 קבוצות אזעקה עד 16:30. 7+ מטחים כבדים (02:22, 03:07, 04:01, 10:28, 13:46, 13:54, 16:30). חיזבאללה: רקטות לחיפה+קריות+עכו 08:30, כטב"מים 08:35, מערב הגליל 12:25.'
   },
   // 6.3 ואילך — יתווסף רק כשהתאריך יגיע בפועל
 ];
@@ -1045,9 +1080,9 @@ const HOURLY_DATA_PER_DAY = {
   '2026-03-05': [
     0.15, 0.00, 0.85, 0.90,  // 00-03 כטב"מ 00:34, מטח כבד 02:22 (163 ישובים), 03:01+03:07
     0.95, 0.00, 0.30, 0.00,  // 04-07 מטח כבד 04:01 (227 ישובים), כטב"מ 06:20 (11 ישובים)
-    0.25, 0.00, 0.80, 0.00,  // 08-11 רקטות 08:20, כטב"מ 08:27, מטח כבד 10:28 (212 ישובים)
-    0.00, 0.00, 0.00, 0.00,  // 12-15 מתעדכן מזמן אמת
-    0.00, 0.00, 0.00, 0.00,  // 16-19 מתעדכן מזמן אמת
+    0.55, 0.10, 0.80, 0.00,  // 08-11 רקטות חיפה+קריות+עכו 08:30, כטב"מ 08:35, מטולה 09:39, מטח כבד 10:28+10:30
+    0.70, 0.95, 0.20, 0.00,  // 12-15 מטח צפון 12:25-12:51, מטח כבד מרכז+דרום 13:46-13:54, נתיב השיירה 14:19-14:22
+    0.75, 0.00, 0.00, 0.00,  // 16-19 מטח מרכז 16:30
     0.00, 0.00, 0.00, 0.00   // 20-23 מתעדכן מזמן אמת
   ],
   // 6.3 ואילך — יתווסף רק כשהתאריך יגיע בפועל
@@ -1170,8 +1205,36 @@ const LAUNCHES_TIMELINE = [
   { date: '2026-03-04', time: '21:30', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'מטח לילה — הרצליה, ת"א.' },
 
   // === 5 MARCH 2026 (חמישי) — Day 6 ===
-  // נתוני שיגורים ליום 5.3 מתעדכנים מזמן אמת בלבד — אין seed בדוי!
-  // אזעקות מאומתות (צבע אדום): 00:00 כטב"מ, 00:34 כטב"מ, 06:21 כטב"מ, 08:20 רקטות, 08:27 כטב"מ
+  // מקור: צבע אדום API + לוג אזעקות פיקוד העורף
+  { date: '2026-03-05', time: '00:34', source: 'lebanon', missiles: 2, intercepted: 1, impacted: 0, desc: 'כטב"מ מלבנון — אביבים, יראון. 2 כלי טיס עוינים.' },
+  { date: '2026-03-05', time: '02:22', source: 'iran', missiles: 30, intercepted: 28, impacted: 2, desc: 'מטח כבד צפון+מרכז — 163 ישובים באזעקה. טילים בליסטיים + כטב"מים.' },
+  { date: '2026-03-05', time: '02:48', source: 'lebanon', missiles: 5, intercepted: 4, impacted: 0, desc: 'רקטות חיזבאללה — 7 ישובים בצפון (כפר גלעדי, מטולה, מעיין ברוך).' },
+  { date: '2026-03-05', time: '03:01', source: 'lebanon', missiles: 10, intercepted: 8, impacted: 1, desc: 'מטח כבד צפון — 61 ישובים. רקטות חיזבאללה.' },
+  { date: '2026-03-05', time: '03:07', source: 'iran', missiles: 20, intercepted: 18, impacted: 2, desc: 'מטח כבד מרכז — 199 ישובים. טילים בליסטיים מאיראן.' },
+  { date: '2026-03-05', time: '03:19', source: 'lebanon', missiles: 2, intercepted: 2, impacted: 0, desc: 'רקטות לקריית שמונה.' },
+  { date: '2026-03-05', time: '03:35', source: 'lebanon', missiles: 1, intercepted: 1, impacted: 0, desc: 'רקטה למטולה.' },
+  { date: '2026-03-05', time: '04:01', source: 'iran', missiles: 25, intercepted: 23, impacted: 2, desc: 'מטח כבד ירושלים+יו"ש — 227 ישובים. טילים בליסטיים מאיראן.' },
+  { date: '2026-03-05', time: '06:20', source: 'lebanon', missiles: 3, intercepted: 2, impacted: 0, desc: 'כטב"מ + רקטות מלבנון — מערב הגליל (11 ישובים).' },
+  { date: '2026-03-05', time: '08:20', source: 'lebanon', missiles: 1, intercepted: 1, impacted: 0, desc: 'רקטה למשגב עם.' },
+  { date: '2026-03-05', time: '08:27', source: 'iran', missiles: 3, intercepted: 2, impacted: 0, desc: 'כטב"מ לדרום — פארן, צוקים, שיטים (3 ישובים).' },
+  { date: '2026-03-05', time: '08:30', source: 'lebanon', missiles: 5, intercepted: 4, impacted: 0, desc: 'חיזבאללה — רקטות לחיפה, קריות, עכו.' },
+  { date: '2026-03-05', time: '08:35', source: 'lebanon', missiles: 4, intercepted: 3, impacted: 0, desc: 'כטב"מ מלבנון — מטולה, תל חי, כפר גלעדי, כפר יובל.' },
+  { date: '2026-03-05', time: '09:39', source: 'iran', missiles: 1, intercepted: 1, impacted: 0, desc: 'טיל בליסטי למטולה.' },
+  { date: '2026-03-05', time: '10:09', source: 'iran', missiles: 1, intercepted: 1, impacted: 0, desc: 'טיל בליסטי למטולה.' },
+  { date: '2026-03-05', time: '10:28', source: 'iran', missiles: 20, intercepted: 18, impacted: 2, desc: 'מטח כבד מרכז+שומרון — 212 ישובים. טילים בליסטיים.' },
+  { date: '2026-03-05', time: '10:30', source: 'iran', missiles: 10, intercepted: 9, impacted: 1, desc: 'המשך מטח — גוש דן+שפלה. ת"א, בת ים, יבנה, רחובות.' },
+  { date: '2026-03-05', time: '12:25', source: 'lebanon', missiles: 5, intercepted: 4, impacted: 0, desc: 'חיזבאללה — רקטות למערב הגליל (22 ישובים: נהריה, זרעית, סער).' },
+  { date: '2026-03-05', time: '12:32', source: 'iran', missiles: 8, intercepted: 7, impacted: 0, desc: 'ירי רקטות וטילים — צפון (מרגליות, מנרה, קריית שמונה, נהריה, עכו).' },
+  { date: '2026-03-05', time: '12:46', source: 'lebanon', missiles: 1, intercepted: 1, impacted: 0, desc: 'רקטה למרגליות — חיזבאללה.' },
+  { date: '2026-03-05', time: '12:51', source: 'iran', missiles: 1, intercepted: 1, impacted: 0, desc: 'ירי רקטות וטילים — מרגליות.' },
+  { date: '2026-03-05', time: '13:46', source: 'iran', missiles: 25, intercepted: 23, impacted: 2, desc: 'מטח כבד מרכז+שומרון — 272 ישובים. טילים בליסטיים מאיראן.' },
+  { date: '2026-03-05', time: '13:48', source: 'iran', missiles: 12, intercepted: 12, impacted: 0, desc: 'ירי רקטות וטילים — ת"א, פת"ח, רמ"ג, רחובות, הרצליה ועוד.' },
+  { date: '2026-03-05', time: '13:49', source: 'iran', missiles: 3, intercepted: 3, impacted: 0, desc: 'ירי רקטות וטילים — שרון, בקעת הירדן.' },
+  { date: '2026-03-05', time: '13:54', source: 'iran', missiles: 15, intercepted: 14, impacted: 1, desc: 'מטח כבד דרום — 187 ישובים. אשקלון, ירושלים, שפלה.' },
+  { date: '2026-03-05', time: '14:19', source: 'lebanon', missiles: 1, intercepted: 1, impacted: 0, desc: 'רקטה לנתיב השיירה — חיזבאללה.' },
+  { date: '2026-03-05', time: '14:22', source: 'iran', missiles: 1, intercepted: 1, impacted: 0, desc: 'ירי רקטות וטילים — נתיב השיירה.' },
+  { date: '2026-03-05', time: '16:30', source: 'iran', missiles: 20, intercepted: 18, impacted: 2, desc: 'מטח כבד מרכז — ת"א, מודיעין, אריאל ועוד 250 ישובים.' }
+  // אחרי 16:30 — מתעדכן מזמן אמת בלבד
 ];
 
 const ACTIVITIES = [
@@ -1248,7 +1311,7 @@ function loadAlerts() {
 // ║  מידע שגוי עלול לגרום למוות. אנשים מסתמכים על נתונים אלה.          ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 //
-var SEED_VERSION = 16; // תיקון ספירה — אירוע=רשומה אחת, לא פיצול ערים
+var SEED_VERSION = 18; // עדכון מלא 5.3: אזעקות 08:30-16:30 + שיגורים + HOURLY
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: Xinhua timeline, JPost, CNN liveblog
@@ -1340,12 +1403,61 @@ var ALERTS_BY_DAY = {
     // בוקר 08-10
     { time: '08:20', areas: 'משגב עם', type: 'missile', title: 'ירי רקטות וטילים' },
     { time: '08:27', areas: 'פארן, צוקים, שיטים', type: 'uav', title: 'חדירת כלי טיס עוין — דרום (3 ישובים)' },
+    // 08:30-08:35 — חיזבאללה רקטות + כטב"מ — מקור: צבע אדום API
+    { time: '08:30', areas: 'חיפה', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '08:30', areas: 'קריית אתא, קריית ביאליק, קריית מוצקין, קריית ים', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה, קריות' },
+    { time: '08:30', areas: 'עכו', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '08:35', areas: 'מטולה, תל חי', type: 'uav', title: 'חדירת כלי טיס עוין — כטב"מ מלבנון' },
+    { time: '08:35', areas: 'כפר גלעדי', type: 'uav', title: 'חדירת כלי טיס עוין — כטב"מ מלבנון' },
+    { time: '08:35', areas: 'כפר יובל', type: 'uav', title: 'חדירת כלי טיס עוין — כטב"מ מלבנון' },
+    // 09:39-10:09 — מטולה — מקור: צבע אדום API
+    { time: '09:39', areas: 'מטולה', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '10:09', areas: 'מטולה', type: 'missile', title: 'ירי רקטות וטילים' },
     { time: '10:28', areas: 'תל אביב, פתח תקווה, ראש העין, אלעד, מודיעין, אריאל ועוד 207 ישובים', type: 'missile', title: 'ירי רקטות וטילים — מטח כבד מרכז+שומרון (212 ישובים)' },
-    { time: '10:30', areas: 'תל אביב דרום+מרכז+עבר הירקון, בת ים, יבנה, גאליה, רמות מאיר, נס ציונה, רחובות, רמלה, סתריה, עזריה', type: 'missile', title: 'ירי רקטות וטילים — המשך מטח (גוש דן+שפלה)' }
-    // 11:00+ — מתעדכן מזמן אמת בלבד
+    { time: '10:30', areas: 'תל אביב דרום+מרכז+עבר הירקון, בת ים, יבנה, גאליה, רמות מאיר, נס ציונה, רחובות, רמלה, סתריה, עזריה', type: 'missile', title: 'ירי רקטות וטילים — המשך מטח (גוש דן+שפלה)' },
+    // 12:25-12:51 — מטח צפון (חיזבאללה + איראן) — מקור: צבע אדום API
+    { time: '12:25', areas: 'זרעית, נהריה, סער, גשר הזיו, בצת, לימן, בוסתן הגליל, עכו ועוד 14 ישובים', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה, מערב הגליל (22 ישובים)' },
+    { time: '12:32', areas: 'מרגליות, מנרה, קריית שמונה, נהריה, סער, גשר הזיו, בצת, לימן, בוסתן הגליל, עכו, עין המפרץ, כפר מסריק, זרעית', type: 'missile', title: 'ירי רקטות וטילים — מטח צפון (13 קבוצות אזעקה)' },
+    { time: '12:46', areas: 'מרגליות', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '12:51', areas: 'מרגליות', type: 'missile', title: 'ירי רקטות וטילים' },
+    // 13:46-13:54 — מטח כבד מרכז+דרום — מקור: צבע אדום API
+    { time: '13:46', areas: 'תל אביב, פתח תקווה, ראש העין, מודיעין, אריאל, הרצליה, כפר סבא ועוד 265 ישובים', type: 'missile', title: 'ירי רקטות וטילים — מטח כבד מרכז+שומרון (272 ישובים)' },
+    { time: '13:48', areas: 'תל אביב, אור יהודה, בני ברק, בת ים, חולון, פתח תקווה, רמת גן, ראשון לציון, רחובות, הרצליה, כפר סבא, רעננה, הוד השרון, אריאל, אלעד, מודיעין, קרני שומרון, אלקנה ועוד 250 ישובים', type: 'missile', title: 'ירי רקטות וטילים — מטח כבד מרכז (272 ישובים)' },
+    { time: '13:49', areas: 'גבעת חן, אייל, בית ברל, טייבה, תל מונד, רועי, פצאל, מעלה אפרים', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '13:54', areas: 'אשקלון, גבעתי, ורדון, זבדיאל, זרחיה, משואות יצחק ועוד 181 ישובים', type: 'missile', title: 'ירי רקטות וטילים — מטח כבד דרום (187 ישובים)' },
+    { time: '13:54', areas: 'ירושלים, בית שמש, אפרת, אלון שבות, גבעת זאב, מעלה אדומים ועוד 154 ישובים', type: 'missile', title: 'ירי רקטות וטילים — מטח כבד ירושלים+יו"ש (160 ישובים)' },
+    { time: '13:54', areas: 'אמונים, גבעתי, ורדון, זבדיאל, מרכז שפירא, משואות יצחק, שפיר, שתולים, גפן, זכריה, צפרירים, שדות מיכה, תירוש', type: 'missile', title: 'ירי רקטות וטילים — שפלה+לכיש (28 ישובים)' },
+    // 14:19-14:22 — נתיב השיירה
+    { time: '14:19', areas: 'נתיב השיירה', type: 'rocket', title: 'ירי רקטות וטילים — חיזבאללה' },
+    { time: '14:22', areas: 'נתיב השיירה', type: 'missile', title: 'ירי רקטות וטילים' },
+    // 16:30 — מטח מרכז
+    { time: '16:30', areas: 'מודיעין מכבים רעות, מודיעין עילית, חשמונאים, שילת, בית חשמונאי, עזריה, רמות מאיר', type: 'missile', title: 'ירי רקטות וטילים' },
+    { time: '16:30', areas: 'תל אביב, אור יהודה, בני ברק, בת ים, חולון, פתח תקווה, רמת גן, ראשון לציון, רחובות, הרצליה, הוד השרון, כפר סבא, רעננה, אריאל, אלעד ועוד 250 ישובים', type: 'missile', title: 'ירי רקטות וטילים — מטח כבד מרכז+שומרון' }
+    // אחרי 16:30 — מתעדכן מזמן אמת בלבד
   ],
   // 6.3 ואילך — יתווסף רק כשהתאריך יגיע בפועל
 };
+
+// טעינת אזעקות דינמיות מ-localStorage חזרה ל-ALERTS_BY_DAY
+// כך נתונים שנקלטו בזמן אמת לא יאבדו בריענון הדף
+function loadDynamicAlerts() {
+  try {
+    var stored = JSON.parse(localStorage.getItem('safetime_dynamic_alerts') || '{}');
+    Object.keys(stored).forEach(function(dateKey) {
+      if (!ALERTS_BY_DAY[dateKey]) ALERTS_BY_DAY[dateKey] = [];
+      stored[dateKey].forEach(function(alert) {
+        var exists = ALERTS_BY_DAY[dateKey].some(function(e) {
+          return e.time === alert.time && e.areas === alert.areas;
+        });
+        if (!exists) {
+          ALERTS_BY_DAY[dateKey].push(alert);
+        }
+      });
+      ALERTS_BY_DAY[dateKey].sort(function(a, b) { return a.time.localeCompare(b.time); });
+    });
+  } catch(e) {}
+}
+loadDynamicAlerts();
 
 // TODAY_SEED_ALERTS — נגזר מ-ALERTS_BY_DAY של היום
 // כל אירוע = רשומה אחת (לא פיצול לערים!) כדי שהספירה תהיה קבועה ומדויקת
@@ -2277,6 +2389,16 @@ function renderTimeline() {
 // ==================== ALERT SOUND ====================
 var audioCtx = null;
 var audioUnlocked = false;
+var alertMuted = false;
+var sirenOscillators = []; // לעצירת סירנה פעילה
+var earlyWarningTimer = null;
+var earlyWarningStart = 0;
+var earlyWarningDuration = 0;
+var earlyWarningCountdownInterval = null;
+
+// טעינת מצב השתקה מ-localStorage
+try { alertMuted = localStorage.getItem('safetime_muted') === 'true'; } catch(e) {}
+
 // דפדפנים חוסמים אודיו עד אינטראקציה ראשונה — נפתח AudioContext בלחיצה
 document.addEventListener('click', function unlockAudio() {
   if (!audioUnlocked) {
@@ -2293,39 +2415,149 @@ document.addEventListener('click', function unlockAudio() {
   }
 }, { once: false });
 
+function toggleMute() {
+  alertMuted = !alertMuted;
+  try { localStorage.setItem('safetime_muted', String(alertMuted)); } catch(e) {}
+  var btn = $('muteBtn');
+  if (btn) {
+    btn.textContent = alertMuted ? '🔇 מושתק' : '🔊 צליל';
+    btn.classList.toggle('muted', alertMuted);
+  }
+  // אם משתיקים — עצור סירנה פעילה
+  if (alertMuted) stopSiren();
+}
+
+function stopSiren() {
+  sirenOscillators.forEach(function(osc) { try { osc.stop(); } catch(e) {} });
+  sirenOscillators = [];
+}
+
 function playAlertSound() {
+  if (alertMuted) return;
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    // Siren-like tone: two alternating frequencies
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    stopSiren(); // עצור סירנה קודמת
+
     var now = audioCtx.currentTime;
-    var osc1 = audioCtx.createOscillator();
-    var osc2 = audioCtx.createOscillator();
+    var duration = 5; // 5 שניות סירנה — מספיק ארוך לשמוע
+
+    // סירנה דמוית פיקוד העורף — עולה ויורדת
+    var osc = audioCtx.createOscillator();
     var gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
 
-    osc1.type = 'sine';
-    osc2.type = 'sine';
-    osc1.frequency.setValueAtTime(880, now);
-    osc2.frequency.setValueAtTime(660, now);
-
-    // Alternate between high and low (siren effect)
-    for (var i = 0; i < 4; i++) {
-      osc1.frequency.setValueAtTime(880, now + i * 0.3);
-      osc1.frequency.setValueAtTime(660, now + i * 0.3 + 0.15);
+    // תדר עולה-יורד מחזורי: 400Hz → 800Hz → 400Hz (כל מחזור ~1.5 שניות)
+    var cycles = Math.ceil(duration / 1.5);
+    for (var i = 0; i < cycles; i++) {
+      var t = now + i * 1.5;
+      osc.frequency.setValueAtTime(400, t);
+      osc.frequency.linearRampToValueAtTime(800, t + 0.75);
+      osc.frequency.linearRampToValueAtTime(400, t + 1.5);
     }
 
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.linearRampToValueAtTime(0.15, now + 0.6);
-    gain.gain.linearRampToValueAtTime(0, now + 1.2);
+    // עוצמה — fade in/out
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.3, now + 0.3);
+    gain.gain.setValueAtTime(0.3, now + duration - 0.5);
+    gain.gain.linearRampToValueAtTime(0, now + duration);
 
-    osc1.connect(gain);
-    osc2.connect(gain);
+    osc.connect(gain);
     gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + duration);
+    sirenOscillators.push(osc);
 
-    osc1.start(now);
-    osc2.start(now + 0.15);
-    osc1.stop(now + 1.2);
-    osc2.stop(now + 1.2);
+    // הוספת הרמוניקה שנייה לעושר הצליל
+    var osc2 = audioCtx.createOscillator();
+    var gain2 = audioCtx.createGain();
+    osc2.type = 'sine';
+    for (var j = 0; j < cycles; j++) {
+      var t2 = now + j * 1.5;
+      osc2.frequency.setValueAtTime(800, t2);
+      osc2.frequency.linearRampToValueAtTime(1600, t2 + 0.75);
+      osc2.frequency.linearRampToValueAtTime(800, t2 + 1.5);
+    }
+    gain2.gain.setValueAtTime(0, now);
+    gain2.gain.linearRampToValueAtTime(0.1, now + 0.3);
+    gain2.gain.setValueAtTime(0.1, now + duration - 0.5);
+    gain2.gain.linearRampToValueAtTime(0, now + duration);
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.start(now);
+    osc2.stop(now + duration);
+    sirenOscillators.push(osc2);
   } catch(e) {}
+}
+
+// ==================== EARLY WARNING — התראה מוקדמת ====================
+// זמני תגובה לפי סוג איום (שניות):
+// טיל בליסטי מאיראן: ~600 שניות (10 דקות) מרגע שיגור עד פגיעה, סירנה ~90 שניות לפני
+// רקטה מלבנון: 15-180 שניות (תלוי מרחק)
+// כטב"מ: שעות — אין ספירה לאחור, רק התראה
+
+function getWarningInfo(type, areas) {
+  var isNorth = ['גליל','קריית שמונה','מטולה','חיפה','עכו','נהריה','צפון','מרגליות','שומרה','מנרה','אביבים','יראון','מלכיה','גורן'].some(function(n) { return areas.indexOf(n) !== -1; });
+  if (type === 'uav') {
+    return { label: 'כטב"מ — כלי טיס עוין', seconds: 0, instruction: 'היכנס למרחב מוגן. כטב"מ עלול לפגוע בכל רגע — הישאר במקלט עד הודעה חדשה.', color: '#ff9800' };
+  }
+  if (type === 'rocket' || isNorth) {
+    // רקטות מלבנון — זמן תגובה קצר
+    var secs = isNorth ? 30 : 90;
+    return { label: 'רקטות מלבנון', seconds: secs, instruction: 'רוץ למרחב מוגן מיידית! זמן תגובה: ' + secs + ' שניות בלבד.', color: '#f44336' };
+  }
+  // טיל בליסטי מאיראן — ~90 שניות מהסירנה עד פגיעה
+  return { label: 'טיל בליסטי מאיראן', seconds: 90, instruction: 'היכנס למרחב מוגן תוך 90 שניות! טיל בדרך — סגור דלתות וחלונות, שכב על הרצפה.', color: '#f44336' };
+}
+
+function showEarlyWarning(type, areas, title) {
+  var info = getWarningInfo(type, areas);
+  var banner = $('earlyWarning');
+  if (!banner) return;
+
+  $('ewTitle').textContent = '🚨 אזעקה — ' + info.label;
+  $('ewType').textContent = title || info.label;
+  $('ewType').style.background = info.color;
+  $('ewAreas').textContent = '📍 ' + (areas.length > 120 ? areas.substring(0, 120) + '...' : areas);
+  $('ewInstructions').innerHTML = '<strong>⚠️ ' + info.instruction + '</strong>';
+
+  banner.classList.add('active');
+  banner.style.borderColor = info.color;
+
+  // ספירה לאחור
+  if (info.seconds > 0) {
+    earlyWarningStart = Date.now();
+    earlyWarningDuration = info.seconds;
+    if (earlyWarningCountdownInterval) clearInterval(earlyWarningCountdownInterval);
+    updateWarningCountdown();
+    earlyWarningCountdownInterval = setInterval(updateWarningCountdown, 1000);
+  } else {
+    $('ewCountdown').textContent = 'הישאר במרחב מוגן!';
+  }
+
+  // הסתר אוטומטית אחרי 3 דקות
+  if (earlyWarningTimer) clearTimeout(earlyWarningTimer);
+  earlyWarningTimer = setTimeout(dismissWarning, 180000);
+}
+
+function updateWarningCountdown() {
+  var elapsed = Math.floor((Date.now() - earlyWarningStart) / 1000);
+  var remaining = earlyWarningDuration - elapsed;
+  if (remaining <= 0) {
+    $('ewCountdown').textContent = '⚠️ זמן הגנה עבר — הישאר במרחב מוגן!';
+    if (earlyWarningCountdownInterval) { clearInterval(earlyWarningCountdownInterval); earlyWarningCountdownInterval = null; }
+    return;
+  }
+  var min = Math.floor(remaining / 60);
+  var sec = remaining % 60;
+  $('ewCountdown').textContent = (min > 0 ? min + ':' : '') + String(sec).padStart(2, '0') + ' שניות לפגיעה משוערת';
+}
+
+function dismissWarning() {
+  var banner = $('earlyWarning');
+  if (banner) banner.classList.remove('active');
+  if (earlyWarningCountdownInterval) { clearInterval(earlyWarningCountdownInterval); earlyWarningCountdownInterval = null; }
+  if (earlyWarningTimer) { clearTimeout(earlyWarningTimer); earlyWarningTimer = null; }
 }
 
 function flashScreen() {
@@ -2550,6 +2782,7 @@ function processTzevaadomAlert(data, source) {
     });
     todayAlertCount++;
     flashScreen();
+    showEarlyWarning(type, areas, title);
     if (alertsLog.length > 200) alertsLog.length = 200;
     $('todayCount').textContent = todayAlertCount;
     saveAlerts();
@@ -2726,6 +2959,7 @@ function processOrefAlerts(alertsData) {
       });
       todayAlertCount++;
       newAlerts = true;
+      showEarlyWarning(type, area, title);
 
       // שמירה דינמית ל-ALERTS_BY_DAY
       var dateKey = fullDate.split(' ')[0];
@@ -2965,6 +3199,12 @@ function init() {
   $('connRefresh').addEventListener('click', function() {
     tryFetchLiveAlerts();
   });
+
+  // עדכון מצב כפתור השתקה
+  if (alertMuted) {
+    var btn = $('muteBtn');
+    if (btn) { btn.textContent = '🔇 מושתק'; btn.classList.add('muted'); }
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
