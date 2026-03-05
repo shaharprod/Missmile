@@ -1243,7 +1243,7 @@ function loadAlerts() {
 // ║  מידע שגוי עלול לגרום למוות. אנשים מסתמכים על נתונים אלה.          ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 //
-var SEED_VERSION = 13;
+var SEED_VERSION = 14;
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: Xinhua timeline, JPost, CNN liveblog
@@ -1667,11 +1667,13 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
 // ==================== REAL-TIME HELPERS ====================
 
 function getMinutesSinceLastAlert() {
-  // רק אזעקות חיות (live) מפיקוד העורף — לא seed היסטוריות
+  // עדיפות לאזעקות חיות (live) מפיקוד העורף
   var liveAlerts = alertsLog.filter(function(a) { return a.live === true; });
-  if (liveAlerts.length === 0) return 999;
+  // אם אין live — השתמש בכל האזעקות (כולל seed מאומתות)
+  var source = liveAlerts.length > 0 ? liveAlerts : alertsLog;
+  if (source.length === 0) return 999;
   var now = new Date();
-  var parts = liveAlerts[0].time.split(':');
+  var parts = source[0].time.split(':');
   var alertMinutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
   var nowMinutes = now.getHours() * 60 + now.getMinutes();
   var diff = nowMinutes - alertMinutes;
@@ -1681,12 +1683,13 @@ function getMinutesSinceLastAlert() {
 }
 
 function getRecentAlertRate(windowMinutes) {
-  // רק אזעקות חיות
+  // עדיפות ל-live, אם אין — כל האזעקות
   var liveAlerts = alertsLog.filter(function(a) { return a.live === true; });
+  var source = liveAlerts.length > 0 ? liveAlerts : alertsLog;
   var now = new Date();
   var nowMinutes = now.getHours() * 60 + now.getMinutes();
   var count = 0;
-  liveAlerts.forEach(function(a) {
+  source.forEach(function(a) {
     var parts = a.time.split(':');
     var alertMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
     if (nowMinutes - alertMin <= windowMinutes && nowMinutes - alertMin >= 0) count++;
@@ -1734,6 +1737,10 @@ function updateRealtimeStatus() {
   var panel = document.getElementById('realtimeStatus');
   var status, icon, title, desc;
 
+  // בדיקת רמת סכנה היסטורית לשעה הנוכחית
+  var now = new Date();
+  var hourDanger = 1 - calcSafety(now.getHours(), now.getDay()) / 100;
+
   if (minutesSince < 2) {
     status = 'heavy'; icon = '🔴'; title = 'אזעקה פעילה!';
     desc = 'אזעקה הופעלה לפני ' + minutesSince + ' דקות. היכנס למרחב מוגן מיד!';
@@ -1742,10 +1749,17 @@ function updateRealtimeStatus() {
     desc = 'אזעקה אחרונה לפני ' + minutesSince + ' דקות. הישאר ליד מרחב מוגן.';
   } else if (minutesSince < 60) {
     status = 'sporadic'; icon = '🟡'; title = 'שיגורים ספורדיים';
-    desc = 'שקט יחסי. אזעקה אחרונה לפני ' + minutesSince + ' דקות.';
+    desc = 'אזעקה אחרונה לפני ' + minutesSince + ' דקות. הישאר בכוננות.';
+  } else if (hourDanger > 0.5) {
+    // שעה מסוכנת היסטורית — לא להגיד "שקט" גם אם אין אזעקות אחרונות!
+    status = 'sporadic'; icon = '🟡'; title = 'שעה מסוכנת — הישאר בכוננות';
+    desc = 'לא דווחו אזעקות לאחרונה, אך שעה זו מסוכנת היסטורית (' + Math.round(hourDanger * 100) + '% סכנה). הישאר ליד מרחב מוגן.';
+  } else if (hourDanger > 0.3) {
+    status = 'sporadic'; icon = '🟡'; title = 'כוננות — סיכון בינוני';
+    desc = 'אין אזעקות אחרונות. שעה זו ברמת סיכון בינונית (' + Math.round(hourDanger * 100) + '%). הישאר ערני.';
   } else {
-    status = 'calm'; icon = '🟢'; title = 'שקט';
-    desc = 'לא דווחו אזעקות בשעה האחרונה.';
+    status = 'calm'; icon = '🟢'; title = 'שקט יחסי';
+    desc = 'לא דווחו אזעקות בשעה האחרונה. שעה זו בטוחה יחסית (' + Math.round(hourDanger * 100) + '% סכנה). אנחנו במלחמה — הישאר ערני.';
   }
 
   panel.className = 'panel realtime-status status-' + status;
