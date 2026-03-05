@@ -1,76 +1,76 @@
 # SafeTime — מנבא בטיחות חכם 🛡️
 
-Real-time safety prediction and alert monitoring app for Israeli citizens during active security operations.
+אפליקציית ניבוי בטיחות וניטור אזעקות בזמן אמת לאזרחי ישראל בעת מבצע ביטחוני פעיל.
 
-## What is SafeTime?
+## מה זה SafeTime?
 
-SafeTime aggregates real-time alert data from multiple official sources to help civilians make informed safety decisions. It provides:
+SafeTime מרכז נתוני אזעקות בזמן אמת ממספר מקורות רשמיים, כדי לעזור לאזרחים לקבל החלטות בטיחותיות מושכלות. האפליקציה מספקת:
 
-- **Live alert feed** — Real-time rocket, missile, and UAV alerts via WebSocket connection to Tzeva Adom
-- **Safety meter** — Statistical safety score based on historical attack patterns (not a real-time guarantee)
-- **Activity recommendations** — How safe common activities are right now, ranked by risk
-- **Daily intensity breakdown** — Per-day attack waves, missiles, UAVs, interceptions, casualties
-- **Hourly heatmap** — Historical attack intensity by hour across all days
-- **Alert timeline** — Chronological list of all verified Pikud HaOref alerts with locations
+- **פיד אזעקות חי** — אזעקות רקטות, טילים וכטב"מים בזמן אמת דרך חיבור WebSocket לצבע אדום
+- **מד בטיחות** — ציון בטיחות סטטיסטי מבוסס דפוסי תקיפה היסטוריים (לא ערבות בזמן אמת)
+- **המלצות פעילות** — כמה בטוח לבצע פעולות שונות כרגע, מדורג לפי סיכון
+- **פירוט עוצמה יומי** — גלי תקיפה, טילים, כטב"מים, יירוטים ונפגעים לכל יום
+- **מפת חום שעתית** — עוצמת תקיפה היסטורית לפי שעה על פני כל הימים
+- **ציר זמן אזעקות** — רשימה כרונולוגית של כל אזעקות פיקוד העורף המאומתות עם מיקומים
 
-## Screenshot
+## צילום מסך
 
-Open `index.html` in any modern browser — no build step required.
+פתחו את `index.html` בכל דפדפן מודרני — אין צורך בשלב בנייה.
 
-## Data Sources
+## מקורות נתונים
 
-| Source | What it provides |
-|--------|-----------------|
-| **Pikud HaOref** (oref.org.il) | Official Home Front Command alerts |
-| **Tzeva Adom** (tzevaadom.co.il) | Real-time WebSocket alert stream + REST API |
-| **IDF Spokesperson** | Launch counts, interception data |
-| **Alma Research Center** | Threat analysis |
-| **Times of Israel / Al Jazeera** | Verified event timelines |
+| מקור | מה הוא מספק |
+|------|-------------|
+| **פיקוד העורף** (oref.org.il) | אזעקות רשמיות של פיקוד העורף |
+| **צבע אדום** (tzevaadom.co.il) | זרם אזעקות בזמן אמת (WebSocket) + API |
+| **דובר צה"ל** | נתוני שיגורים ויירוטים |
+| **מרכז אלמ"א** | ניתוח איומים |
+| **Times of Israel / Al Jazeera** | צירי זמן מאומתים של אירועים |
 
-## Tech Stack
+## סטאק טכנולוגי
 
-- **Single HTML file** — zero dependencies, zero build step
-- **Vanilla JavaScript** — no frameworks
-- **CSS custom properties** — dark theme, RTL layout
-- **WebSocket + REST polling** — dual-channel real-time updates with automatic fallback
-- **Google Fonts** — Heebo (Hebrew) + Share Tech Mono (monospace)
-- **LocalStorage** — persists alert history between sessions
+- **קובץ HTML יחיד** — אפס תלויות, אפס שלב בנייה
+- **JavaScript טהור** — ללא פריימוורקים
+- **משתני CSS** — ערכת עיצוב כהה, תמיכה ב-RTL
+- **WebSocket + REST polling** — עדכונים בזמן אמת בשני ערוצים עם מעבר אוטומטי
+- **Google Fonts** — Heebo (עברית) + Share Tech Mono (מונוספייס)
+- **LocalStorage** — שמירת היסטוריית אזעקות בין סשנים
 
-## How It Works
+## איך זה עובד
 
-1. On load, seed alerts are populated from verified historical data per day
-2. A WebSocket connection to Tzeva Adom streams live alerts
-3. If WebSocket disconnects, a backup REST API polls every 3 seconds
-4. Alerts are deduplicated by `notificationId` (last 100 tracked)
-5. Safety score is calculated from hourly intensity patterns of previous days
-6. UTF-8 BOM is stripped from Oref API responses; category 10/13 ("all clear") alerts are filtered out
+1. בטעינה, אזעקות מקור נטענות מנתונים היסטוריים מאומתים לכל יום
+2. חיבור WebSocket לצבע אדום מזרים אזעקות חיות
+3. אם ה-WebSocket מתנתק, API גיבוי סוקר כל 3 שניות
+4. אזעקות מסוננות מכפילויות לפי `notificationId` (100 אחרונים נשמרים)
+5. ציון הבטיחות מחושב מדפוסי עוצמה שעתיים של ימים קודמים
+6. UTF-8 BOM מוסר מתשובות API של פיקוד העורף; קטגוריות 10/13 ("הכל תקין") מסוננות
 
-## Usage
+## שימוש
 
 ```bash
-# Just open it
+# פשוט לפתוח
 open index.html
-# Or serve locally
+# או להרים שרת מקומי
 python -m http.server 8080
 ```
 
-No API keys needed. All data sources are publicly accessible.
+אין צורך במפתחות API. כל מקורות הנתונים נגישים לציבור.
 
-## Important Disclaimer
+## אזהרה חשובה
 
-> ⚠️ **This tool does NOT replace the official Pikud HaOref app.**
-> Safety percentages are statistical estimates based on past days — they do not guarantee safety.
-> Always follow Home Front Command instructions immediately during an alert.
-> Missiles can arrive at any moment regardless of the displayed safety score.
+> ⚠️ **כלי זה אינו מחליף את אפליקציית פיקוד העורף הרשמית.**
+> אחוזי הבטיחות הם הערכות סטטיסטיות מבוססות ימים קודמים — הם אינם מבטיחים בטיחות.
+> תמיד פעלו לפי הנחיות פיקוד העורף מיידית בעת אזעקה.
+> טילים יכולים להגיע בכל רגע ללא קשר לציון הבטיחות המוצג.
 
-## Data Integrity
+## אמינות נתונים
 
-This project follows strict data safety rules:
-- **No fabricated data** — every alert is cross-referenced with official sources
-- **No future data** — no entries for days or hours that haven't occurred yet
-- **Verified sources only** — Pikud HaOref, IDF, Tzeva Adom API
-- **"Updating" label** — used when data is incomplete rather than guessing
+הפרויקט פועל לפי כללי בטיחות נתונים מחמירים:
+- **אין נתונים בדויים** — כל אזעקה מוצלבת עם מקורות רשמיים
+- **אין נתונים עתידיים** — אין רשומות לימים או שעות שעדיין לא הגיעו
+- **מקורות מאומתים בלבד** — פיקוד העורף, צה"ל, צבע אדום
+- **תווית "מתעדכן"** — בשימוש כשהנתונים חלקיים, במקום לנחש
 
-## License
+## רישיון
 
-This project is provided as-is for civilian safety during emergency situations.
+פרויקט זה מסופק כפי שהוא (as-is) לשימוש אזרחי בטיחותי במצבי חירום.
