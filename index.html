@@ -2661,6 +2661,8 @@ async function fetchWithProxies(targetUrl, timeout) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.text().then(function(text) {
         if (!text || text.trim().length < 3) throw new Error('empty');
+        // הסרת UTF-8 BOM
+        if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
         // שמור אינדקס ה-proxy שהצליח
         var origIdx = CORS_PROXIES.indexOf(proxyFn);
         return { text: text, proxyIndex: origIdx >= 0 ? origIdx : idx };
@@ -2679,9 +2681,9 @@ function processOrefAlerts(alertsData) {
   var todayStr = new Date().toISOString().split('T')[0];
 
   alerts.forEach(function(a) {
-    // דלג על "האירוע הסתיים" (category 13)
+    // דלג על "האירוע הסתיים" (cat 10, 13) — מקור: oref-alert.sh מריפו GiladShoham
     var cat = parseInt(a.category || a.cat || '1');
-    if (cat === 13) return;
+    if (cat === 10 || cat === 13) return;
 
     // זמן מלא מה-API
     var fullDate = a.alertDate || '';
@@ -2783,6 +2785,8 @@ async function tryFetchLiveAlerts() {
     });
     if (directRes.ok) {
       var directText = await directRes.text();
+      // הסרת UTF-8 BOM — ה-API של פיקוד העורף מחזיר BOM שמשבש JSON.parse
+      if (directText.charCodeAt(0) === 0xFEFF) directText = directText.slice(1);
       if (directText && directText.trim().length > 2) {
         var directParsed = JSON.parse(directText);
         connectionState.failCount = 0;
