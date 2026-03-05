@@ -2050,9 +2050,12 @@ function countEventsPerHour(dateKey) {
   var hourLaunches = new Array(24).fill(0);
   var hourMissiles = new Array(24).fill(0);
 
-  // אזעקות מפיקוד העורף
+  // אזעקות מפיקוד העורף — ספירת גלים (זמנים ייחודיים), לא רשומות בודדות
   var alerts = ALERTS_BY_DAY[dateKey] || [];
+  var seenAlertTimes = {};
   alerts.forEach(function(a) {
+    if (seenAlertTimes[a.time]) return;
+    seenAlertTimes[a.time] = true;
     var h = parseInt(a.time.split(':')[0]);
     if (h >= 0 && h < 24) hourAlerts[h]++;
   });
@@ -2160,7 +2163,8 @@ function renderAverageHourChart(currentHour) {
   if (!chart) return;
   chart.innerHTML = '';
 
-  // חישוב ממוצע אזעקות פיקוד העורף לכל שעה — סכום כל הימים חלקי מספר ימים
+  // חישוב ממוצע גלי אזעקה לכל שעה — ספירת זמנים ייחודיים (דקות) למניעת כפילויות
+  // אזעקות באותה דקה = גל אחד (למשל 19:03 עם 3 קבוצות ישובים = גל 1, לא 3)
   var hourTotals = new Array(24).fill(0);
   var allDates = Object.keys(ALERTS_BY_DAY);
   var dayCount = 0;
@@ -2169,7 +2173,11 @@ function renderAverageHourChart(currentHour) {
     var alerts = ALERTS_BY_DAY[dateKey] || [];
     if (alerts.length === 0) return;
     dayCount++;
+    // ספירת זמנים ייחודיים לכל שעה
+    var seenTimes = {};
     alerts.forEach(function(a) {
+      if (seenTimes[a.time]) return; // כבר נספר הזמן הזה
+      seenTimes[a.time] = true;
       var h = parseInt(a.time.split(':')[0]);
       if (h >= 0 && h < 24) hourTotals[h]++;
     });
