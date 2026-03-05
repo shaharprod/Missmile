@@ -2428,9 +2428,11 @@ var connectionState = {
 // מסקנה: לזמן אמת — שימוש ב-oref + proxies (כפי שמיושם). מ-28.2.2026 — אין ארכיון ציבורי;
 // האפליקציה משתמשת בנתוני seed מבוססי דיווחים + אזעקות חיות כש-oref זמין.
 // ========== מקורות נתונים — סדר עדיפות ==========
-// 1. צבע אדום WebSocket (זמן אמת, ללא CORS)
-var TZEVAADOM_WS_URL = 'wss://ws.tzevaadom.co.il:8443/socket?platform=WEB';
-// 2. צבע אדום REST API (polling, ללא CORS)
+// 1. צבע אדום WebSocket (זמן אמת, ללא CORS) — כתובת מדויקת מקוד צבע אדום
+var TZEVAADOM_WS_URL = 'wss://ws.tzevaadom.co.il/socket?platform=WEB';
+// 2. צבע אדום notifications API (backup polling כל 3 שניות — בדיוק כמו צבע אדום)
+var TZEVAADOM_NOTIFICATIONS_URL = 'https://api.tzevaadom.co.il/notifications';
+// 3. צבע אדום alerts-history (לשליפת היסטוריה)
 var TZEVAADOM_API_URL = 'https://api.tzevaadom.co.il/alerts-history';
 // 3. פיקוד העורף (דורש CORS proxy מחוץ לישראל)
 var OREF_URL = 'https://www.oref.org.il/WarningMessages/alert/alerts.json';
@@ -2450,6 +2452,8 @@ var CORS_PROXIES = [
 var wsConnection = null;
 var wsReconnectTimer = null;
 var wsConnected = false;
+var runBackupAPI = false; // כמו בצבע אדום — מפעיל backup polling כשה-WS מתנתק
+var rcvNotificationIds = []; // דדופליקציה לפי notificationId — בדיוק כמו צבע אדום
 
 function updateConnectionUI(connected, sourceName) {
   var dot = $('connDot');
@@ -2468,45 +2472,137 @@ function updateConnectionUI(connected, sourceName) {
 }
 
 // ==================== צבע אדום WebSocket ====================
+// מנגנון מדויק מקוד צבע אדום: WSConnection + backup API + notificationId dedup
 function connectTzevaadomWS() {
   if (wsConnection && (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING)) return;
+  var isReconnecting = false;
   try {
     wsConnection = new WebSocket(TZEVAADOM_WS_URL);
+
     wsConnection.onopen = function() {
       wsConnected = true;
+      runBackupAPI = false; // WS מחובר — עצור backup polling
       connectionState.failCount = 0;
       updateConnectionUI(true, 'מחובר — ממתין למידע חדש בזמן אמת');
     };
+
     wsConnection.onmessage = function(event) {
+      if (typeof event.data !== 'string') return;
       try {
-        var data = JSON.parse(event.data);
-        if (data && data.cities && data.cities.length > 0) {
-          processTzevaadomAlert(data);
+        // פורמט צבע אדום: { type: "ALERT", data: {...} }
+        var msg = JSON.parse(event.data);
+        var type = msg.type;
+        var data = msg.data;
+        if (type === 'ALERT' && data) {
+          processTzevaadomAlert(data, 'websocket');
         }
+        // LISTS_VERSIONS ו-SYSTEM_MESSAGE — מתעלמים (לא רלוונטי לנו)
       } catch(e) {}
     };
-    wsConnection.onclose = function() {
+
+    var handleReconnect = function() {
+      try { wsConnection.close(); } catch(e) {}
       wsConnected = false;
+      if (isReconnecting) return;
+      isReconnecting = true;
+      // כמו צבע אדום: כשה-WS נופל — מפעיל backup API מיידית
+      if (!runBackupAPI) {
+        runBackupAPI = true;
+        tzevaadomBackupAPI();
+      }
+      updateConnectionUI(false);
+      // ניסיון חיבור מחדש אחרי 5 שניות — בדיוק כמו צבע אדום
       if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
       wsReconnectTimer = setTimeout(connectTzevaadomWS, 5000);
     };
-    wsConnection.onerror = function() {
-      wsConnected = false;
-    };
+
+    wsConnection.onclose = function() { handleReconnect(); };
+    wsConnection.onerror = function() { handleReconnect(); };
   } catch(e) {
     wsConnected = false;
+    // הפעל backup אם WS לא זמין בכלל
+    if (!runBackupAPI) {
+      runBackupAPI = true;
+      tzevaadomBackupAPI();
+    }
   }
 }
 
-function processTzevaadomAlert(data) {
+// ==================== Backup API — בדיוק כמו צבע אדום ====================
+// polling כל 3 שניות של /notifications כשה-WebSocket לא מחובר
+async function tzevaadomBackupAPI() {
+  if (!runBackupAPI) return;
+  try {
+    var res = await fetch(TZEVAADOM_NOTIFICATIONS_URL, { signal: AbortSignal.timeout(6000) });
+    if (res.ok) {
+      var result = await res.json();
+      if (Array.isArray(result)) {
+        result.forEach(function(alert) {
+          processTzevaadomAlert(alert, 'notificationsAPI');
+        });
+      }
+      connectionState.failCount = 0;
+      updateConnectionUI(true, 'מחובר (backup) — ממתין למידע חדש');
+      connectionState.lastSuccess = Date.now();
+    }
+  } catch(e) {
+    // נסה דרך CORS proxy
+    try {
+      var proxyRes = await fetchTzevaadomNotificationsViaProxy();
+      if (proxyRes && Array.isArray(proxyRes)) {
+        proxyRes.forEach(function(alert) {
+          processTzevaadomAlert(alert, 'notificationsAPI');
+        });
+        connectionState.failCount = 0;
+        updateConnectionUI(true, 'מחובר (proxy) — ממתין למידע חדש');
+        connectionState.lastSuccess = Date.now();
+      }
+    } catch(e2) {}
+  }
+  if (!runBackupAPI) return;
+  // polling כל 3 שניות — בדיוק כמו צבע אדום
+  setTimeout(tzevaadomBackupAPI, 3000);
+}
+
+// fetch notifications דרך CORS proxy
+async function fetchTzevaadomNotificationsViaProxy() {
+  for (var i = 0; i < CORS_PROXIES.length; i++) {
+    try {
+      var proxyUrl = CORS_PROXIES[i](TZEVAADOM_NOTIFICATIONS_URL);
+      var res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+      if (res.ok) return JSON.parse(await res.text());
+    } catch(e) {}
+  }
+  return null;
+}
+
+// עיבוד אזעקה — בדיוק כמו getAlerts() של צבע אדום
+// כולל דדופליקציה לפי notificationId (מערך של 100 אחרונים)
+function processTzevaadomAlert(data, source) {
+  // ברירות מחדל — בדיוק כמו צבע אדום
+  if (!data.notificationId) data.notificationId = String(Math.random());
+  if (!data.isDrill) data.isDrill = false;
+  if (typeof data.threat === 'undefined') data.threat = 8;
+
+  // דדופליקציה לפי notificationId — מנגנון צבע אדום
+  if (rcvNotificationIds.indexOf(data.notificationId) !== -1) return;
+  rcvNotificationIds.push(data.notificationId);
+  if (rcvNotificationIds.length > 100) rcvNotificationIds.shift();
+
+  // דלג על תרגילים
+  if (data.isDrill) return;
+
   var now = new Date();
   var timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
   var areas = (data.cities || []).join(', ');
+  if (!areas) return;
+
   var threat = data.threat;
   // צבע אדום API: threat 0 = רקטות/טילים, threat 5 = כטב"מ
   var type = (threat === 5) ? 'uav' : 'missile';
   var title = (threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים';
 
+  // בדיקת כפילות נוספת מול alertsLog (למקרה של נתונים ישנים)
   var isDuplicate = alertsLog.some(function(existing) {
     return existing.area === areas && existing.time === timeStr;
   });
@@ -2525,6 +2621,7 @@ function processTzevaadomAlert(data) {
     var dateKey = now.toISOString().split('T')[0];
     saveDynamicAlert(dateKey, timeStr, areas, type, title);
   }
+  connectionState.lastSuccess = Date.now();
 }
 
 // ==================== צבע אדום REST API ====================
@@ -2550,49 +2647,50 @@ async function fetchTzevaadomWithFallback() {
 
 async function tryFetchTzevaadomAPI() {
   try {
-    var data = await fetchTzevaadomWithFallback();
-    if (!Array.isArray(data) || data.length === 0) return false;
+    // נסה קודם notifications (כמו צבע אדום backup)
+    var data = null;
+    try {
+      var nRes = await fetch(TZEVAADOM_NOTIFICATIONS_URL, { signal: AbortSignal.timeout(6000) });
+      if (nRes.ok) data = await nRes.json();
+    } catch(e) {}
+
+    // אם notifications הצליח — עבד כמערך אזעקות ישירות
+    if (data && Array.isArray(data) && data.length > 0) {
+      var newAlerts = false;
+      data.forEach(function(alert) {
+        var prevCount = todayAlertCount;
+        processTzevaadomAlert(alert, 'notificationsAPI');
+        if (todayAlertCount > prevCount) newAlerts = true;
+      });
+      return true;
+    }
+
+    // fallback: alerts-history (פורמט ישן עם groups)
+    var histData = await fetchTzevaadomWithFallback();
+    if (!Array.isArray(histData) || histData.length === 0) return false;
 
     var newAlerts = false;
     var thirtyMinAgo = Date.now() - 30 * 60 * 1000;
 
-    data.forEach(function(group) {
+    histData.forEach(function(group) {
       if (!group.alerts) return;
       group.alerts.forEach(function(a) {
         var alertTime = a.time * 1000;
         if (alertTime < thirtyMinAgo) return;
-        var date = new Date(alertTime);
-        var timeStr = String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
-        var areas = (a.cities || []).join(', ');
-        // צבע אדום API: threat 0 = רקטות/טילים, threat 5 = כטב"מ
-        var type = (a.threat === 5) ? 'uav' : 'missile';
-        var title = (a.threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים';
-
-        var isDuplicate = alertsLog.some(function(existing) {
-          return existing.area === areas && existing.time === timeStr;
-        });
-        if (!isDuplicate) {
-          alertsLog.unshift({
-            time: timeStr, alertDate: date.toISOString().split('T')[0] + ' ' + timeStr,
-            area: areas, type: type, title: title, source: 'live', live: true
-          });
-          todayAlertCount++;
-          newAlerts = true;
-          var dateKey = date.toISOString().split('T')[0];
-          saveDynamicAlert(dateKey, timeStr, areas, type, title);
-        }
+        // המר לפורמט של processTzevaadomAlert
+        var alertData = {
+          cities: a.cities || [],
+          threat: a.threat,
+          notificationId: a.notificationId || ('hist_' + a.time),
+          isDrill: a.isDrill || false
+        };
+        var prevCount = todayAlertCount;
+        processTzevaadomAlert(alertData, 'alertsHistory');
+        if (todayAlertCount > prevCount) newAlerts = true;
       });
     });
 
-    if (newAlerts) {
-      flashScreen();
-      if (alertsLog.length > 200) alertsLog.length = 200;
-      $('todayCount').textContent = todayAlertCount;
-      saveAlerts();
-      renderAlertLog();
-      recalculate();
-    }
-    return true;
+    return newAlerts || histData.length > 0;
   } catch(e) {
     return false;
   }
@@ -2719,7 +2817,7 @@ async function tryFetchLiveAlerts() {
   var btn = $('connRefresh');
   if (btn) btn.classList.add('spinning');
 
-  // אם WebSocket מחובר — לא צריך polling, רק אימות
+  // אם WebSocket מחובר — backup API כבוי, רק polling ארוך לאימות
   if (wsConnected) {
     updateConnectionUI(true, 'מחובר — ממתין למידע חדש בזמן אמת');
     connectionState.failCount = 0;
@@ -2729,13 +2827,15 @@ async function tryFetchLiveAlerts() {
     return;
   }
 
-  // עדיפות 1: צבע אדום REST API (ללא CORS)
+  // עדיפות 1: נסה WebSocket + הפעל backup API
+  connectTzevaadomWS();
+
+  // עדיפות 2: צבע אדום notifications/alerts-history
   var tzSuccess = await tryFetchTzevaadomAPI();
   if (tzSuccess) {
     connectionState.failCount = 0;
     connectionState.pollInterval = 10000;
     updateConnectionUI(true, 'מחובר — ממתין למידע חדש בזמן אמת');
-    connectTzevaadomWS(); // נסה לשדרג ל-WebSocket
     if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
     scheduleNextPoll();
     return;
@@ -2817,8 +2917,6 @@ async function tryFetchLiveAlerts() {
   connectionState.failCount++;
   updateConnectionUI(false);
   connectionState.pollInterval = Math.min(60000, 10000 * Math.pow(2, connectionState.failCount - 1));
-  connectTzevaadomWS(); // נסה WebSocket גם אם הכל נכשל
-
   if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
   scheduleNextPoll();
 }
