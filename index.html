@@ -1421,26 +1421,33 @@ function drawGauge(svgId, percentage, type) {
   var startAngle = Math.PI;
   var totalAngle = Math.PI;
 
-  // Create gradient
-  var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  var grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-  grad.setAttribute('id', svgId + '_grad');
-  grad.setAttribute('x1', '0%'); grad.setAttribute('y1', '0%');
-  grad.setAttribute('x2', '100%'); grad.setAttribute('y2', '0%');
-  var stops = [
-    { offset: '0%', color: '#00E676' },
-    { offset: '35%', color: '#FFCA28' },
-    { offset: '65%', color: '#FF6D00' },
-    { offset: '100%', color: '#F44336' }
-  ];
-  stops.forEach(function(s) {
-    var stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop.setAttribute('offset', s.offset);
-    stop.setAttribute('stop-color', s.color);
-    grad.appendChild(stop);
-  });
-  defs.appendChild(grad);
-  svg.appendChild(defs);
+  // Helper: interpolate color along green→yellow→orange→red
+  function arcColor(t) {
+    // t: 0 = start (green), 1 = end (red)
+    var r, g, b;
+    if (t < 0.33) {
+      // green → yellow
+      var p = t / 0.33;
+      r = Math.round(0 + p * 255);
+      g = Math.round(230 + p * (202 - 230));
+      b = Math.round(118 + p * (40 - 118));
+    } else if (t < 0.66) {
+      // yellow → orange
+      var p = (t - 0.33) / 0.33;
+      r = Math.round(255);
+      g = Math.round(202 + p * (109 - 202));
+      b = Math.round(40 + p * (0 - 40));
+    } else {
+      // orange → red
+      var p = (t - 0.66) / 0.34;
+      r = Math.round(255 + p * (244 - 255));
+      g = Math.round(109 + p * (67 - 109));
+      b = Math.round(0 + p * (54 - 0));
+    }
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+
+  var segments = 40; // number of arc segments for smooth gradient
 
   // Background arc
   var bgPath = describeArc(cx, cy, r, startAngle, startAngle - totalAngle);
@@ -1452,28 +1459,39 @@ function drawGauge(svgId, percentage, type) {
   bgArc.setAttribute('stroke-linecap', 'round');
   svg.appendChild(bgArc);
 
-  // Full colored background arc (all gauges)
-  var fullPath = describeArc(cx, cy, r, startAngle, startAngle - totalAngle);
-  var fullArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  fullArc.setAttribute('d', fullPath);
-  fullArc.setAttribute('fill', 'none');
-  fullArc.setAttribute('stroke', 'url(#' + svgId + '_grad)');
-  fullArc.setAttribute('stroke-width', '14');
-  fullArc.setAttribute('stroke-linecap', 'round');
-  fullArc.setAttribute('opacity', '0.3');
-  svg.insertBefore(fullArc, bgArc.nextSibling);
+  // Full colored background arc — segmented for true gradient along arc
+  for (var si = 0; si < segments; si++) {
+    var t0 = si / segments;
+    var t1 = (si + 1) / segments;
+    var a0 = startAngle - t0 * totalAngle;
+    var a1 = startAngle - t1 * totalAngle;
+    var segPath = describeArc(cx, cy, r, a0, a1);
+    var seg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    seg.setAttribute('d', segPath);
+    seg.setAttribute('fill', 'none');
+    seg.setAttribute('stroke', arcColor((t0 + t1) / 2));
+    seg.setAttribute('stroke-width', '14');
+    seg.setAttribute('opacity', '0.3');
+    svg.appendChild(seg);
+  }
 
-  // Colored arc (filled portion)
+  // Colored arc (filled portion) — segmented
   if (pct > 0) {
-    var endAngle = startAngle - (pct / 100) * totalAngle;
-    var colorPath = describeArc(cx, cy, r, startAngle, endAngle);
-    var colorArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    colorArc.setAttribute('d', colorPath);
-    colorArc.setAttribute('fill', 'none');
-    colorArc.setAttribute('stroke', 'url(#' + svgId + '_grad)');
-    colorArc.setAttribute('stroke-width', '14');
-    colorArc.setAttribute('stroke-linecap', 'round');
-    svg.appendChild(colorArc);
+    var fillFraction = pct / 100;
+    var fillSegments = Math.max(1, Math.round(segments * fillFraction));
+    for (var si = 0; si < fillSegments; si++) {
+      var t0 = si / segments;
+      var t1 = Math.min((si + 1) / segments, fillFraction);
+      var a0 = startAngle - t0 * totalAngle;
+      var a1 = startAngle - t1 * totalAngle;
+      var segPath = describeArc(cx, cy, r, a0, a1);
+      var seg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      seg.setAttribute('d', segPath);
+      seg.setAttribute('fill', 'none');
+      seg.setAttribute('stroke', arcColor((t0 + t1) / 2));
+      seg.setAttribute('stroke-width', '14');
+      svg.appendChild(seg);
+    }
   }
 
   // Needle (both gauges)
