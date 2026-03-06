@@ -13,12 +13,14 @@ import { TitleScene } from "./scenes/TitleScene";
 import { TehranFocus } from "./scenes/TehranFocus";
 import { LaunchScene } from "./scenes/LaunchScene";
 import { MissileTravel } from "./scenes/MissileTravel";
+import { RadarScene } from "./scenes/RadarScene";
 import { InterceptionScene } from "./scenes/InterceptionScene";
 import {
   SCENE_TITLE,
   SCENE_TEHRAN,
   SCENE_LAUNCH,
   SCENE_TRAVEL,
+  SCENE_RADAR,
   SCENE_INTERCEPT,
   TRANSITION_FRAMES,
   FPS,
@@ -29,7 +31,8 @@ import {
 const TEHRAN_START = SCENE_TITLE - TRANSITION_FRAMES;
 const LAUNCH_START = TEHRAN_START + SCENE_TEHRAN - TRANSITION_FRAMES;
 const TRAVEL_START = LAUNCH_START + SCENE_LAUNCH - TRANSITION_FRAMES;
-const INTERCEPT_START = TRAVEL_START + SCENE_TRAVEL - TRANSITION_FRAMES;
+const RADAR_START = TRAVEL_START + SCENE_TRAVEL - TRANSITION_FRAMES;
+const INTERCEPT_START = RADAR_START + SCENE_RADAR - TRANSITION_FRAMES;
 
 export const MissileVideoComposition = () => {
   const frame = useCurrentFrame();
@@ -68,6 +71,15 @@ export const MissileVideoComposition = () => {
 
         <TransitionSeries.Sequence durationInFrames={SCENE_TRAVEL}>
           <MissileTravel />
+        </TransitionSeries.Sequence>
+
+        <TransitionSeries.Transition
+          presentation={fade()}
+          timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })}
+        />
+
+        <TransitionSeries.Sequence durationInFrames={SCENE_RADAR}>
+          <RadarScene />
         </TransitionSeries.Sequence>
 
         <TransitionSeries.Transition

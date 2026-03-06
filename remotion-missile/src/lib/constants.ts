@@ -61,6 +61,7 @@ export const SCENE_TITLE = 105; // 3.5s - opening title card
 export const SCENE_TEHRAN = 150; // 5s
 export const SCENE_LAUNCH = 210; // 7s - more time for launcher close-up + launch
 export const SCENE_TRAVEL = 210; // 7s
+export const SCENE_RADAR = 150; // 5s - radar detection + defense activation
 export const SCENE_INTERCEPT = 450; // 15s - full interception + debris fall
 export const TRANSITION_FRAMES = 15;
 
@@ -69,8 +70,9 @@ export const TOTAL_FRAMES =
   SCENE_TEHRAN +
   SCENE_LAUNCH +
   SCENE_TRAVEL +
+  SCENE_RADAR +
   SCENE_INTERCEPT -
-  4 * TRANSITION_FRAMES;
+  5 * TRANSITION_FRAMES;
 
 // Colors
 export const C = {

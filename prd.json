@@ -17,7 +17,7 @@
       "title": "Radar detection scene between travel and interception",
       "description": "Add a new scene (5-6s) between MissileTravel and InterceptionScene showing a radar/early-warning detection moment. 2D radar sweep animation (rotating green line on circular display), incoming blip detected, 'TRACKING TARGET' text, switching to 'DEFENSE ACTIVATION' with multiple defense system icons lighting up (Arrow-3, Arrow-2, David's Sling, Iron Dome). This bridges the gap between map tracking and 3D interception.",
       "priority": 2,
-      "passes": false
+      "passes": true
     },
     {
       "id": "MISSILE-03",

@@ -23,3 +23,15 @@
   - Audio Sequence `from` values depend on scene start offsets — must recalculate when adding scenes before existing ones
   - TRANSITION_FRAMES count in TOTAL_FRAMES must match the number of transitions (scenes - 1)
 ---
+
+## 2026-03-06 - MISSILE-02
+- Implemented: Radar detection scene (RadarScene.tsx, 5s / 150 frames)
+- Features: rotating radar sweep with trail, incoming blip detection, target tracking label, defense systems panel (Arrow-3, Arrow-2, David's Sling, Iron Dome) with staggered activation, compass labels, range labels, scanline overlay, vignette
+- Files changed:
+  - `remotion-missile/src/scenes/RadarScene.tsx` (new)
+  - `remotion-missile/src/lib/constants.ts` (added SCENE_RADAR, updated TOTAL_FRAMES)
+  - `remotion-missile/src/MissileVideoComposition.tsx` (added RadarScene between Travel and Intercept, updated INTERCEPT_START offset)
+- **Learnings for future iterations:**
+  - SVG radar is simpler and more performant than 3D for HUD-style displays
+  - Defense systems can be defined as a data array and mapped with staggered activation frames
+---
