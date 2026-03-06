@@ -38,7 +38,7 @@
       "title": "Clean up dead code - remove unused DebrisFall scene",
       "description": "DebrisFall.tsx is not used in the composition (debris is already handled inside InterceptionScene). Remove the orphaned file to reduce confusion and code bloat.",
       "priority": 5,
-      "passes": false
+      "passes": true
     }
   ]
 }

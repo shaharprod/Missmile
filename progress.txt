@@ -54,3 +54,10 @@
   - Can use `interpolate` inline in JSX style props for animation values
   - Defense altitude ranges: Arrow-3 (100+ km), Arrow-2 (50-100 km), David's Sling (15-50 km), Iron Dome (0-15 km)
 ---
+
+## 2026-03-06 - MISSILE-05
+- Implemented: Removed unused DebrisFall.tsx (dead code cleanup)
+- The debris falling functionality is already fully implemented inside InterceptionScene.tsx
+- Files changed:
+  - `remotion-missile/src/scenes/DebrisFall.tsx` (deleted)
+---
