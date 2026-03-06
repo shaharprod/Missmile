@@ -1,0 +1,25 @@
+## Codebase Patterns
+- Remotion scenes are in `remotion-missile/src/scenes/`, components in `components/`, shared constants in `lib/constants.ts`
+- Scene durations are defined in frames in `constants.ts`, total frames computed from all scenes minus transitions
+- Each scene is a React component using `useCurrentFrame()` and `useVideoConfig()` for animation
+- 3D scenes use `@remotion/three` ThreeCanvas with a CameraController component using `useThree()`
+- 2D map scenes use SVG rendering via `MilitaryMap` component
+- Audio layers are managed in `MissileVideoComposition.tsx` with `Sequence` + `Audio` components
+- TransitionSeries handles scene ordering and fade transitions
+- Color palette defined in `C` object in constants.ts (HUD green, red, amber theme)
+- Scene start frame offsets are computed in MissileVideoComposition.tsx for audio sync
+
+---
+
+## 2026-03-06 - MISSILE-01
+- Implemented: Opening title card scene (TitleScene.tsx, 3.5s / 105 frames)
+- Features: military HUD grid background, scanline effects, glitch effect, title "MISSILE DEFENSE", date "28.02.2026", classified tag, corner brackets, vignette, fade in/out
+- Files changed:
+  - `remotion-missile/src/scenes/TitleScene.tsx` (new)
+  - `remotion-missile/src/lib/constants.ts` (added SCENE_TITLE, updated TOTAL_FRAMES)
+  - `remotion-missile/src/MissileVideoComposition.tsx` (added TitleScene to TransitionSeries, updated audio offsets)
+- **Learnings for future iterations:**
+  - When adding a new scene, must update: constants.ts (duration), MissileVideoComposition.tsx (TransitionSeries + audio offsets), and TOTAL_FRAMES calculation
+  - Audio Sequence `from` values depend on scene start offsets — must recalculate when adding scenes before existing ones
+  - TRANSITION_FRAMES count in TOTAL_FRAMES must match the number of transitions (scenes - 1)
+---
