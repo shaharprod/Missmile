@@ -24,7 +24,7 @@
       "title": "End card / summary scene",
       "description": "Add a closing summary scene (4-5s) after InterceptionScene. Show military-style debrief: 'THREAT NEUTRALIZED', system stats (interceptors launched: 4, interception success, debris fragments: 14), Israeli defense layer names in Hebrew+English, and 'DEFENSE COMMAND // END TRANSMISSION' text fading to black.",
       "priority": 3,
-      "passes": false
+      "passes": true
     },
     {
       "id": "MISSILE-04",

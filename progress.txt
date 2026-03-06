@@ -35,3 +35,12 @@
   - SVG radar is simpler and more performant than 3D for HUD-style displays
   - Defense systems can be defined as a data array and mapped with staggered activation frames
 ---
+
+## 2026-03-06 - MISSILE-03
+- Implemented: End card / summary scene (EndCard.tsx, 4.5s / 135 frames)
+- Features: "THREAT NEUTRALIZED" title, mission debrief stats (4 interceptors, success, 14 fragments), defense layer indicators with Hebrew names, "END TRANSMISSION" blinking text, corner brackets, staggered reveal animations
+- Files changed:
+  - `remotion-missile/src/scenes/EndCard.tsx` (new)
+  - `remotion-missile/src/lib/constants.ts` (added SCENE_ENDCARD, updated TOTAL_FRAMES)
+  - `remotion-missile/src/MissileVideoComposition.tsx` (added EndCard after InterceptionScene)
+---

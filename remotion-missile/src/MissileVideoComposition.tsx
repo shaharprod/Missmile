@@ -15,6 +15,7 @@ import { LaunchScene } from "./scenes/LaunchScene";
 import { MissileTravel } from "./scenes/MissileTravel";
 import { RadarScene } from "./scenes/RadarScene";
 import { InterceptionScene } from "./scenes/InterceptionScene";
+import { EndCard } from "./scenes/EndCard";
 import {
   SCENE_TITLE,
   SCENE_TEHRAN,
@@ -22,6 +23,7 @@ import {
   SCENE_TRAVEL,
   SCENE_RADAR,
   SCENE_INTERCEPT,
+  SCENE_ENDCARD,
   TRANSITION_FRAMES,
   FPS,
   TOTAL_FRAMES,
@@ -89,6 +91,15 @@ export const MissileVideoComposition = () => {
 
         <TransitionSeries.Sequence durationInFrames={SCENE_INTERCEPT}>
           <InterceptionScene />
+        </TransitionSeries.Sequence>
+
+        <TransitionSeries.Transition
+          presentation={fade()}
+          timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })}
+        />
+
+        <TransitionSeries.Sequence durationInFrames={SCENE_ENDCARD}>
+          <EndCard />
         </TransitionSeries.Sequence>
       </TransitionSeries>
 
