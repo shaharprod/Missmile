@@ -44,3 +44,13 @@
   - `remotion-missile/src/lib/constants.ts` (added SCENE_ENDCARD, updated TOTAL_FRAMES)
   - `remotion-missile/src/MissileVideoComposition.tsx` (added EndCard after InterceptionScene)
 ---
+
+## 2026-03-06 - MISSILE-04
+- Implemented: Defense layers infographic overlay on MissileTravel scene
+- Features: vertical altitude scale with 4 defense layers (Arrow-3, Arrow-2, David's Sling, Iron Dome), active layer highlighting based on current missile altitude, red altitude marker arrow, fade-in at progress > 0.3
+- Files changed:
+  - `remotion-missile/src/scenes/MissileTravel.tsx` (added defense layers overlay)
+- **Learnings for future iterations:**
+  - Can use `interpolate` inline in JSX style props for animation values
+  - Defense altitude ranges: Arrow-3 (100+ km), Arrow-2 (50-100 km), David's Sling (15-50 km), Iron Dome (0-15 km)
+---

@@ -31,7 +31,7 @@
       "title": "Defense layers infographic overlay on MissileTravel",
       "description": "During MissileTravel scene, when progress > 0.3, show a small altitude-based defense layers diagram on the right side: Arrow-3 (exo-atmospheric, 100+ km), Arrow-2 (upper atmosphere, 50-100 km), David's Sling (40-50 km), Iron Dome (0-10 km). Highlight the active layer based on missile altitude. This educates viewers about multi-layer defense without needing a separate scene.",
       "priority": 4,
-      "passes": false
+      "passes": true
     },
     {
       "id": "MISSILE-05",
