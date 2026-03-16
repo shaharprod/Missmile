@@ -765,15 +765,7 @@ body {
   </div>
 
   <!-- Hidden selectors (used by JS, auto-set to current time) -->
-  <select id="daySelect" style="display:none">
-    <option value="0">ראשון</option>
-    <option value="1">שני</option>
-    <option value="2">שלישי</option>
-    <option value="3">רביעי</option>
-    <option value="4">חמישי</option>
-    <option value="5">שישי</option>
-    <option value="6">שבת</option>
-  </select>
+  <select id="daySelect" style="display:none"></select>
   <select id="hourSelect" style="display:none"></select>
 
   <!-- Recommendation — הדבר הכי חשוב: מה לעשות עכשיו -->
@@ -1939,11 +1931,20 @@ function clamp(val, min, max) {
   return Math.max(min, Math.min(max, val));
 }
 
-function calcSafety(hour, day) {
-  const hourBase = HOURLY_DISTRIBUTION[hour];
-  const dayMult = DAY_MULTIPLIER[day];
-  const combinedRisk = hourBase * dayMult;
-  const safetyRaw = 1 - (combinedRisk / 1.2);
+function calcSafety(hour, dateKey) {
+  // Use per-date hourly data if available
+  var perDay = HOURLY_DATA_PER_DAY[dateKey];
+  if (perDay) {
+    var risk = perDay[hour];
+    var safetyRaw = 1 - (risk / 1.2);
+    return clamp(safetyRaw * 80 + 10, 5, 92);
+  }
+  // Fallback to generic distribution
+  var hourBase = HOURLY_DISTRIBUTION[hour];
+  var d = new Date(dateKey);
+  var dayMult = DAY_MULTIPLIER[d.getDay()];
+  var combinedRisk = hourBase * dayMult;
+  var safetyRaw = 1 - (combinedRisk / 1.2);
   return clamp(safetyRaw * 80 + 10, 5, 92);
 }
 
@@ -2168,7 +2169,7 @@ function updateRealtimeGauge() {
   var now = new Date();
   var minutesSince = getMinutesSinceLastAlert();
   var recentRate = getRecentAlertRate(30);
-  var baseDanger = 100 - calcSafety(now.getHours(), now.getDay());
+  var baseDanger = 100 - calcSafety(now.getHours(), now.toISOString().split('T')[0]);
 
   var recencyFactor = Math.max(0, 1 - minutesSince / 60) * 40;
   var rateFactor = Math.min(recentRate / 5, 1) * 30;
@@ -2187,7 +2188,7 @@ function updateRealtimeGauge() {
 
 function updateStatisticalGauge() {
   var now = new Date();
-  var safety = calcSafety(now.getHours(), now.getDay());
+  var safety = calcSafety(now.getHours(), now.toISOString().split('T')[0]);
   var dangerPct = 100 - safety;
   drawGauge('statGauge', dangerPct, 'statistical');
 
@@ -2206,7 +2207,7 @@ function updateRealtimeStatus() {
 
   // בדיקת רמת סכנה היסטורית לשעה הנוכחית
   var now = new Date();
-  var hourDanger = 1 - calcSafety(now.getHours(), now.getDay()) / 100;
+  var hourDanger = 1 - calcSafety(now.getHours(), now.toISOString().split('T')[0]) / 100;
 
   // אנחנו במלחמה — אין סטטוס "שקט" בכלל!
   if (minutesSince < 2) {
@@ -2333,7 +2334,7 @@ function showIntensityForDate(dateKey) {
   container.innerHTML = statsHtml + alertsHtml;
 }
 
-function updateIntensityPanel(day) {
+function updateIntensityPanel(dateKey) {
   // נקרא מ-recalculate — לא משנה את הטאב הנבחר
   // הפאנל מנוהל עצמאית ע"י הטאבים
 }
@@ -2525,12 +2526,14 @@ function updateHourChart(currentHour, day) {
   var chart = $('hourChart');
   chart.innerHTML = '';
 
-  var dateKey = DAY_TO_DATE[day] || new Date().toISOString().split('T')[0];
+  var dateKey = day; // now receives date string directly
   var data = countEventsPerHour(dateKey);
 
   // אם אין נתונים ליום — fallback להערכה
   if (!data || (Math.max.apply(null, data.alerts) === 0 && Math.max.apply(null, data.launches) === 0)) {
-    var fallback = HOURLY_DISTRIBUTION.map(function(v) { return v * DAY_MULTIPLIER[day]; });
+    var d = new Date(dateKey);
+    var dayMult = DAY_MULTIPLIER[d.getDay()];
+    var fallback = HOURLY_DISTRIBUTION.map(function(v) { return v * dayMult; });
     var maxF = Math.max.apply(null, fallback) || 1;
     for (var h = 0; h < 24; h++) {
       var val = fallback[h];
@@ -2689,7 +2692,7 @@ function renderAverageHourChart(currentHour) {
   }
 }
 
-function updateDayHeatmap(currentDay) {
+function updateDayHeatmap(currentDateKey) {
   var heatmap = $('dayHeatmap');
   heatmap.innerHTML = '';
 
@@ -2717,18 +2720,18 @@ function updateDayHeatmap(currentDay) {
     var b = Math.round(100 - ratio * 60);
 
     var cell = document.createElement('div');
-    cell.className = 'day-cell' + (wd.dayNum === currentDay ? ' active' : '');
+    cell.className = 'day-cell' + (wd.date === currentDateKey ? ' active' : '');
     cell.style.background = 'rgba(' + r + ',' + g + ',' + b + ',0.25)';
     cell.style.color = 'rgb(' + r + ',' + g + ',' + b + ')';
     cell.innerHTML = '<div class="day-name">' + wd.dayName + '</div>' +
       '<div class="day-val">' + (alerts > 0 ? alerts : '—') + '</div>' +
       '<div style="font-size:0.6rem;opacity:0.6">' + wd.label + '</div>';
-    cell.addEventListener('click', (function(dayNum) {
+    cell.addEventListener('click', (function(date) {
       return function() {
-        $('daySelect').value = dayNum;
+        $('daySelect').value = date;
         recalculate();
       };
-    })(wd.dayNum));
+    })(wd.date));
     heatmap.appendChild(cell);
   });
 }
@@ -3574,28 +3577,42 @@ function updateClock() {
 // ==================== RECALCULATE ====================
 
 function recalculate() {
-  var day = parseInt($('daySelect').value);
+  var dateKey = $('daySelect').value;
   var hour = parseInt($('hourSelect').value);
-  var safety = calcSafety(hour, day);
+  var safety = calcSafety(hour, dateKey);
 
   updateMainMeter(safety);
   updateReco(safety);
   updateActivities(safety);
-  updateHourChart(hour, day);
+  updateHourChart(hour, dateKey);
   renderAverageHourChart(hour);
-  updateDayHeatmap(day);
+  updateDayHeatmap(dateKey);
   updateRealtimeGauge();
   updateStatisticalGauge();
   updateRealtimeStatus();
-  updateIntensityPanel(day);
+  updateIntensityPanel(dateKey);
 }
 
 // ==================== INIT ====================
 
 function autoSetSelectors() {
   var now = new Date();
-  $('daySelect').value = now.getDay();
+  var todayISO = now.toISOString().split('T')[0];
+  // Find matching WAR_DAYS entry, or default to last one
+  var found = WAR_DAYS.find(function(wd) { return wd.date === todayISO; });
+  $('daySelect').value = found ? found.date : WAR_DAYS[WAR_DAYS.length - 1].date;
   $('hourSelect').value = now.getHours();
+}
+
+function buildDayOptions() {
+  var sel = $('daySelect');
+  sel.innerHTML = '';
+  WAR_DAYS.forEach(function(wd) {
+    var opt = document.createElement('option');
+    opt.value = wd.date;
+    opt.textContent = wd.dayName;
+    sel.appendChild(opt);
+  });
 }
 
 function buildHourOptions() {
@@ -3609,6 +3626,7 @@ function buildHourOptions() {
 }
 
 function init() {
+  buildDayOptions();
   buildHourOptions();
   autoSetSelectors();
   renderThreatSources();
