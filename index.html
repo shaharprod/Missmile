@@ -3862,6 +3862,78 @@ function buildHourOptions() {
   }
 }
 
+// === יצירת יום חדש אוטומטית בחצות ===
+function scheduleMidnightNewDay() {
+  var now = new Date();
+  var midnight = new Date(now);
+  midnight.setHours(24, 0, 5, 0); // 00:00:05 של היום הבא
+  var msToMidnight = midnight.getTime() - now.getTime();
+
+  setTimeout(function() {
+    createNewDay();
+    // תזמן שוב למחר
+    setInterval(createNewDay, 24 * 60 * 60 * 1000);
+  }, msToMidnight);
+}
+
+function createNewDay() {
+  var today = new Date();
+  var dateKey = today.toISOString().split('T')[0];
+
+  // הוספה ל-WAR_DAYS אם לא קיים
+  if (!WAR_DAYS.find(function(w) { return w.date === dateKey; })) {
+    var dayNum = WAR_DAYS.length + 1;
+    WAR_DAYS.push({
+      date: dateKey,
+      dayName: DAY_NAMES[today.getDay()] + ' ' + today.getDate() + '.' + (today.getMonth() + 1),
+      dayNum: today.getDay(),
+      label: 'יום ' + dayNum
+    });
+  }
+
+  // הוספה ל-DAILY_DATA אם לא קיים
+  if (!DAILY_DATA.find(function(d) { return d.date === dateKey; })) {
+    DAILY_DATA.push({
+      date: dateKey, dayName: DAY_NAMES[today.getDay()],
+      iranWaves: 0, iranMissiles: 0, iranUAVs: 0, iranKilled: 0, iranInjured: 0,
+      lebWaves: 0, lebRockets: 0,
+      missilesLaunched: 0, uavsLaunched: 0, interceptions: '—', interceptionsCount: 0, impacts: 0, killed: 0, injured: 0,
+      events: 'יום חדש — ממתין לנתונים בזמן אמת.'
+    });
+  }
+
+  // הוספה ל-ALERTS_BY_DAY אם לא קיים
+  if (!ALERTS_BY_DAY[dateKey]) {
+    ALERTS_BY_DAY[dateKey] = [];
+  }
+
+  // הוספה ל-HOURLY_DATA_PER_DAY אם לא קיים
+  if (!HOURLY_DATA_PER_DAY[dateKey]) {
+    HOURLY_DATA_PER_DAY[dateKey] = new Array(24).fill(0);
+  }
+
+  // עדכון UI
+  buildDayOptions();
+  renderIntensityTabs();
+  renderDailyTable();
+  autoSetSelectors();
+  recalculate();
+
+  // איפוס ספירת אזעקות יומית
+  todayAlertCount = 0;
+  alertsLog = [];
+  $('todayCount').textContent = '0';
+  renderAlertLog();
+}
+
+// הפעלה מיידית — יצירת היום הנוכחי אם עוד לא קיים
+(function ensureTodayExists() {
+  var today = new Date().toISOString().split('T')[0];
+  if (!WAR_DAYS.find(function(w) { return w.date === today; })) {
+    createNewDay();
+  }
+})();
+
 function init() {
   buildDayOptions();
   buildHourOptions();
@@ -3892,6 +3964,9 @@ function init() {
     autoSetSelectors();
     recalculate();
   }, 60000);
+
+  // === חצות אוטומטי — יצירת יום חדש ב-00:00 ===
+  scheduleMidnightNewDay();
 
   // כפתור רענון ידני
   $('connRefresh').addEventListener('click', function() {
