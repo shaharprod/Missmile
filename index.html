@@ -1841,6 +1841,54 @@ function loadDynamicAlerts() {
 }
 loadDynamicAlerts();
 
+// === יצירה דינמית של DAILY_DATA ו-HOURLY_DATA_PER_DAY לימים חדשים ===
+// כאשר מתקבלות אזעקות בזמן אמת ליום שאין לו נתוני seed,
+// המערכת תייצר אוטומטית רשומות מהנתונים הדינמיים
+(function autoGenerateMissingDays() {
+  var existingDailyDates = {};
+  DAILY_DATA.forEach(function(d) { existingDailyDates[d.date] = true; });
+
+  Object.keys(ALERTS_BY_DAY).forEach(function(dateKey) {
+    var alerts = ALERTS_BY_DAY[dateKey];
+    if (!alerts || alerts.length === 0) return;
+
+    // יצירת DAILY_DATA אם חסר
+    if (!existingDailyDates[dateKey]) {
+      var missiles = 0, uavs = 0;
+      alerts.forEach(function(a) {
+        if (a.type === 'uav') uavs++;
+        else missiles++;
+      });
+      var d = new Date(dateKey);
+      var dayName = DAY_NAMES[d.getDay()];
+      DAILY_DATA.push({
+        date: dateKey, dayName: dayName,
+        iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
+        lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
+        missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
+        events: alerts.length + ' אזעקות פיקוד העורף (צבע אדום API — עדכון דינמי). ' + missiles + ' ירי רקטות, ' + uavs + ' כטב"מ.'
+      });
+      existingDailyDates[dateKey] = true;
+    }
+
+    // יצירת HOURLY_DATA_PER_DAY אם חסר
+    if (!HOURLY_DATA_PER_DAY[dateKey]) {
+      var hourCounts = new Array(24).fill(0);
+      alerts.forEach(function(a) {
+        var h = parseInt(a.time.substring(0, 2));
+        if (!isNaN(h) && h >= 0 && h < 24) hourCounts[h]++;
+      });
+      var maxH = Math.max.apply(null, hourCounts) || 1;
+      HOURLY_DATA_PER_DAY[dateKey] = hourCounts.map(function(c) {
+        return Math.round((c / maxH) * 90) / 100;
+      });
+    }
+  });
+
+  // מיון DAILY_DATA לפי תאריך
+  DAILY_DATA.sort(function(a, b) { return a.date.localeCompare(b.date); });
+})();
+
 // TODAY_SEED_ALERTS — נגזר מ-ALERTS_BY_DAY של היום
 // כל אירוע = רשומה אחת (לא פיצול לערים!) כדי שהספירה תהיה קבועה ומדויקת
 var todayDate = new Date().toISOString().split('T')[0];
@@ -3236,8 +3284,61 @@ function processTzevaadomAlert(data, source) {
     recalculate();
     var dateKey = now.toISOString().split('T')[0];
     saveDynamicAlert(dateKey, timeStr, areas, type, title);
+    // עדכון דינמי של DAILY_DATA ו-HOURLY_DATA_PER_DAY
+    updateLiveDayData(dateKey, type);
   }
   connectionState.lastSuccess = Date.now();
+}
+
+// עדכון דינמי של נתוני יום בזמן אמת כשמתקבלת אזעקה חדשה
+function updateLiveDayData(dateKey, type) {
+  var alerts = ALERTS_BY_DAY[dateKey] || [];
+
+  // עדכון/יצירת DAILY_DATA
+  var existing = DAILY_DATA.find(function(d) { return d.date === dateKey; });
+  var missiles = 0, uavs = 0;
+  alerts.forEach(function(a) { if (a.type === 'uav') uavs++; else missiles++; });
+  var eventsText = alerts.length + ' אזעקות פיקוד העורף (צבע אדום — זמן אמת). ' + missiles + ' ירי רקטות, ' + uavs + ' כטב"מ.';
+
+  if (existing) {
+    existing.events = eventsText;
+  } else {
+    var d = new Date(dateKey);
+    DAILY_DATA.push({
+      date: dateKey, dayName: DAY_NAMES[d.getDay()],
+      iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
+      lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
+      missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
+      events: eventsText
+    });
+    DAILY_DATA.sort(function(a, b) { return a.date.localeCompare(b.date); });
+  }
+
+  // עדכון HOURLY_DATA_PER_DAY מאזעקות בפועל
+  var hourCounts = new Array(24).fill(0);
+  alerts.forEach(function(a) {
+    var h = parseInt(a.time.substring(0, 2));
+    if (!isNaN(h) && h >= 0 && h < 24) hourCounts[h]++;
+  });
+  var maxH = Math.max.apply(null, hourCounts) || 1;
+  HOURLY_DATA_PER_DAY[dateKey] = hourCounts.map(function(c) {
+    return Math.round((c / maxH) * 90) / 100;
+  });
+
+  // הוספת יום חדש ל-WAR_DAYS אם לא קיים
+  if (!WAR_DAYS.find(function(w) { return w.date === dateKey; })) {
+    var dt = new Date(dateKey);
+    var dayNum = WAR_DAYS.length + 1;
+    WAR_DAYS.push({
+      date: dateKey,
+      dayName: DAY_NAMES[dt.getDay()] + ' ' + dt.getDate() + '.' + (dt.getMonth() + 1),
+      dayNum: dt.getDay(),
+      label: 'יום ' + dayNum
+    });
+    // עדכון טאבים וסלקטור
+    if (typeof buildDayOptions === 'function') buildDayOptions();
+    if (typeof renderIntensityTabs === 'function') renderIntensityTabs();
+  }
 }
 
 // ==================== צבע אדום REST API ====================
