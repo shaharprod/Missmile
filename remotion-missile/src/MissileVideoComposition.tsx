@@ -144,7 +144,7 @@ export const MissileVideoComposition = () => {
       </Sequence>
 
       {/* Missile launch sound - starts at ignition (frame 75 in scene) */}
-      <Sequence from={LAUNCH_START + 75} durationInFrames={SCENE_LAUNCH - 75}>
+      <Sequence from={LAUNCH_START + 60} durationInFrames={SCENE_LAUNCH - 60}>
         <Audio
           src={staticFile("launch.wav")}
           volume={(f) =>
@@ -174,24 +174,24 @@ export const MissileVideoComposition = () => {
         />
       </Sequence>
 
-      {/* Interceptor launch sounds - staggered */}
-      <Sequence from={INTERCEPT_START + 50} durationInFrames={90}>
+      {/* Interceptor launch sounds - staggered (launch at frame 0 of scene) */}
+      <Sequence from={INTERCEPT_START} durationInFrames={72}>
         <Audio src={staticFile("interceptor.wav")} volume={0.5} />
       </Sequence>
-      <Sequence from={INTERCEPT_START + 62} durationInFrames={90}>
+      <Sequence from={INTERCEPT_START + 10} durationInFrames={72}>
         <Audio src={staticFile("interceptor.wav")} volume={0.4} />
       </Sequence>
-      <Sequence from={INTERCEPT_START + 72} durationInFrames={90}>
+      <Sequence from={INTERCEPT_START + 18} durationInFrames={72}>
         <Audio src={staticFile("interceptor.wav")} volume={0.45} />
       </Sequence>
 
       {/* Explosion on impact */}
-      <Sequence from={INTERCEPT_START + 160} durationInFrames={4 * fps}>
+      <Sequence from={INTERCEPT_START + 128} durationInFrames={4 * fps}>
         <Audio src={staticFile("explosion.wav")} volume={0.85} />
       </Sequence>
 
       {/* Debris falling sounds */}
-      <Sequence from={INTERCEPT_START + 190} durationInFrames={6 * fps}>
+      <Sequence from={INTERCEPT_START + 152} durationInFrames={6 * fps}>
         <Audio
           src={staticFile("debris.wav")}
           volume={(f) => {

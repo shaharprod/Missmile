@@ -15,41 +15,41 @@ export const TitleScene = () => {
   const scanY = (frame * 4) % 1080;
 
   // Fade in from black
-  const fadeIn = interpolate(frame, [0, 20], [0, 1], {
+  const fadeIn = interpolate(frame, [0, 16], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   // Title text reveal (typewriter-like stagger)
-  const titleReveal = interpolate(frame, [15, 45], [0, 1], {
+  const titleReveal = interpolate(frame, [12, 36], [0, 1], {
     easing: Easing.out(Easing.cubic),
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   // Subtitle reveal
-  const subtitleReveal = interpolate(frame, [40, 60], [0, 1], {
+  const subtitleReveal = interpolate(frame, [32, 48], [0, 1], {
     easing: Easing.out(Easing.cubic),
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   // Date reveal
-  const dateReveal = interpolate(frame, [55, 70], [0, 1], {
+  const dateReveal = interpolate(frame, [44, 56], [0, 1], {
     easing: Easing.out(Easing.cubic),
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   // Classification blink
-  const classifiedShow = frame > 30;
-  const classifiedBlink = Math.floor(frame / 10) % 2 === 0;
+  const classifiedShow = frame > 24;
+  const classifiedBlink = Math.floor(frame / 8) % 2 === 0;
 
   // Glitch effect (occasional)
   const glitchActive =
-    (frame > 25 && frame < 28) ||
-    (frame > 55 && frame < 57) ||
-    (frame > 80 && frame < 82);
+    (frame > 20 && frame < 23) ||
+    (frame > 44 && frame < 46) ||
+    (frame > 64 && frame < 66);
   const glitchOffset = glitchActive ? Math.sin(frame * 47) * 8 : 0;
 
   // Horizontal glitch bars
@@ -64,7 +64,7 @@ export const TitleScene = () => {
   // Fade out at end
   const fadeOut = interpolate(
     frame,
-    [durationInFrames - 15, durationInFrames],
+    [durationInFrames - 12, durationInFrames],
     [1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
@@ -79,7 +79,7 @@ export const TitleScene = () => {
           position: "absolute",
           inset: 0,
           background:
-            "repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(0,255,136,0.03) 59px, rgba(0,255,136,0.03) 60px), repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(0,255,136,0.03) 59px, rgba(0,255,136,0.03) 60px)",
+            "repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(20,60,40,0.04) 59px, rgba(20,60,40,0.04) 60px), repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(20,60,40,0.04) 59px, rgba(20,60,40,0.04) 60px)",
         }}
       />
 
@@ -102,7 +102,7 @@ export const TitleScene = () => {
           position: "absolute",
           inset: 0,
           background:
-            "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px)",
+            "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px)",
           pointerEvents: "none",
         }}
       />
@@ -139,11 +139,11 @@ export const TitleScene = () => {
         {classifiedShow && classifiedBlink && (
           <div
             style={{
-              fontSize: 16,
+              fontSize: 21,
               color: C.hudRed,
               letterSpacing: 6,
               marginBottom: 30,
-              textShadow: `0 0 8px ${C.hudRed}`,
+              textShadow: `2px 2px 4px rgba(0,0,0,0.3)`,
             }}
           >
             CLASSIFIED // DEFENSE COMMAND
@@ -153,11 +153,11 @@ export const TitleScene = () => {
         {/* Main title */}
         <div
           style={{
-            fontSize: 80,
+            fontSize: 104,
             fontWeight: "bold",
             color: C.hudGreen,
             letterSpacing: 12,
-            textShadow: `0 0 30px ${C.hudGreen}, 0 0 60px rgba(0,255,136,0.3)`,
+            textShadow: `2px 2px 6px rgba(0,0,0,0.3)`,
             opacity: titleReveal,
             transform: `translateY(${(1 - titleReveal) * 20}px)`,
           }}
@@ -168,12 +168,12 @@ export const TitleScene = () => {
         {/* Subtitle */}
         <div
           style={{
-            fontSize: 24,
+            fontSize: 31,
             color: C.hudAmber,
             letterSpacing: 8,
             marginTop: 20,
             opacity: subtitleReveal,
-            textShadow: `0 0 10px ${C.hudAmber}`,
+            textShadow: `2px 2px 4px rgba(0,0,0,0.2)`,
           }}
         >
           MULTI-LAYER INTERCEPTION SYSTEM
@@ -182,7 +182,7 @@ export const TitleScene = () => {
         {/* Horizontal divider */}
         <div
           style={{
-            width: interpolate(frame, [45, 70], [0, 500], {
+            width: interpolate(frame, [36, 56], [0, 500], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               easing: Easing.out(Easing.cubic),
@@ -197,7 +197,7 @@ export const TitleScene = () => {
         {/* Date */}
         <div
           style={{
-            fontSize: 28,
+            fontSize: 36,
             color: C.white,
             letterSpacing: 4,
             opacity: dateReveal * 0.8,
@@ -209,7 +209,7 @@ export const TitleScene = () => {
 
         <div
           style={{
-            fontSize: 14,
+            fontSize: 18,
             color: C.hudGreen,
             letterSpacing: 3,
             marginTop: 8,
@@ -280,10 +280,10 @@ export const TitleScene = () => {
           bottom: 50,
           left: 50,
           fontFamily: "monospace",
-          fontSize: 12,
+          fontSize: 16,
           color: C.hudGreen,
           opacity: dateReveal * 0.4,
-          lineHeight: "20px",
+          lineHeight: "24px",
         }}
       >
         <div>SYS: DEFENSE_CMD_v4.2</div>
@@ -297,11 +297,11 @@ export const TitleScene = () => {
           bottom: 50,
           right: 50,
           fontFamily: "monospace",
-          fontSize: 12,
+          fontSize: 16,
           color: C.hudGreen,
           opacity: dateReveal * 0.4,
           textAlign: "right",
-          lineHeight: "20px",
+          lineHeight: "24px",
         }}
       >
         <div>FEED: SATELLITE</div>
@@ -314,7 +314,7 @@ export const TitleScene = () => {
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.6) 100%)",
+            "radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.15) 100%)",
           pointerEvents: "none",
         }}
       />

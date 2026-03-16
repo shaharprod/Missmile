@@ -16,8 +16,8 @@ export type CityRole = "capital" | "major" | "minor";
 export type CityDef = { lng: number; lat: number; name: string; role: CityRole; color?: string };
 
 export const ALL_CITIES: CityDef[] = [
-  { ...TEHRAN, role: "capital", color: "#ff3344" },
-  { ...TEL_AVIV, role: "capital", color: "#00ff88" },
+  { ...TEHRAN, role: "capital", color: "#cc2233" },
+  { ...TEL_AVIV, role: "capital", color: "#1a5c3a" },
   { ...BAGHDAD, role: "capital" },
   { ...DAMASCUS, role: "capital" },
   { ...AMMAN, role: "capital" },
@@ -32,15 +32,15 @@ export const ALL_CITIES: CityDef[] = [
 
 // Background cities (dimmer, for context in map scenes)
 export const BG_CITIES: CityDef[] = [
-  { ...BAGHDAD, role: "capital", color: "#1e3a55" },
-  { ...DAMASCUS, role: "capital", color: "#1e3a55" },
-  { ...AMMAN, role: "capital", color: "#1e3a55" },
-  { ...ISFAHAN, role: "major", color: "#1e3a55" },
-  { ...JERUSALEM, role: "major", color: "#1e3a55" },
-  { ...HAIFA, role: "major", color: "#1e3a55" },
-  { ...CAIRO, role: "capital", color: "#1e3a55" },
-  { ...ANKARA, role: "capital", color: "#1e3a55" },
-  { ...BEIRUT, role: "capital", color: "#1e3a55" },
+  { ...BAGHDAD, role: "capital", color: "#8898a8" },
+  { ...DAMASCUS, role: "capital", color: "#8898a8" },
+  { ...AMMAN, role: "capital", color: "#8898a8" },
+  { ...ISFAHAN, role: "major", color: "#8898a8" },
+  { ...JERUSALEM, role: "major", color: "#8898a8" },
+  { ...HAIFA, role: "major", color: "#8898a8" },
+  { ...CAIRO, role: "capital", color: "#8898a8" },
+  { ...ANKARA, role: "capital", color: "#8898a8" },
+  { ...BEIRUT, role: "capital", color: "#8898a8" },
 ];
 
 // Map bounds (Middle East region)
@@ -54,17 +54,17 @@ export const MAP_BOUNDS = {
 // Composition
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
-export const FPS = 30;
+export const FPS = 24;
 
-// Scene durations (frames)
-export const SCENE_TITLE = 105; // 3.5s - opening title card
-export const SCENE_TEHRAN = 150; // 5s
-export const SCENE_LAUNCH = 210; // 7s - more time for launcher close-up + launch
-export const SCENE_TRAVEL = 210; // 7s
-export const SCENE_RADAR = 150; // 5s - radar detection + defense activation
-export const SCENE_INTERCEPT = 450; // 15s - full interception + debris fall
-export const SCENE_ENDCARD = 135; // 4.5s - debrief summary
-export const TRANSITION_FRAMES = 15;
+// Scene durations (frames at 24fps)
+export const SCENE_TITLE = 84; // 3.5s
+export const SCENE_TEHRAN = 120; // 5s
+export const SCENE_LAUNCH = 168; // 7s
+export const SCENE_TRAVEL = 168; // 7s
+export const SCENE_RADAR = 120; // 5s
+export const SCENE_INTERCEPT = 360; // 15s
+export const SCENE_ENDCARD = 228; // 9.5s (4.5s content + 5s hold before fade)
+export const TRANSITION_FRAMES = 12;
 
 export const TOTAL_FRAMES =
   SCENE_TITLE +
@@ -76,28 +76,28 @@ export const TOTAL_FRAMES =
   SCENE_ENDCARD -
   6 * TRANSITION_FRAMES;
 
-// Colors
+// Colors - Daylight theme
 export const C = {
-  bg: "#0a0e1a",
-  land: "#141e30",
-  landStroke: "#1e3050",
-  iranFill: "#2a1520",
-  israelFill: "#152a1a",
-  water: "#060d18",
-  waterStroke: "#0a1828",
-  waterGlow: "#0a2040",
-  river: "#0a1828",
-  grid: "#0d1825",
-  gridBright: "#152535",
-  gridLabel: "#1e3050",
-  missile: "#ff3333",
-  missileGlow: "#ff6644",
-  interceptor: "#33ff66",
-  interceptorGlow: "#66ffaa",
-  cityMarker: "#ffaa00",
-  hudGreen: "#00ff88",
-  hudRed: "#ff3344",
-  hudAmber: "#ffaa00",
+  bg: "#d8e4ef",
+  land: "#c4b9a0",
+  landStroke: "#a89878",
+  iranFill: "#e0c8b0",
+  israelFill: "#b0d8b8",
+  water: "#88b8d8",
+  waterStroke: "#6898b8",
+  waterGlow: "#78a8c8",
+  river: "#6898b8",
+  grid: "#b8c8d8",
+  gridBright: "#a0b0c0",
+  gridLabel: "#8898a8",
+  missile: "#cc2222",
+  missileGlow: "#ee4422",
+  interceptor: "#228844",
+  interceptorGlow: "#44aa66",
+  cityMarker: "#cc8800",
+  hudGreen: "#1a5c3a",
+  hudRed: "#cc2233",
+  hudAmber: "#b88400",
   explosion: "#ffcc00",
   white: "#ffffff",
 };

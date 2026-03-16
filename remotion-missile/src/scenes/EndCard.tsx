@@ -26,33 +26,33 @@ export const EndCard = () => {
   const { durationInFrames } = useVideoConfig();
 
   // Fade in from black (continuing from InterceptionScene fade)
-  const fadeIn = interpolate(frame, [0, 25], [0, 1], {
+  const fadeIn = interpolate(frame, [0, 20], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   // Title reveal
-  const titleReveal = interpolate(frame, [10, 35], [0, 1], {
+  const titleReveal = interpolate(frame, [8, 28], [0, 1], {
     easing: Easing.out(Easing.cubic),
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   // Divider line
-  const dividerWidth = interpolate(frame, [30, 55], [0, 600], {
+  const dividerWidth = interpolate(frame, [24, 44], [0, 600], {
     easing: Easing.out(Easing.cubic),
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   // Fade to black at end
-  const fadeOut = interpolate(frame, [durationInFrames - 30, durationInFrames], [1, 0], {
+  const fadeOut = interpolate(frame, [durationInFrames - 24, durationInFrames], [1, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   // End transmission blink
-  const endTransmission = frame > 100;
+  const endTransmission = frame > 80;
   const endBlink = Math.floor(frame / 12) % 2 === 0;
 
   const masterOpacity = fadeIn * fadeOut;
@@ -65,7 +65,7 @@ export const EndCard = () => {
           position: "absolute",
           inset: 0,
           background:
-            "repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(0,255,136,0.02) 59px, rgba(0,255,136,0.02) 60px), repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(0,255,136,0.02) 59px, rgba(0,255,136,0.02) 60px)",
+            "repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(20,60,40,0.03) 59px, rgba(20,60,40,0.03) 60px), repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(20,60,40,0.03) 59px, rgba(20,60,40,0.03) 60px)",
         }}
       />
 
@@ -84,11 +84,11 @@ export const EndCard = () => {
         {/* THREAT NEUTRALIZED */}
         <div
           style={{
-            fontSize: 56,
+            fontSize: 73,
             fontWeight: "bold",
             color: C.hudGreen,
             letterSpacing: 8,
-            textShadow: `0 0 25px ${C.hudGreen}, 0 0 50px rgba(0,255,136,0.3)`,
+            textShadow: `2px 2px 6px rgba(0,0,0,0.3)`,
             opacity: titleReveal,
             transform: `translateY(${(1 - titleReveal) * 15}px)`,
           }}
@@ -99,7 +99,7 @@ export const EndCard = () => {
         {/* Subtitle */}
         <div
           style={{
-            fontSize: 18,
+            fontSize: 23,
             color: C.hudAmber,
             letterSpacing: 5,
             marginTop: 10,
@@ -131,7 +131,7 @@ export const EndCard = () => {
           }}
         >
           {STATS.map((stat, i) => {
-            const statReveal = interpolate(frame, [40 + i * 8, 55 + i * 8], [0, 1], {
+            const statReveal = interpolate(frame, [32 + i * 6, 44 + i * 6], [0, 1], {
               easing: Easing.out(Easing.cubic),
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
@@ -147,17 +147,17 @@ export const EndCard = () => {
                   minWidth: 150,
                 }}
               >
-                <div style={{ fontSize: 12, color: C.hudGreen, opacity: 0.5, marginBottom: 6 }}>
+                <div style={{ fontSize: 16, color: C.hudGreen, opacity: 0.5, marginBottom: 6 }}>
                   {stat.icon} {stat.label}
                 </div>
                 <div
                   style={{
-                    fontSize: 28,
+                    fontSize: 36,
                     fontWeight: "bold",
                     color: stat.value === "SUCCESS" || stat.value === "NEUTRALIZED" ? C.hudGreen : C.white,
                     textShadow:
                       stat.value === "SUCCESS" || stat.value === "NEUTRALIZED"
-                        ? `0 0 10px ${C.hudGreen}`
+                        ? `2px 2px 4px rgba(0,0,0,0.2)`
                         : "none",
                   }}
                 >
@@ -189,7 +189,7 @@ export const EndCard = () => {
           }}
         >
           {DEFENSE_LAYERS.map((layer, i) => {
-            const layerReveal = interpolate(frame, [65 + i * 6, 80 + i * 6], [0, 1], {
+            const layerReveal = interpolate(frame, [52 + i * 5, 64 + i * 5], [0, 1], {
               easing: Easing.out(Easing.cubic),
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
@@ -209,14 +209,14 @@ export const EndCard = () => {
                     height: 8,
                     borderRadius: "50%",
                     backgroundColor: layer.color,
-                    boxShadow: `0 0 8px ${layer.color}`,
+                    boxShadow: `0 0 3px ${layer.color}`,
                     margin: "0 auto 8px",
                   }}
                 />
-                <div style={{ fontSize: 14, color: layer.color, fontWeight: "bold" }}>
+                <div style={{ fontSize: 18, color: layer.color, fontWeight: "bold" }}>
                   {layer.en}
                 </div>
-                <div style={{ fontSize: 13, color: layer.color, opacity: 0.7, marginTop: 2 }}>
+                <div style={{ fontSize: 17, color: layer.color, opacity: 0.7, marginTop: 2 }}>
                   {layer.he}
                 </div>
               </div>
@@ -228,7 +228,7 @@ export const EndCard = () => {
         {endTransmission && (
           <div
             style={{
-              fontSize: 14,
+              fontSize: 18,
               color: C.hudGreen,
               letterSpacing: 6,
               opacity: endBlink ? 0.6 : 0.3,
@@ -271,7 +271,7 @@ export const EndCard = () => {
           position: "absolute",
           inset: 0,
           background:
-            "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px)",
+            "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.02) 3px, rgba(0,0,0,0.02) 4px)",
           pointerEvents: "none",
         }}
       />
@@ -282,7 +282,7 @@ export const EndCard = () => {
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)",
+            "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.12) 100%)",
           pointerEvents: "none",
         }}
       />

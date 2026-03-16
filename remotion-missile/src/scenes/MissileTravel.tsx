@@ -115,7 +115,7 @@ export const MissileTravel = () => {
         >
           <div
             style={{
-              fontSize: 11,
+              fontSize: 14,
               color: C.hudGreen,
               letterSpacing: 2,
               marginBottom: 10,
@@ -182,8 +182,8 @@ export const MissileTravel = () => {
                   <div>
                     <div
                       style={{
-                        fontSize: 12,
-                        color: isActive ? layer.color : "#444",
+                        fontSize: 16,
+                        color: isActive ? layer.color : "#b0b0b0",
                         fontWeight: isActive ? "bold" : "normal",
                         letterSpacing: 1,
                       }}
@@ -192,8 +192,8 @@ export const MissileTravel = () => {
                     </div>
                     <div
                       style={{
-                        fontSize: 10,
-                        color: isActive ? layer.color : "#333",
+                        fontSize: 13,
+                        color: isActive ? layer.color : "#c8c8c8",
                         opacity: 0.7,
                       }}
                     >
@@ -245,10 +245,10 @@ export const MissileTravel = () => {
             bottom: 80,
             right: 40,
             fontFamily: "monospace",
-            fontSize: 32,
+            fontSize: 42,
             fontWeight: "bold",
             color: C.hudRed,
-            textShadow: `0 0 15px ${C.hudRed}`,
+            textShadow: `2px 2px 4px rgba(0,0,0,0.4)`,
           }}
         >
           ⚠ INCOMING THREAT - ACTIVATING DEFENSE
@@ -263,7 +263,7 @@ export const MissileTravel = () => {
           left: 40,
           right: 40,
           height: 4,
-          backgroundColor: "#1a2030",
+          backgroundColor: "#c0c8d0",
           borderRadius: 2,
         }}
       >
@@ -273,7 +273,7 @@ export const MissileTravel = () => {
             height: "100%",
             backgroundColor: progress > 0.7 ? C.hudRed : C.hudAmber,
             borderRadius: 2,
-            boxShadow: `0 0 10px ${progress > 0.7 ? C.hudRed : C.hudAmber}`,
+            boxShadow: `0 0 4px ${progress > 0.7 ? C.hudRed : C.hudAmber}`,
           }}
         />
       </div>
