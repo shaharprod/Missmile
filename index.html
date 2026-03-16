@@ -988,98 +988,110 @@ const DAILY_DATA = [
     date: '2026-03-05', dayName: 'חמישי',
     // 7+ מטחים כבדים: 02:22, 03:07, 04:01, 10:28, 13:46, 13:54, 16:30
     // + חיזבאללה: רקטות לחיפה/קריות/עכו 08:30, כטב"מים 08:35, מערב הגליל 12:25
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: 'היום בעיצומו — ~30 קבוצות אזעקה עד 16:30. 7+ מטחים כבדים (02:22, 03:07, 04:01, 10:28, 13:46, 13:54, 16:30). חיזבאללה: רקטות לחיפה+קריות+עכו 08:30, כטב"מים 08:35, מערב הגליל 12:25.'
+    // צפירה=193 (בליסטי), ירי רקטות=34. 7+ גלי איראן, 10+ גלי חיזבאללה
+    iranWaves: 7, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 10, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 193, uavsLaunched: 34, interceptions: '~90%', interceptionsCount: '~174', impacts: '~19', killed: 0, injured: 0,
+    events: '227 אזעקות פיקוד העורף. 7+ מטחים מאיראן (193 סירנות), 10+ גלי חיזבאללה (34 ירי). גלים 00:34-20:34.'
   },
   {
-    // מקור: צבע אדום API (Google Sheets) — 202 אזעקות פיקוד העורף
+    // 6.3.2026 (שישי, יום 7) — מקור: צבע אדום API — 202 אזעקות
+    // צפירה=69 (בליסטי מאיראן), ירי רקטות=101 (חיזבאללה). 6 גלי איראן, 3 גלי חיזבאללה
     date: '2026-03-06', dayName: 'שישי',
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: '202 אזעקות פיקוד העורף (צבע אדום API). 101 ירי רקטות וטילים, 69 צפירה. גלים 12:03-23:37.'
+    iranWaves: 6, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 3, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 69, uavsLaunched: 101, interceptions: '~90%', interceptionsCount: '~62', impacts: '~7', killed: 0, injured: 0,
+    events: '202 אזעקות פיקוד העורף. 6 מטחי בליסטיים מאיראן (69 סירנות), 3 גלי חיזבאללה (101 ירי). גלים 12:03-23:37.'
   },
   {
-    // מקור: צבע אדום API (Google Sheets) — 274 אזעקות פיקוד העורף
+    // 7.3.2026 (שבת, יום 8) — מקור: צבע אדום API — 274 אזעקות
+    // צפירה=193 (בליסטי), ירי רקטות=56. 6 גלי איראן, 4 גלי חיזבאללה
     date: '2026-03-07', dayName: 'שבת',
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: '274 אזעקות פיקוד העורף (צבע אדום API). 56 ירי רקטות וטילים, 193 צפירה. גלים 01:02-23:38.'
+    iranWaves: 6, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 4, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 193, uavsLaunched: 56, interceptions: '~90%', interceptionsCount: '~174', impacts: '~19', killed: 0, injured: 0,
+    events: '274 אזעקות. 6 מטחי בליסטיים מאיראן (193 סירנות), 4 גלי חיזבאללה (56 ירי). גלים 01:02-23:38.'
   },
   {
-    // מקור: צבע אדום API (Google Sheets) — 282 אזעקות פיקוד העורף
+    // 8.3.2026 (ראשון, יום 9) — מקור: צבע אדום API — 282 אזעקות
+    // צפירה=176 (בליסטי), ירי רקטות=105. 5 גלי איראן, 4 גלי חיזבאללה
     date: '2026-03-08', dayName: 'ראשון',
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: '282 אזעקות פיקוד העורף (צבע אדום API). 105 ירי רקטות וטילים, 176 צפירה. גלים 01:39-23:34.'
+    iranWaves: 5, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 4, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 176, uavsLaunched: 105, interceptions: '~90%', interceptionsCount: '~158', impacts: '~18', killed: 0, injured: 0,
+    events: '282 אזעקות. 5 מטחי בליסטיים מאיראן (176 סירנות), 4 גלי חיזבאללה (105 ירי). גלים 01:39-23:34.'
   },
   {
-    // מקור: צבע אדום API (Google Sheets) — 189 אזעקות פיקוד העורף
+    // 9.3.2026 (שני, יום 10) — מקור: צבע אדום API — 189 אזעקות
+    // צפירה=164 (בליסטי), ירי רקטות=25. 3 גלי איראן, 5 גלי חיזבאללה
     date: '2026-03-09', dayName: 'שני',
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: '189 אזעקות פיקוד העורף (צבע אדום API). 25 ירי רקטות וטילים, 164 צפירה. גלים 00:40-23:59.'
+    iranWaves: 3, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 5, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 164, uavsLaunched: 25, interceptions: '~90%', interceptionsCount: '~148', impacts: '~16', killed: 0, injured: 0,
+    events: '189 אזעקות. 3 מטחי בליסטיים מאיראן (164 סירנות), 5 גלי חיזבאללה (25 ירי). גלים 00:40-23:59.'
   },
   {
-    // מקור: צבע אדום API (Google Sheets) — 200 אזעקות פיקוד העורף
+    // 10.3.2026 (שלישי, יום 11) — מקור: צבע אדום API — 200 אזעקות
+    // צפירה=169 (בליסטי), ירי רקטות=31. 4 גלי איראן, 4 גלי חיזבאללה
     date: '2026-03-10', dayName: 'שלישי',
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: '200 אזעקות פיקוד העורף (צבע אדום API). 31 ירי רקטות וטילים, 169 צפירה. גלים 00:00-23:38.'
+    iranWaves: 4, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 4, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 169, uavsLaunched: 31, interceptions: '~90%', interceptionsCount: '~152', impacts: '~17', killed: 0, injured: 0,
+    events: '200 אזעקות. 4 מטחי בליסטיים מאיראן (169 סירנות), 4 גלי חיזבאללה (31 ירי). גלים 00:00-23:38.'
   },
   {
-    // מקור: צבע אדום API (Google Sheets) — 338 אזעקות פיקוד העורף
+    // 11.3.2026 (רביעי, יום 12) — מקור: צבע אדום API — 338 אזעקות (שיא מאז 1.3!)
+    // צפירה=150 (בליסטי), ירי רקטות=157. 4 גלי איראן, 2 גלי חיזבאללה
     date: '2026-03-11', dayName: 'רביעי',
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: '338 אזעקות פיקוד העורף (צבע אדום API). 157 ירי רקטות וטילים, 150 צפירה. גלים 03:47-23:19.'
+    iranWaves: 4, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 2, lebRockets: 'רקטות',
+    missilesLaunched: 150, uavsLaunched: 157, interceptions: '~90%', interceptionsCount: '~135', impacts: '~15', killed: 0, injured: 0,
+    events: '338 אזעקות — שיא מאז יום 2! 4 מטחים מאיראן (150 סירנות), 2 גלי חיזבאללה (157 ירי). גלים 03:47-23:19.'
   },
   {
-    // מקור: צבע אדום API (Google Sheets) — 198 אזעקות פיקוד העורף
+    // 12.3.2026 (חמישי, יום 13) — מקור: צבע אדום API — 198 אזעקות
+    // צפירה=118 (בליסטי), ירי רקטות=80. 4 גלי איראן, 4 גלי חיזבאללה
     date: '2026-03-12', dayName: 'חמישי',
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: '198 אזעקות פיקוד העורף (צבע אדום API). 80 ירי רקטות וטילים, 118 צפירה. גלים 00:24-22:22.'
+    iranWaves: 4, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 4, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 118, uavsLaunched: 80, interceptions: '~90%', interceptionsCount: '~106', impacts: '~12', killed: 0, injured: 0,
+    events: '198 אזעקות. 4 מטחים מאיראן (118 סירנות), 4 גלי חיזבאללה (80 ירי). גלים 00:24-22:22.'
   },
   {
-    // מקור: צבע אדום API (Google Sheets) — 146 אזעקות פיקוד העורף
+    // 13.3.2026 (שישי, יום 14) — מקור: צבע אדום API — 146 אזעקות
+    // צפירה=114 (בליסטי), ירי רקטות=32. 3 גלי איראן, 5 גלי חיזבאללה
     date: '2026-03-13', dayName: 'שישי',
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: '146 אזעקות פיקוד העורף (צבע אדום API). 32 ירי רקטות וטילים, 114 צפירה. גלים 00:20-23:24.'
+    iranWaves: 3, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 5, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 114, uavsLaunched: 32, interceptions: '~90%', interceptionsCount: '~103', impacts: '~11', killed: 0, injured: 0,
+    events: '146 אזעקות. 3 מטחים מאיראן (114 סירנות), 5 גלי חיזבאללה (32 ירי). גלים 00:20-23:24.'
   },
   {
-    // מקור: צבע אדום API (Google Sheets) — 203 אזעקות פיקוד העורף
+    // 14.3.2026 (שבת, יום 15) — מקור: צבע אדום API — 203 אזעקות
+    // צפירה=141 (בליסטי), ירי רקטות=62. 3 גלי איראן, 5 גלי חיזבאללה
     date: '2026-03-14', dayName: 'שבת',
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: '203 אזעקות פיקוד העורף (צבע אדום API). 62 ירי רקטות וטילים, 141 צפירה. גלים 00:34-22:24.'
+    iranWaves: 3, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 5, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 141, uavsLaunched: 62, interceptions: '~90%', interceptionsCount: '~127', impacts: '~14', killed: 0, injured: 0,
+    events: '203 אזעקות. 3 מטחים מאיראן (141 סירנות), 5 גלי חיזבאללה (62 ירי). גלים 00:34-22:24.'
   },
   {
-    // מקור: צבע אדום API (Google Sheets) — 172 אזעקות פיקוד העורף
+    // 15.3.2026 (ראשון, יום 16) — מקור: צבע אדום API — 172 אזעקות
+    // צפירה=150 (בליסטי), ירי רקטות=22. 2 גלי איראן, 6 גלי חיזבאללה
     date: '2026-03-15', dayName: 'ראשון',
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: '172 אזעקות פיקוד העורף (צבע אדום API). 22 ירי רקטות וטילים, 150 צפירה. גלים 01:20-22:58.'
+    iranWaves: 2, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 6, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 150, uavsLaunched: 22, interceptions: '~90%', interceptionsCount: '~135', impacts: '~15', killed: 0, injured: 0,
+    events: '172 אזעקות. 2 מטחים מאיראן (150 סירנות), 6 גלי חיזבאללה (22 ירי). גלים 01:20-22:58.'
   },
   {
-    // מקור: צבע אדום API (Google Sheets) — 184 אזעקות פיקוד העורף
+    // 16.3.2026 (שני, יום 17) — מקור: צבע אדום API — 184 אזעקות
+    // צפירה=133 (בליסטי), ירי רקטות=51. 5 גלי איראן, 4 גלי חיזבאללה
     date: '2026-03-16', dayName: 'שני',
-    iranWaves: 'מתעדכן', iranMissiles: 'מתעדכן', iranUAVs: 'מתעדכן', iranKilled: 'מתעדכן', iranInjured: 'מתעדכן',
-    lebWaves: 'מתעדכן', lebRockets: 'מתעדכן',
-    missilesLaunched: 'מתעדכן', uavsLaunched: 'מתעדכן', interceptions: 'מתעדכן', interceptionsCount: 'מתעדכן', impacts: 'מתעדכן', killed: 'מתעדכן', injured: 'מתעדכן',
-    events: '184 אזעקות פיקוד העורף (צבע אדום API). 51 ירי רקטות וטילים, 133 צפירה. גלים 00:33-22:21.'
+    iranWaves: 5, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 4, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 133, uavsLaunched: 51, interceptions: '~90%', interceptionsCount: '~120', impacts: '~13', killed: 0, injured: 0,
+    events: '184 אזעקות. 5 מטחים מאיראן (133 סירנות), 4 גלי חיזבאללה (51 ירי). גלים 00:33-22:21.'
   },
   // 17.3 ואילך — יתווסף רק כשהתאריך יגיע בפועל
 ];
