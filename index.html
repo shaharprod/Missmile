@@ -2025,9 +2025,15 @@ loadDynamicAlerts();
   DAILY_DATA.sort(function(a, b) { return a.date.localeCompare(b.date); });
 })();
 
+// === תאריך מקומי (לא UTC) — קריטי לישראל בלילה ===
+function localDateKey(d) {
+  d = d || new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 // TODAY_SEED_ALERTS — נגזר מ-ALERTS_BY_DAY של היום
 // כל אירוע = רשומה אחת (לא פיצול לערים!) כדי שהספירה תהיה קבועה ומדויקת
-var todayDate = new Date().toISOString().split('T')[0];
+var todayDate = localDateKey();
 var TODAY_SEED_ALERTS = [];
 if (ALERTS_BY_DAY[todayDate]) {
   var northAreas = ['גליל', 'קריית שמונה', 'מטולה', 'חיפה', 'עכו', 'נהריה', 'צפון', 'מרגליות', 'שומרה', 'גורן', 'דוב"ב', 'מלכיה', 'יפתח', 'רמות נפתלי', 'אביבים', 'יראון', 'מנרה', 'שניר', 'שאר ישוב', 'דפנה', 'הגושרים', 'אצבע הגליל', 'בית הלל', 'כפר בלום', 'נאות מרדכי', 'שדה נחמיה', 'לב החולה'];
@@ -2353,7 +2359,7 @@ function updateRealtimeGauge() {
   var now = new Date();
   var minutesSince = getMinutesSinceLastAlert();
   var recentRate = getRecentAlertRate(30);
-  var baseDanger = 100 - calcSafety(now.getHours(), now.toISOString().split('T')[0]);
+  var baseDanger = 100 - calcSafety(now.getHours(), localDateKey(now));
 
   var recencyFactor = Math.max(0, 1 - minutesSince / 60) * 40;
   var rateFactor = Math.min(recentRate / 5, 1) * 30;
@@ -2372,7 +2378,7 @@ function updateRealtimeGauge() {
 
 function updateStatisticalGauge() {
   var now = new Date();
-  var safety = calcSafety(now.getHours(), now.toISOString().split('T')[0]);
+  var safety = calcSafety(now.getHours(), localDateKey(now));
   var dangerPct = 100 - safety;
   drawGauge('statGauge', dangerPct, 'statistical');
 
@@ -2391,7 +2397,7 @@ function updateRealtimeStatus() {
 
   // בדיקת רמת סכנה היסטורית לשעה הנוכחית
   var now = new Date();
-  var hourDanger = 1 - calcSafety(now.getHours(), now.toISOString().split('T')[0]) / 100;
+  var hourDanger = 1 - calcSafety(now.getHours(), localDateKey(now)) / 100;
 
   // אנחנו במלחמה — אין סטטוס "שקט" בכלל!
   if (minutesSince < 2) {
@@ -2438,7 +2444,7 @@ var WAR_DAYS = [
   while (lastDate < today) {
     lastDate.setDate(lastDate.getDate() + 1);
     if (lastDate > today) break;
-    var iso = lastDate.toISOString().split('T')[0];
+    var iso = localDateKey(lastDate);
     var d = lastDate.getDate();
     var m = lastDate.getMonth() + 1;
     var dow = lastDate.getDay();
@@ -3407,7 +3413,7 @@ function processTzevaadomAlert(data, source) {
   });
   if (!isDuplicate) {
     alertsLog.unshift({
-      time: timeStr, alertDate: now.toISOString().split('T')[0] + ' ' + timeStr,
+      time: timeStr, alertDate: localDateKey(now) + ' ' + timeStr,
       area: areas, type: type, title: title, source: 'live', live: true
     });
     todayAlertCount++;
@@ -3418,7 +3424,7 @@ function processTzevaadomAlert(data, source) {
     saveAlerts();
     renderAlertLog();
     recalculate();
-    var dateKey = now.toISOString().split('T')[0];
+    var dateKey = localDateKey(now);
     saveDynamicAlert(dateKey, timeStr, areas, type, title);
     // עדכון דינמי של DAILY_DATA ו-HOURLY_DATA_PER_DAY
     updateLiveDayData(dateKey, type);
@@ -3597,7 +3603,7 @@ function processOrefAlerts(alertsData) {
   if (alerts.length === 0 || !alerts[0].data) return false;
 
   var newAlerts = false;
-  var todayStr = new Date().toISOString().split('T')[0];
+  var todayStr = localDateKey();
 
   alerts.forEach(function(a) {
     // דלג על "האירוע הסתיים" (cat 10, 13) — מקור: oref-alert.sh מריפו GiladShoham
@@ -3796,7 +3802,7 @@ function exportAlertData() {
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = 'safetime-alerts-' + new Date().toISOString().split('T')[0] + '.json';
+  a.download = 'safetime-alerts-' + localDateKey() + '.json';
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -3834,7 +3840,7 @@ function recalculate() {
 
 function autoSetSelectors() {
   var now = new Date();
-  var todayISO = now.toISOString().split('T')[0];
+  var todayISO = localDateKey(now);
   // Find matching WAR_DAYS entry, or default to last one
   var found = WAR_DAYS.find(function(wd) { return wd.date === todayISO; });
   $('daySelect').value = found ? found.date : WAR_DAYS[WAR_DAYS.length - 1].date;
@@ -3878,7 +3884,7 @@ function scheduleMidnightNewDay() {
 
 function createNewDay() {
   var today = new Date();
-  var dateKey = today.toISOString().split('T')[0];
+  var dateKey = localDateKey(today);
 
   // הוספה ל-WAR_DAYS אם לא קיים
   if (!WAR_DAYS.find(function(w) { return w.date === dateKey; })) {
@@ -3929,7 +3935,7 @@ function createNewDay() {
 // הפעלה מיידית — יצירת נתוני היום הנוכחי (ללא DOM, רק מבני נתונים)
 (function ensureTodayExists() {
   var today = new Date();
-  var dateKey = today.toISOString().split('T')[0];
+  var dateKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
   if (!WAR_DAYS.find(function(w) { return w.date === dateKey; })) {
     var dayNum = WAR_DAYS.length + 1;
