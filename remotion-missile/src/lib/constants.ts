@@ -63,7 +63,7 @@ export const SCENE_LAUNCH = 168; // 7s
 export const SCENE_TRAVEL = 168; // 7s
 export const SCENE_RADAR = 120; // 5s
 export const SCENE_INTERCEPT = 360; // 15s
-export const SCENE_ENDCARD = 228; // 9.5s (4.5s content + 5s hold before fade)
+export const SCENE_ENDCARD = 312; // 13s (8s content + 5s hold before fade)
 export const TRANSITION_FRAMES = 12;
 
 export const TOTAL_FRAMES =

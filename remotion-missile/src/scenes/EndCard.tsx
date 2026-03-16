@@ -8,11 +8,34 @@ import {
 import { C } from "../lib/constants";
 
 const STATS = [
-  { label: "INTERCEPTORS LAUNCHED", value: "4", icon: ">" },
+  { label: "DAYS OF ALERTS", value: "17", icon: ">" },
+  { label: "TOTAL ALERTS", value: "2,709", icon: "#" },
   { label: "INTERCEPTION RESULT", value: "SUCCESS", icon: "+" },
-  { label: "DEBRIS FRAGMENTS", value: "14", icon: "#" },
   { label: "THREAT LEVEL", value: "NEUTRALIZED", icon: "=" },
 ];
+
+// Alert data per day (28.02.2026 - 16.03.2026)
+const DAILY_ALERTS = [
+  { date: "28.02", alerts: 12 },
+  { date: "01.03", alerts: 12 },
+  { date: "02.03", alerts: 9 },
+  { date: "03.03", alerts: 8 },
+  { date: "04.03", alerts: 53 },
+  { date: "05.03", alerts: 227 },
+  { date: "06.03", alerts: 202 },
+  { date: "07.03", alerts: 274 },
+  { date: "08.03", alerts: 282 },
+  { date: "09.03", alerts: 189 },
+  { date: "10.03", alerts: 200 },
+  { date: "11.03", alerts: 338 },
+  { date: "12.03", alerts: 198 },
+  { date: "13.03", alerts: 146 },
+  { date: "14.03", alerts: 203 },
+  { date: "15.03", alerts: 172 },
+  { date: "16.03", alerts: 184 },
+];
+
+const MAX_ALERTS = Math.max(...DAILY_ALERTS.map((d) => d.alerts));
 
 const DEFENSE_LAYERS = [
   { en: "ARROW-3", he: "חץ-3", color: "#ff3344" },
@@ -52,7 +75,7 @@ export const EndCard = () => {
   });
 
   // End transmission blink
-  const endTransmission = frame > 80;
+  const endTransmission = frame > 130;
   const endBlink = Math.floor(frame / 12) % 2 === 0;
 
   const masterOpacity = fadeIn * fadeOut;
@@ -78,7 +101,7 @@ export const EndCard = () => {
           transform: "translate(-50%, -50%)",
           textAlign: "center",
           fontFamily: "monospace",
-          width: 800,
+          width: 900,
         }}
       >
         {/* THREAT NEUTRALIZED */}
@@ -175,7 +198,77 @@ export const EndCard = () => {
             height: 1,
             backgroundColor: C.hudGreen,
             opacity: 0.2,
-            margin: "0 auto 25px",
+            margin: "0 auto 20px",
+          }}
+        />
+
+        {/* Daily alerts bar chart */}
+        {(() => {
+          const chartReveal = interpolate(frame, [56, 76], [0, 1], {
+            easing: Easing.out(Easing.cubic),
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          });
+          return (
+            <div style={{ opacity: chartReveal, marginBottom: 20 }}>
+              <div style={{ fontSize: 14, color: C.hudGreen, opacity: 0.5, marginBottom: 10, letterSpacing: 3 }}>
+                DAILY ALERTS — 28.02.2026 → 16.03.2026
+              </div>
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 4, height: 60 }}>
+                {DAILY_ALERTS.map((day, i) => {
+                  const barGrow = interpolate(frame, [60 + i * 1.5, 72 + i * 1.5], [0, 1], {
+                    easing: Easing.out(Easing.cubic),
+                    extrapolateLeft: "clamp",
+                    extrapolateRight: "clamp",
+                  });
+                  const barHeight = (day.alerts / MAX_ALERTS) * 50 * barGrow;
+                  const isHigh = day.alerts > 200;
+                  return (
+                    <div key={day.date} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                      <div
+                        style={{
+                          width: 30,
+                          height: barHeight,
+                          backgroundColor: isHigh ? C.hudRed : C.hudGreen,
+                          opacity: isHigh ? 0.8 : 0.5,
+                          borderRadius: "2px 2px 0 0",
+                        }}
+                      />
+                      <div style={{ fontSize: 9, color: C.hudGreen, opacity: 0.4, marginTop: 3 }}>
+                        {day.date.split(".")[0]}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Previous attack info */}
+        {(() => {
+          const prevReveal = interpolate(frame, [80, 96], [0, 1], {
+            easing: Easing.out(Easing.cubic),
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          });
+          return (
+            <div style={{ opacity: prevReveal, marginBottom: 20 }}>
+              <div style={{ fontSize: 13, color: C.hudAmber, opacity: 0.6, letterSpacing: 2 }}>
+                PREVIOUS IRANIAN ATTACK: 01.10.2024 — 516 DAYS BEFORE
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Divider */}
+        <div
+          style={{
+            width: dividerWidth * 0.5,
+            height: 1,
+            backgroundColor: C.hudGreen,
+            opacity: 0.15,
+            margin: "0 auto 20px",
           }}
         />
 
@@ -189,7 +282,7 @@ export const EndCard = () => {
           }}
         >
           {DEFENSE_LAYERS.map((layer, i) => {
-            const layerReveal = interpolate(frame, [52 + i * 5, 64 + i * 5], [0, 1], {
+            const layerReveal = interpolate(frame, [100 + i * 5, 112 + i * 5], [0, 1], {
               easing: Easing.out(Easing.cubic),
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
