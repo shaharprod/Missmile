@@ -3926,12 +3926,31 @@ function createNewDay() {
   renderAlertLog();
 }
 
-// הפעלה מיידית — יצירת היום הנוכחי אם עוד לא קיים
+// הפעלה מיידית — יצירת נתוני היום הנוכחי (ללא DOM, רק מבני נתונים)
 (function ensureTodayExists() {
-  var today = new Date().toISOString().split('T')[0];
-  if (!WAR_DAYS.find(function(w) { return w.date === today; })) {
-    createNewDay();
+  var today = new Date();
+  var dateKey = today.toISOString().split('T')[0];
+
+  if (!WAR_DAYS.find(function(w) { return w.date === dateKey; })) {
+    var dayNum = WAR_DAYS.length + 1;
+    WAR_DAYS.push({
+      date: dateKey,
+      dayName: DAY_NAMES[today.getDay()] + ' ' + today.getDate() + '.' + (today.getMonth() + 1),
+      dayNum: today.getDay(),
+      label: 'יום ' + dayNum
+    });
   }
+  if (!DAILY_DATA.find(function(d) { return d.date === dateKey; })) {
+    DAILY_DATA.push({
+      date: dateKey, dayName: DAY_NAMES[today.getDay()],
+      iranWaves: 0, iranMissiles: 0, iranUAVs: 0, iranKilled: 0, iranInjured: 0,
+      lebWaves: 0, lebRockets: 0,
+      missilesLaunched: 0, uavsLaunched: 0, interceptions: '—', interceptionsCount: 0, impacts: 0, killed: 0, injured: 0,
+      events: 'יום חדש — ממתין לנתונים בזמן אמת.'
+    });
+  }
+  if (!ALERTS_BY_DAY[dateKey]) ALERTS_BY_DAY[dateKey] = [];
+  if (!HOURLY_DATA_PER_DAY[dateKey]) HOURLY_DATA_PER_DAY[dateKey] = new Array(24).fill(0);
 })();
 
 function init() {
