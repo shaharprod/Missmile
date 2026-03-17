@@ -2832,24 +2832,33 @@ function renderAverageHourChart(currentHour) {
   if (!chart) return;
   chart.innerHTML = '';
 
-  // חישוב ממוצע גלי אזעקה לכל שעה — ספירת זמנים ייחודיים (דקות) למניעת כפילויות
-  // אזעקות באותה דקה = גל אחד (למשל 19:03 עם 3 קבוצות ישובים = גל 1, לא 3)
+  // חישוב ממוצע אזעקות לשעה — מבוסס על HOURLY_DATA_PER_DAY (עוצמה אמיתית) + DAILY_DATA (סה"כ אזעקות)
+  // שיטה: עוצמה_שעתית × סה"כ_אזעקות_יום / סכום_עוצמות = אזעקות_משוערות_לשעה
+  // ממוצע על פני כל הימים — מדויק הרבה יותר מספירת ALERTS_BY_DAY (שיש בו רזולוציה לא אחידה)
   var hourTotals = new Array(24).fill(0);
-  var allDates = Object.keys(ALERTS_BY_DAY);
   var dayCount = 0;
 
-  allDates.forEach(function(dateKey) {
-    var alerts = ALERTS_BY_DAY[dateKey] || [];
-    if (alerts.length === 0) return;
+  DAILY_DATA.forEach(function(d) {
+    var hourly = HOURLY_DATA_PER_DAY[d.date];
+    if (!hourly) return;
+    // חילוץ מספר אזעקות מהאירועים
+    var evMatch = (d.events || '').match(/(\d+)\s*אזעקות/);
+    var totalAlerts = evMatch ? parseInt(evMatch[1]) : 0;
+    if (totalAlerts === 0) {
+      // ימים 1-4: שימוש בהערכה מספר גלים
+      totalAlerts = (typeof d.iranWaves === 'number' ? d.iranWaves : 0) +
+                    (typeof d.lebWaves === 'number' ? d.lebWaves : 0);
+      totalAlerts = Math.max(totalAlerts, 10); // מינימום
+    }
+    // סכום עוצמות לנרמול
+    var intensitySum = 0;
+    for (var h = 0; h < 24; h++) intensitySum += hourly[h];
+    if (intensitySum === 0) return;
     dayCount++;
-    // ספירת זמנים ייחודיים לכל שעה
-    var seenTimes = {};
-    alerts.forEach(function(a) {
-      if (seenTimes[a.time]) return; // כבר נספר הזמן הזה
-      seenTimes[a.time] = true;
-      var h = parseInt(a.time.split(':')[0]);
-      if (h >= 0 && h < 24) hourTotals[h]++;
-    });
+    // פיזור אזעקות לפי עוצמה שעתית
+    for (var h = 0; h < 24; h++) {
+      hourTotals[h] += (hourly[h] / intensitySum) * totalAlerts;
+    }
   });
 
   if (dayCount === 0) {
