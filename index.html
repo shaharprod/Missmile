@@ -3727,6 +3727,14 @@ var CORS_PROXIES = [
   function(u) { return 'https://thingproxy.freeboard.io/fetch/' + u; },
   function(u) { return 'https://api.cors.lol/?url=' + encodeURIComponent(u); }
 ];
+// מקורות עדכון נפגעים אוטומטי (ניתן להרחיב דרך localStorage: safetime_incident_feeds)
+var INCIDENT_FEED_DEFAULTS = [
+  TZEVAADOM_NOTIFICATIONS_URL,
+  OREF_URL,
+  OREF_HISTORY_URL
+];
+var incidentFingerprints = [];
+var liveCasualtyByDay = {};
 // WebSocket state
 var wsConnection = null;
 var wsReconnectTimer = null;
@@ -3909,6 +3917,157 @@ function stableNotificationId(payload, timeStr, areas) {
   return 'auto_' + timeStr + '_' + threat + '_' + String(areas || '').substring(0, 120);
 }
 
+function normalizeDateKey(input) {
+  if (!input) return localDateKey();
+  if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
+  var d = resolveAlertDate({ time: input });
+  return localDateKey(d);
+}
+
+function parseHebrewNumberToken(token) {
+  var map = {
+    'אפס': 0, 'אחת': 1, 'אחד': 1, 'שניים': 2, 'שני': 2, 'שתיים': 2, 'שתי': 2,
+    'שלושה': 3, 'שלוש': 3, 'ארבעה': 4, 'ארבע': 4, 'חמישה': 5, 'חמש': 5,
+    'שישה': 6, 'שש': 6, 'שבעה': 7, 'שבע': 7, 'שמונה': 8, 'תשעה': 9, 'תשע': 9,
+    'עשרה': 10, 'עשר': 10
+  };
+  if (typeof token === 'number') return token;
+  token = String(token || '').trim();
+  if (/^\d+$/.test(token)) return parseInt(token, 10);
+  return typeof map[token] === 'number' ? map[token] : null;
+}
+
+function parseCasualtiesFromText(text) {
+  var out = { killed: 0, injured: 0 };
+  var s = String(text || '');
+  if (!s) return out;
+  var numOrWord = '(\\d+|אחת|אחד|שניים|שני|שתיים|שתי|שלושה|שלוש|ארבעה|ארבע|חמישה|חמש|שישה|שש|שבעה|שבע|שמונה|תשעה|תשע|עשרה|עשר)';
+  var rk = new RegExp(numOrWord + '\\s*(?:הרוגים|הרוג|נהרגו|נהרג|נרצחו|חללים?)', 'g');
+  var ri = new RegExp(numOrWord + '\\s*(?:פצועים|פצוע|נפצעו|נפצע)', 'g');
+  var m;
+  while ((m = rk.exec(s)) !== null) {
+    var n = parseHebrewNumberToken(m[1]);
+    if (typeof n === 'number' && n > out.killed) out.killed = n;
+  }
+  while ((m = ri.exec(s)) !== null) {
+    var n2 = parseHebrewNumberToken(m[1]);
+    if (typeof n2 === 'number' && n2 > out.injured) out.injured = n2;
+  }
+  return out;
+}
+
+function ensureDailyDataRow(dateKey) {
+  var row = DAILY_DATA.find(function(d) { return d.date === dateKey; });
+  if (row) return row;
+  var d = resolveAlertDate({ time: dateKey + ' 00:00' });
+  row = {
+    date: dateKey, dayName: DAY_NAMES[d.getDay()],
+    iranWaves: 0, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    lebWaves: 0, lebRockets: 'רקטות+כטב"מים',
+    missilesLaunched: 0, clusterMissiles: 0, uavsLaunched: 0, interceptions: '—', interceptionsCount: '—', impacts: 0, killed: 0, injured: 0,
+    events: 'יום חדש — ממתין לנתונים בזמן אמת.'
+  };
+  DAILY_DATA.push(row);
+  DAILY_DATA.sort(function(a, b) { return a.date.localeCompare(b.date); });
+  return row;
+}
+
+function applyLiveCasualtyUpdate(dateKey, killed, injured, note) {
+  if ((!killed || killed <= 0) && (!injured || injured <= 0)) return false;
+  dateKey = normalizeDateKey(dateKey);
+  var row = ensureDailyDataRow(dateKey);
+  var oldKilled = Number(row.killed || 0);
+  var oldInjured = Number(row.injured || 0);
+  var newKilled = Math.max(oldKilled, Number(killed || 0));
+  var newInjured = Math.max(oldInjured, Number(injured || 0));
+  if (newKilled === oldKilled && newInjured === oldInjured) return false;
+  row.killed = newKilled;
+  row.injured = newInjured;
+  row.iranKilled = Math.max(Number(row.iranKilled || 0), newKilled);
+  row.iranInjured = Math.max(Number(row.iranInjured || 0), newInjured);
+  if (note) {
+    var base = String(row.events || '');
+    if (base.indexOf('עדכון נפגעים אוטומטי') === -1) {
+      row.events = (base ? (base + ' ') : '') + 'עדכון נפגעים אוטומטי: ' + newKilled + ' הרוגים, ' + newInjured + ' פצועים.';
+    }
+  }
+  liveCasualtyByDay[dateKey] = { killed: newKilled, injured: newInjured, ts: Date.now() };
+  try { localStorage.setItem('safetime_live_casualty_by_day', JSON.stringify(liveCasualtyByDay)); } catch (e) {}
+  renderDailyTable();
+  renderIntensityTabs();
+  recalculate();
+  return true;
+}
+
+function ingestIncidentText(text, dateLike) {
+  var parsed = parseCasualtiesFromText(text);
+  if ((parsed.killed || 0) <= 0 && (parsed.injured || 0) <= 0) return false;
+  var dateKey = normalizeDateKey(dateLike);
+  var fp = dateKey + '|' + parsed.killed + '|' + parsed.injured + '|' + String(text || '').substring(0, 120);
+  if (incidentFingerprints.indexOf(fp) !== -1) return false;
+  incidentFingerprints.push(fp);
+  if (incidentFingerprints.length > 500) incidentFingerprints.shift();
+  return applyLiveCasualtyUpdate(dateKey, parsed.killed, parsed.injured, text);
+}
+
+async function fetchJsonDirectOrProxy(targetUrl, timeoutMs) {
+  timeoutMs = timeoutMs || 6000;
+  try {
+    var direct = await fetch(targetUrl, { signal: AbortSignal.timeout(timeoutMs) });
+    if (direct.ok) {
+      var directText = await direct.text();
+      if (directText && directText.charCodeAt(0) === 0xFEFF) directText = directText.slice(1);
+      return JSON.parse(directText);
+    }
+  } catch (e) {}
+  for (var i = 0; i < CORS_PROXIES.length; i++) {
+    try {
+      var proxyUrl = CORS_PROXIES[i](targetUrl);
+      var prox = await fetch(proxyUrl, { signal: AbortSignal.timeout(timeoutMs + 2000) });
+      if (prox.ok) {
+        var txt = await prox.text();
+        if (txt && txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1);
+        return JSON.parse(txt);
+      }
+    } catch (e2) {}
+  }
+  return null;
+}
+
+function getIncidentFeedUrls() {
+  var urls = INCIDENT_FEED_DEFAULTS.slice();
+  try {
+    var extra = JSON.parse(localStorage.getItem('safetime_incident_feeds') || '[]');
+    if (Array.isArray(extra)) {
+      extra.forEach(function(u) { if (typeof u === 'string' && /^https?:\/\//.test(u)) urls.push(u); });
+    }
+  } catch (e) {}
+  // unique
+  var uniq = {};
+  return urls.filter(function(u) { if (uniq[u]) return false; uniq[u] = true; return true; });
+}
+
+async function autoUpdateCasualtiesFromFeeds() {
+  try {
+    var urls = getIncidentFeedUrls();
+    for (var i = 0; i < urls.length; i++) {
+      var data = await fetchJsonDirectOrProxy(urls[i], 6000);
+      if (!data) continue;
+      var list = Array.isArray(data) ? data : [data];
+      list.forEach(function(item) {
+        if (!item) return;
+        var dateLike = item.alertDate || item.date || item.time || item.createdAt || item.updatedAt || localDateKey();
+        var texts = [];
+        ['title', 'description', 'desc', 'message', 'data', 'content', 'summary'].forEach(function(k) {
+          if (typeof item[k] === 'string' && item[k].trim()) texts.push(item[k]);
+        });
+        if (texts.length === 0 && typeof item === 'string') texts.push(item);
+        texts.forEach(function(t) { ingestIncidentText(t, dateLike); });
+      });
+    }
+  } catch (e) {}
+}
+
 function classifyAlertSource(type, areas, title) {
   var text = String(areas || '') + ' ' + String(title || '');
   var northAreas = ['גליל', 'קריית שמונה', 'מטולה', 'חיפה', 'עכו', 'נהריה', 'צפון', 'מרגליות', 'שומרה', 'גורן', 'דוב"ב', 'מלכיה', 'יפתח', 'רמות נפתלי', 'אביבים', 'יראון', 'מנרה', 'שניר', 'שאר ישוב', 'דפנה', 'הגושרים', 'אצבע הגליל', 'בית הלל', 'כפר בלום', 'נאות מרדכי', 'שדה נחמיה', 'לב החולה'];
@@ -3974,6 +4133,7 @@ function processTzevaadomAlert(data, source) {
   var title = (threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים';
   var alertSource = classifyAlertSource(type, areas, title);
   var dateKey = localDateKey(alertDate);
+  ingestIncidentText(String(title || '') + ' ' + String(areas || ''), dateKey);
 
   // איחוד גל: אותו זמן+סוג+מקור מתמזג לרשומה אחת במקום ספאם כפילויות
   var existingWave = findWaveInAlertsLog(dateKey, timeStr, type, alertSource);
@@ -4491,6 +4651,7 @@ function processOrefAlerts(alertsData) {
 
     var alertSource = classifyAlertSource(type, area, title);
     var dateKey = fullDate.split(' ')[0];
+    ingestIncidentText(String(title || '') + ' ' + String(area || ''), dateKey);
 
     // איחוד גל: אותו זמן+סוג+מקור => מיזוג אזורים לרשומה אחת
     var existingWave = findWaveInAlertsLog(dateKey, timeStr, type, alertSource);
@@ -4936,6 +5097,13 @@ function init() {
   // מונע מצב שבו DAILY_DATA נשאר עם seed חלקי למרות שקיימות התראות ב-ALERTS_BY_DAY
   reconcileAllDailyStatsFromAlerts();
   seedTodayAlerts();
+  try {
+    liveCasualtyByDay = JSON.parse(localStorage.getItem('safetime_live_casualty_by_day') || '{}');
+    Object.keys(liveCasualtyByDay).forEach(function(dk) {
+      var row = liveCasualtyByDay[dk] || {};
+      applyLiveCasualtyUpdate(dk, Number(row.killed || 0), Number(row.injured || 0), 'cache');
+    });
+  } catch (e) {}
 
   // Selectors hidden — auto-set by autoSetSelectors()
 
@@ -4959,6 +5127,9 @@ function init() {
     updateRealtimeGauge();
     updateRealtimeStatus();
   }, 5000);
+  // עדכון נפגעים אוטומטי — כל 20 שניות
+  autoUpdateCasualtiesFromFeeds();
+  setInterval(autoUpdateCasualtiesFromFeeds, 20000);
   setInterval(function() {
     autoSetSelectors();
     recalculate();
