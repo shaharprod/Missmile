@@ -1635,7 +1635,7 @@ function loadAlerts() {
 // ║  מידע שגוי עלול לגרום למוות. אנשים מסתמכים על נתונים אלה.          ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 //
-var SEED_VERSION = 22; // v22: נתוני צבע אדום API ל-6.3-16.3 (ימים 7-17, סה"כ 2,388 אזעקות נוספות)
+var SEED_VERSION = 23; // v23: תיקון נתונים מדויקים 16.3 + הוספת 17.3 + איפוס localStorage מלא
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: Xinhua timeline, JPost, CNN liveblog
@@ -2077,10 +2077,15 @@ function seedTodayAlerts() {
   var storedVersion = 0;
   try { storedVersion = parseInt(localStorage.getItem('safetime_seed_version') || '0'); } catch(e) {}
   if (storedVersion < SEED_VERSION) {
-    // seed data עודכן — מאפסים הכל
+    // seed data עודכן — איפוס מלא של כל ה-localStorage כדי למנוע הבדלים בין מכשירים
     try {
-      localStorage.removeItem('safetime_alerts');
-      localStorage.removeItem('safetime_count');
+      // ניקוי כל המפתחות של safetime
+      var keysToRemove = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i);
+        if (key && key.indexOf('safetime_') === 0) keysToRemove.push(key);
+      }
+      keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
       localStorage.setItem('safetime_seed_version', String(SEED_VERSION));
     } catch(e) {}
     alertsLog = [];
