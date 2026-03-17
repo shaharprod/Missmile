@@ -696,46 +696,6 @@ body {
 
 <div class="flash-overlay" id="flashOverlay"></div>
 
-<!-- מסך הפעלת צליל — חובה ללחוץ כדי לאפשר אזעקות קוליות -->
-<div id="audioActivation" style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="activateAudio()">
-  <div style="text-align:center;color:white;font-family:system-ui,sans-serif;padding:20px;max-width:400px">
-    <div style="font-size:4rem;margin-bottom:20px">🔊</div>
-    <div style="font-size:1.4rem;font-weight:700;margin-bottom:12px;direction:rtl">לחץ כאן להפעלת צלילי אזעקה</div>
-    <div style="font-size:0.9rem;color:#aaa;direction:rtl;line-height:1.6">הדפדפן חוסם צלילים עד ללחיצה ראשונה.<br>חובה ללחוץ כדי לשמוע אזעקות בזמן אמת.<br><strong style="color:#f44336">מדובר בפיקוח נפש!</strong></div>
-  </div>
-</div>
-<script>
-function activateAudio() {
-  // פתיחת AudioContext עם אינטראקציה
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    var buf = audioCtx.createBuffer(1, 1, 22050);
-    var src = audioCtx.createBufferSource();
-    src.buffer = buf;
-    src.connect(audioCtx.destination);
-    src.start(0);
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    audioUnlocked = true;
-  } catch(e) {}
-  // beep קצר לאישור
-  try {
-    var osc = audioCtx.createOscillator();
-    var g = audioCtx.createGain();
-    osc.frequency.value = 600;
-    g.gain.value = 0.2;
-    osc.connect(g); g.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-  } catch(e) {}
-  // הסתר את המסך
-  document.getElementById('audioActivation').style.display = 'none';
-  // בקשת הרשאת התראות
-  try {
-    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  } catch(e) {}
-}
-</script>
 
 <div class="container">
 
