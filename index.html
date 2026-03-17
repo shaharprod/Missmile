@@ -4269,16 +4269,11 @@ async function fetchOrefHistoryWithFallback() {
   return null;
 }
 
-function reconcileRecentDailyStatsFromAlerts(daysBack) {
-  var back = Math.max(1, parseInt(daysBack || '2', 10) || 2);
-  var now = new Date();
-  var keys = [];
-  for (var i = 0; i <= back; i++) {
-    var d = new Date(now);
-    d.setDate(now.getDate() - i);
-    keys.push(localDateKey(d));
-  }
-  keys.forEach(function(dateKey) {
+function reconcileAllDailyStatsFromAlerts() {
+  var keys = {};
+  Object.keys(ALERTS_BY_DAY || {}).forEach(function(k) { keys[k] = true; });
+  (DAILY_DATA || []).forEach(function(d) { if (d && d.date) keys[d.date] = true; });
+  Object.keys(keys).forEach(function(dateKey) {
     var alerts = ALERTS_BY_DAY[dateKey] || [];
     if (alerts.length > 0) updateLiveDayData(dateKey, null, null);
   });
@@ -4293,6 +4288,8 @@ async function syncHistoricalDaysFromApi(daysBack) {
       if (Array.isArray(notifications) && notifications.length > 0) {
         histData = [{ alerts: notifications }];
       } else {
+        // גם אם מקורות חיצוניים נפלו — פיוס מתוך הנתונים שכבר קיימים בזיכרון
+        reconcileAllDailyStatsFromAlerts();
         return false;
       }
     }
@@ -4305,8 +4302,8 @@ async function syncHistoricalDaysFromApi(daysBack) {
       collectedByDay = mergeCollectedByDay(collectedByDay, orefCollected);
     }
     var changedDays = applyHistoricalToDayStores(collectedByDay);
-    // גם אם לא היו שינויים במיזוג, אל תשאיר טבלת DAILY_DATA עם seed-0 לימים שיש להם alerts בפועל
-    reconcileRecentDailyStatsFromAlerts(2);
+    // גם אם לא היו שינויים במיזוג, אל תשאיר טבלת DAILY_DATA עם seed/0 לימים שיש להם alerts בפועל
+    reconcileAllDailyStatsFromAlerts();
 
     if (changedDays.length > 0) {
       saveDynamicAlertsBatch(changedDays);
@@ -4890,7 +4887,7 @@ function init() {
   renderIntensityTabs();
   showIntensityForDate(selectedIntensityDate);
   // מונע מצב שבו DAILY_DATA נשאר עם seed חלקי למרות שקיימות התראות ב-ALERTS_BY_DAY
-  reconcileRecentDailyStatsFromAlerts(2);
+  reconcileAllDailyStatsFromAlerts();
   seedTodayAlerts();
 
   // Selectors hidden — auto-set by autoSetSelectors()
