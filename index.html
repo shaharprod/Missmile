@@ -1639,7 +1639,7 @@ function loadAlerts() {
 // ║  מידע שגוי עלול לגרום למוות. אנשים מסתמכים על נתונים אלה.          ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 //
-var SEED_VERSION = 26; // v26: תיקון זמן אזעקה מ-API + דדופליקציה משופרת
+var SEED_VERSION = 27; // v27: fullDaySync סמכותי — API הוא מקור האמת היחיד
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: Xinhua timeline, JPost, CNN liveblog
@@ -3967,8 +3967,9 @@ function scheduleNextPoll() {
   connectionState.pollTimer = setTimeout(tryFetchLiveAlerts, connectionState.pollInterval);
 }
 
-// === סנכרון מלא — מריץ כל 15 שניות, מביא את כל האזעקות מהיום ===
-// מבטיח שדסקטופ ונייד מציגים אותם נתונים בדיוק
+// === סנכרון מלא — מריץ כל 15 שניות ===
+// מקור אמת יחיד: ה-API. בונה מחדש את alertsLog מנתוני ה-API + seed
+// כך כל מכשיר מציג בדיוק אותו מידע ללא תלות בהיסטוריה מקומית
 async function fullDaySync() {
   try {
     var histData = await fetchTzevaadomWithFallback();
@@ -3978,8 +3979,10 @@ async function fullDaySync() {
     todayMidnight.setHours(0, 0, 0, 0);
     var todayCutoff = todayMidnight.getTime();
     var todayKey = localDateKey();
-    var changed = false;
 
+    // בניית רשימה סמכותית מה-API — כל האזעקות מהיום
+    var apiAlerts = [];
+    var seenKeys = {};
     histData.forEach(function(group) {
       if (!group.alerts) return;
       group.alerts.forEach(function(a) {
@@ -3992,40 +3995,52 @@ async function fullDaySync() {
         var areas = (a.cities || []).join(', ');
         if (!areas) return;
 
+        // דדופליקציה לפי שעה:דקה + 30 תווים ראשונים
+        var key = timeStr + '|' + areas.substring(0, 30);
+        if (seenKeys[key]) return;
+        seenKeys[key] = true;
+
         var threat = a.threat;
         var type = (threat === 5) ? 'uav' : 'missile';
         var title = (threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים';
 
-        // בדיקת כפילות מול alertsLog — לפי שעה:דקה + תחילת אזורים (נמנע פערים בגלל שינוי סדר ערים)
-        var areasStart = areas.substring(0, 30);
-        var isDuplicate = alertsLog.some(function(existing) {
-          return existing.time === timeStr && existing.area.substring(0, 30) === areasStart;
+        apiAlerts.push({
+          time: timeStr, alertDate: todayKey + ' ' + timeStr,
+          area: areas, type: type, title: title, source: 'api', live: true
         });
-
-        if (!isDuplicate) {
-          alertsLog.push({
-            time: timeStr, alertDate: todayKey + ' ' + timeStr,
-            area: areas, type: type, title: title, source: 'sync', live: true
-          });
-          changed = true;
-          saveDynamicAlert(todayKey, timeStr, areas, type, title);
-        }
       });
     });
 
-    if (changed) {
-      alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
-      // עדכון ספירת גלים ייחודיים
-      var uniqueTimes = {};
-      alertsLog.forEach(function(a) { uniqueTimes[a.time] = true; });
-      todayAlertCount = Object.keys(uniqueTimes).length;
-      $('todayCount').textContent = todayAlertCount;
-      saveAlerts();
-      renderAlertLog();
-      updateLiveDayData(todayKey, 'missile');
-      renderTimeline();
-      recalculate();
-    }
+    // מיזוג: API הוא מקור האמת. הוסף seed alerts שלא קיימים ב-API
+    var seedAlerts = (TODAY_SEED_ALERTS || []).filter(function(s) {
+      var now = new Date();
+      var currentTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+      return s.time <= currentTime;
+    });
+    seedAlerts.forEach(function(s) {
+      var exists = apiAlerts.some(function(a) { return a.time === s.time; });
+      if (!exists) {
+        apiAlerts.push({
+          time: s.time, alertDate: todayKey + ' ' + s.time,
+          area: s.area, type: s.type, title: s.title || '', source: s.source || 'seed', live: false
+        });
+      }
+    });
+
+    // החלפת alertsLog במלואו — מקור אמת יחיד
+    alertsLog = apiAlerts;
+    alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
+
+    // ספירת גלים ייחודיים לפי שעה:דקה
+    var uniqueTimes = {};
+    alertsLog.forEach(function(a) { uniqueTimes[a.time] = true; });
+    todayAlertCount = Object.keys(uniqueTimes).length;
+
+    $('todayCount').textContent = todayAlertCount;
+    saveAlerts();
+    renderAlertLog();
+    updateLiveDayData(todayKey, 'missile');
+    recalculate();
   } catch(e) {}
 }
 
