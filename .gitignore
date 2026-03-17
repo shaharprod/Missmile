@@ -2,3 +2,6 @@
 .snapshots/
 CLAUDE.md
 tzevaadom_app.js
+node_modules/
+remotion-missile/out/
+*.token.json

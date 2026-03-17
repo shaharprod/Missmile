@@ -1,0 +1,26 @@
+{
+  "name": "remotion-missile",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render --gl=angle --concurrency=1 MissileDefense out/missile.mp4",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.293",
+    "@remotion/three": "4.0.293",
+    "@remotion/transitions": "4.0.293",
+    "@react-three/fiber": "^8.15.12",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "4.0.293",
+    "three": "^0.170.0",
+    "typescript": "^5.7.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.170.0"
+  }
+}

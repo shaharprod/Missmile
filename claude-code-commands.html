@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code — מדריך פקודות מלא</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0f1117;
+    color: #e1e4e8;
+    line-height: 1.7;
+    padding: 2rem 1rem;
+  }
+
+  .container { max-width: 880px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #2d333b;
+  }
+
+  h1 { font-size: 2rem; color: #c9a0ff; margin-bottom: 0.3rem; }
+  header p { color: #8b949e; font-size: 0.95rem; }
+
+  .badges {
+    display: flex; justify-content: center; gap: 0.6rem;
+    margin-top: 0.6rem; flex-wrap: wrap;
+  }
+  .badge {
+    padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem;
+  }
+  .badge-purple { background: #c9a0ff22; color: #c9a0ff; }
+  .badge-green  { background: #7ee78722; color: #7ee787; }
+  .badge-blue   { background: #79c0ff22; color: #79c0ff; }
+
+  /* Navigation */
+  nav {
+    display: flex; justify-content: center; gap: 0.5rem;
+    margin-bottom: 2rem; flex-wrap: wrap;
+  }
+  nav a {
+    color: #e1e4e8; text-decoration: none;
+    background: #161b22; border: 1px solid #2d333b;
+    padding: 0.5rem 1.2rem; border-radius: 8px;
+    font-size: 0.9rem; transition: all 0.2s;
+  }
+  nav a:hover { border-color: #c9a0ff; color: #c9a0ff; }
+
+  /* Section headers */
+  .section-title {
+    font-size: 1.4rem; color: #c9a0ff;
+    margin: 2rem 0 0.5rem; padding-bottom: 0.5rem;
+    border-bottom: 1px solid #2d333b;
+  }
+  .section-desc {
+    color: #8b949e; font-size: 0.9rem; margin-bottom: 1.2rem;
+  }
+
+  /* Cards */
+  .card {
+    background: #161b22; border: 1px solid #2d333b;
+    border-radius: 10px; padding: 1.1rem 1.4rem;
+    margin-bottom: 0.8rem; transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #c9a0ff44; }
+
+  .card-header {
+    display: flex; align-items: center; gap: 0.7rem;
+    margin-bottom: 0.4rem; flex-wrap: wrap;
+  }
+
+  .cmd {
+    font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    font-size: 1rem; color: #7ee787; background: #1c2431;
+    padding: 0.15rem 0.6rem; border-radius: 6px;
+    direction: ltr; unicode-bidi: embed; white-space: nowrap;
+  }
+  .cmd-flag { color: #ffa657; }
+  .cmd-sub  { color: #79c0ff; }
+
+  .title { font-weight: 600; color: #e1e4e8; font-size: 0.95rem; }
+
+  .desc { color: #8b949e; font-size: 0.88rem; }
+
+  .syntax {
+    font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    font-size: 0.82rem; color: #79c0ff; background: #1c2431;
+    padding: 0.25rem 0.6rem; border-radius: 5px;
+    margin-top: 0.4rem; display: inline-block;
+    direction: ltr; unicode-bidi: embed;
+  }
+
+  .tag {
+    font-size: 0.7rem; padding: 0.1rem 0.45rem;
+    border-radius: 4px; font-weight: 500;
+  }
+  .tag-optional { background: #484f5822; color: #8b949e; }
+  .tag-required { background: #f8514922; color: #f85149; }
+
+  /* Sub-items for subcommands */
+  .sub-list {
+    margin-top: 0.5rem; padding-right: 1rem;
+  }
+  .sub-item {
+    font-size: 0.85rem; color: #8b949e; padding: 0.15rem 0;
+  }
+  .sub-item code {
+    font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    color: #79c0ff; font-size: 0.82rem; direction: ltr;
+    unicode-bidi: embed;
+  }
+
+  footer {
+    text-align: center; margin-top: 2.5rem; padding-top: 1.2rem;
+    border-top: 1px solid #2d333b; color: #484f58; font-size: 0.8rem;
+  }
+  footer a { color: #c9a0ff; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Claude Code v2.1 — מדריך פקודות מלא</h1>
+    <p>כל הפקודות, הפלאגים ופקודות המשנה — במקום אחד</p>
+    <div class="badges">
+      <span class="badge badge-purple">פקודות Slash אינטראקטיביות</span>
+      <span class="badge badge-green">פלאגים (CLI Options)</span>
+      <span class="badge badge-blue">פקודות משנה (Subcommands)</span>
+    </div>
+  </header>
+
+  <nav>
+    <a href="#slash">פקודות Slash</a>
+    <a href="#flags">פלאגים</a>
+    <a href="#subcommands">פקודות משנה</a>
+    <a href="#keyboard">קיצורי מקלדת</a>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- SECTION 1: SLASH COMMANDS                  -->
+  <!-- ═══════════════════════════════════════════ -->
+  <h2 class="section-title" id="slash">פקודות Slash (אינטראקטיביות)</h2>
+  <p class="section-desc">פקודות שמקלידים בתוך שיחה אינטראקטיבית עם Claude Code</p>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/add-dir</span>
+      <span class="title">הוספת תיקייה</span>
+    </div>
+    <div class="desc">מוסיף תיקיית עבודה נוספת לשיחה הנוכחית. מאפשר ל-Claude לגשת לקבצים בתיקיות שמחוץ לתיקייה הראשית. שימושי כשעובדים על פרויקט שמפוצל בין מספר תיקיות — למשל frontend ו-backend בתיקיות נפרדות, או ספריות משותפות (shared libraries) שנמצאות מחוץ לתיקיית הפרויקט.</div>
+    <div class="syntax">/add-dir &lt;path&gt;</div>
+    <div class="syntax">/add-dir ../my-shared-lib</div>
+    <div class="syntax">/add-dir C:\Users\User\other-project</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/bug</span>
+      <span class="title">דיווח על באג</span>
+    </div>
+    <div class="desc">פותח דיווח באג ב-GitHub Issues של Claude Code. משמש לדיווח על תקלות, שגיאות, או התנהגות לא צפויה בכלי. הפקודה מפנה ישירות לעמוד יצירת Issue חדש ב-<code>github.com/anthropics/claude-code/issues</code> כדי שצוות Anthropic יוכל לטפל בבעיה.</div>
+    <div class="syntax">/bug</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/clear</span>
+      <span class="title">ניקוי שיחה</span>
+    </div>
+    <div class="desc">מוחק את כל ההיסטוריה של השיחה הנוכחית ומתחיל מחדש עם קונטקסט נקי. השיחה הקודמת לא נשמרת ולא ניתן לחזור אליה. שימושי כשהשיחה נהיית ארוכה וצורכת הרבה טוקנים, או כשרוצים לעבור לנושא אחר לגמרי בלי שקונטקסט ישן יפריע. שונה מ-/compact שדוחס את השיחה — כאן הכל נמחק לגמרי.</div>
+    <div class="syntax">/clear</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/compact</span>
+      <span class="title">דחיסת שיחה</span>
+    </div>
+    <div class="desc">דוחס את ההיסטוריה של השיחה כדי לחסוך טוקנים ולהאריך את חלון הקונטקסט. Claude Code מסכם את השיחה הקודמת לתקציר קצר ושומר רק את הנקודות החשובות. ניתן להוסיף הנחיות מותאמות שמכוונות את הדחיסה — למשל "שמור את כל שמות הקבצים" או "התמקד בשגיאות". הדחיסה מתבצעת אוטומטית כשחלון הקונטקסט מתמלא, אבל אפשר להפעיל ידנית בכל שלב.</div>
+    <div class="syntax">/compact</div>
+    <div class="syntax">/compact keep all file paths and error messages</div>
+    <div class="syntax">/compact focus on the database migration steps</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/config</span>
+      <span class="title">הגדרות</span>
+    </div>
+    <div class="desc">פותח את תפריט ההגדרות האינטראקטיבי של Claude Code. מתוך התפריט ניתן לשנות: מצב הרשאות (permission mode), מודל ברירת מחדל, ערכת נושא (theme), מצב verbose, הגדרות אוטומטיות של דחיסה (auto-compact), ועוד. השינויים נשמרים בקובץ ההגדרות ומשפיעים על כל הסשנים העתידיים.</div>
+    <div class="syntax">/config</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/cost</span>
+      <span class="title">עלויות וטוקנים</span>
+    </div>
+    <div class="desc">מציג סיכום מפורט של צריכת הטוקנים והעלות המשוערת של השיחה הנוכחית. כולל פירוט של טוקני קלט (input), טוקני פלט (output), טוקני cache, וחישוב עלות בדולרים. שימושי למעקב על הוצאות ולהבנה מתי כדאי לדחוס (/compact) או לנקות (/clear) את השיחה.</div>
+    <div class="syntax">/cost</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/doctor</span>
+      <span class="title">בדיקת תקינות</span>
+    </div>
+    <div class="desc">מריץ אבחון מלא של ההתקנה ומציג דוח תקינות. בודק: חיבור ל-API של Anthropic, גרסת Claude Code מעודכנת, הגדרות אימות תקינות, שרתי MCP מחוברים ועובדים, ו-auto-updater פעיל. אם משהו לא תקין — מציג הודעת שגיאה ברורה עם הצעה לפתרון. הפקודה הראשונה שכדאי להריץ כשמשהו לא עובד.</div>
+    <div class="syntax">/doctor</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/exit</span>
+      <span class="title">יציאה</span>
+    </div>
+    <div class="desc">יוצא מ-Claude Code וסוגר את הסשן. השיחה נשמרת אוטומטית וניתן לחדש אותה מאוחר יותר באמצעות <code>claude --continue</code> או <code>claude --resume</code>. שקול ללחיצה על Ctrl+C פעמיים או Ctrl+D.</div>
+    <div class="syntax">/exit</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/fast</span>
+      <span class="title">מצב מהיר</span>
+    </div>
+    <div class="desc">מפעיל/מכבה מצב מהיר (toggle). במצב מהיר Claude Code משתמש באותו מודל (למשל Opus) אבל עם פלט מהיר יותר ותשובות תמציתיות יותר. לא מחליף מודל — רק משנה את אסטרטגיית הפלט. שימושי למשימות פשוטות שלא דורשות חשיבה עמוקה ורוצים תשובה מהירה.</div>
+    <div class="syntax">/fast</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/help</span>
+      <span class="title">עזרה</span>
+    </div>
+    <div class="desc">מציג מידע כללי על שימוש ב-Claude Code, כולל רשימת כל קיצורי המקלדת הזמינים, פקודות slash מובנות, ומידע על איך לתת משוב או לדווח על באגים. נקודת ההתחלה הטובה ביותר למי שחדש בכלי.</div>
+    <div class="syntax">/help</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/init</span>
+      <span class="title">אתחול CLAUDE.md</span>
+    </div>
+    <div class="desc">יוצר קובץ CLAUDE.md ראשוני בשורש הפרויקט. Claude מנתח את מבנה הפרויקט — שפות תכנות, frameworks, מבנה תיקיות, ותלויות — ויוצר קובץ הנחיות מותאם אישית. הקובץ הזה נטען אוטומטית בכל שיחה עתידית ומלמד את Claude על הפרויקט: כללי קוד, דפוסים, כלים שנמצאים בשימוש, ועוד. מומלץ להריץ פעם אחת בכל פרויקט חדש.</div>
+    <div class="syntax">/init</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/login</span>
+      <span class="title">התחברות</span>
+    </div>
+    <div class="desc">מתחבר לחשבון Anthropic או לספק API חיצוני. משמש להתחברות ראשונית, להחלפת חשבון (למשל ממנוי Pro לחשבון API), או לחידוש אימות שפג תוקפו. פותח דפדפן לתהליך אימות OAuth.</div>
+    <div class="syntax">/login</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/logout</span>
+      <span class="title">התנתקות</span>
+    </div>
+    <div class="desc">מתנתק מהחשבון הנוכחי ומוחק את טוקן האימות המאוחסן מהמכונה. אחרי התנתקות, יש להתחבר מחדש עם /login כדי להמשיך לעבוד. שימושי כשרוצים להחליף חשבון או מחשב משותף.</div>
+    <div class="syntax">/logout</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/mcp</span>
+      <span class="title">ניהול שרתי MCP</span>
+    </div>
+    <div class="desc">ניהול שרתי Model Context Protocol (MCP) מתוך שיחה אינטראקטיבית. MCP הוא פרוטוקול שמאפשר ל-Claude להתחבר לכלים חיצוניים כמו GitHub, Slack, בסיסי נתונים, ועוד. פותח תפריט אינטראקטיבי להוספה, הסרה, הצגה ובדיקת שרתי MCP מחוברים. לניהול מתקדם יותר מהטרמינל — ראה <code>claude mcp</code> בפקודות המשנה.</div>
+    <div class="syntax">/mcp</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/memory</span>
+      <span class="title">עריכת זיכרון</span>
+    </div>
+    <div class="desc">פותח את קובץ CLAUDE.md בעורך טקסט לעריכה ישירה. קובץ CLAUDE.md הוא ה"זיכרון" של Claude — הוא נטען אוטומטית בתחילת כל שיחה ומכיל הנחיות קבועות שמשפיעות על ההתנהגות. למשל: "תמיד כתוב בעברית", "השתמש ב-TypeScript ולא ב-JavaScript", "אל תמחק קבצים בלי לשאול". ניתן ליצור קבצי CLAUDE.md בכל רמה: גלובלי (~/.claude/CLAUDE.md), בשורש הפרויקט, ובתת-תיקיות.</div>
+    <div class="syntax">/memory</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/model</span>
+      <span class="title">שינוי מודל</span>
+    </div>
+    <div class="desc">מחליף את מודל ה-AI הפעיל באמצע שיחה. ניתן לבחור מודל לפי שם מקוצר (opus, sonnet, haiku) או לפי מזהה מלא (claude-opus-4-6). בלי ארגומנט — פותח בוחר אינטראקטיבי. Opus = הכי חכם ויקר, Sonnet = איזון טוב, Haiku = הכי מהיר וזול.</div>
+    <div class="syntax">/model</div>
+    <div class="syntax">/model sonnet</div>
+    <div class="syntax">/model claude-opus-4-6</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/permissions</span>
+      <span class="title">הרשאות</span>
+    </div>
+    <div class="desc">מציג ומנהל את הרשאות הכלים. מאפשר לראות אילו כלים מאושרים או חסומים, ולשנות הרשאות ברמת פרויקט או ברמה גלובלית. למשל: לאשר ל-Claude להריץ פקודות git בלי לשאול, או לחסום מחיקת קבצים. ההרשאות נשמרות ב-<code>.claude/settings.json</code>.</div>
+    <div class="syntax">/permissions</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/plan</span>
+      <span class="title">מצב תכנון</span>
+    </div>
+    <div class="desc">מעביר את Claude למצב תכנון (Plan Mode). במצב זה Claude לא מבצע שינויים בקוד — הוא רק קורא, מנתח, ומציע תוכנית עבודה מפורטת. שימושי למשימות מורכבות שרוצים לתכנן לפני ביצוע, או כשרוצים להבין את היקף השינויים הנדרשים. ניתן לצאת ממצב תכנון באותה פקודה (toggle).</div>
+    <div class="syntax">/plan</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/pr-comments</span>
+      <span class="title">תגובות PR</span>
+    </div>
+    <div class="desc">מציג תגובות על Pull Request מ-GitHub ישירות בתוך השיחה. מאפשר לקרוא משוב שמבקרי קוד (reviewers) השאירו על ה-PR, ולבקש מ-Claude לטפל בהערות — לתקן קוד, להגיב, או להסביר. דורש שהפרויקט מחובר ל-GitHub עם CLI של <code>gh</code> מותקן.</div>
+    <div class="syntax">/pr-comments</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/review</span>
+      <span class="title">סקירת קוד</span>
+    </div>
+    <div class="desc">מבצע סקירת קוד (code review) אוטומטית על השינויים הנוכחיים. Claude בודק את ה-diff (השינויים) מול הענף הראשי (main/master) ומספק משוב מפורט: באגים פוטנציאליים, בעיות אבטחה, שיפורי קוד, ותאימות לדפוסים קיימים בפרויקט. שימושי לפני commit או לפני פתיחת PR.</div>
+    <div class="syntax">/review</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/status</span>
+      <span class="title">סטטוס</span>
+    </div>
+    <div class="desc">מציג סיכום מלא של המצב הנוכחי בסשן: חשבון מחובר (ואיזה סוג — Pro, API, Team), מודל AI פעיל, עלות השיחה הנוכחית בטוקנים ובדולרים, מצב הרשאות, גרסת Claude Code, ושרתי MCP מחוברים. בדיקה מהירה של "מה הסטטוס שלי".</div>
+    <div class="syntax">/status</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/terminal-setup</span>
+      <span class="title">הגדרת טרמינל</span>
+    </div>
+    <div class="desc">מגדיר את הטרמינל לעבודה מיטבית עם Claude Code. הפעולה העיקרית: מתקין תמיכה ב-Shift+Enter כדי ליצור שורות חדשות בהודעה במקום לשלוח. בלי הגדרה זו, Enter תמיד שולח את ההודעה ואי אפשר לכתוב הודעות מרובות שורות. תומך ב-iTerm2, Terminal.app, VSCode Terminal, ועוד. צריך להריץ פעם אחת בלבד.</div>
+    <div class="syntax">/terminal-setup</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd">/vim</span>
+      <span class="title">מצב Vim</span>
+    </div>
+    <div class="desc">מפעיל/מכבה מצב עריכה בסגנון Vim בשדה הקלט (toggle). במצב Vim ניתן להשתמש בקיצורי מקלדת מוכרים של Vim: <code>i</code> למצב עריכה, <code>Esc</code> למצב נורמלי, <code>dd</code> למחיקת שורה, <code>w/b</code> לניווט בין מילים, ועוד. מיועד למפתחים שרגילים לעורך Vim ורוצים את אותו ה-flow בשדה הקלט.</div>
+    <div class="syntax">/vim</div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- SECTION 2: CLI FLAGS                       -->
+  <!-- ═══════════════════════════════════════════ -->
+  <h2 class="section-title" id="flags">פלאגים — CLI Options</h2>
+  <p class="section-desc">אפשרויות שורת פקודה שמועברים בהפעלת <code style="color:#7ee787">claude [options] [prompt]</code></p>
+
+  <!-- Session & Conversation -->
+  <h3 style="color:#ffa657; font-size:1rem; margin:1.2rem 0 0.6rem;">שיחה וסשן</h3>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">-c, --continue</span>
+      <span class="title">המשך שיחה אחרונה</span>
+    </div>
+    <div class="desc">ממשיך את השיחה האחרונה שהתנהלה באותה תיקיית עבודה. Claude טוען את כל ההיסטוריה הקודמת וממשיך מאיפה שהפסקתם. שימושי כשסגרתם את הטרמינל בטעות או רוצים להמשיך עבודה מהיום.</div>
+    <div class="syntax">claude --continue</div>
+    <div class="syntax">claude -c</div>
+    <div class="syntax">claude -c "continue fixing the bug from earlier"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">-r, --resume [id|search]</span>
+      <span class="title">חידוש שיחה</span>
+    </div>
+    <div class="desc">מחדש שיחה ישנה — לפי מזהה סשן (UUID), או פותח בוחר אינטראקטיבי שמציג את כל השיחות האחרונות. ניתן להוסיף מונח חיפוש כדי לסנן. שונה מ---continue שתמיד לוקח את השיחה האחרונה — כאן בוחרים שיחה ספציפית.</div>
+    <div class="syntax">claude --resume</div>
+    <div class="syntax">claude --resume abc123-def456</div>
+    <div class="syntax">claude -r "database migration"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--session-id &lt;uuid&gt;</span>
+      <span class="title">מזהה סשן מותאם</span>
+    </div>
+    <div class="desc">כופה שימוש ב-UUID ספציפי כמזהה סשן. שימושי באוטומציה ו-CI/CD כשרוצים סשנים עם מזהה צפוי מראש, או כשרוצים לחבר מספר הרצות לאותו סשן.</div>
+    <div class="syntax">claude --session-id "550e8400-e29b-41d4-a716-446655440000"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--fork-session</span>
+      <span class="title">פיצול סשן</span>
+    </div>
+    <div class="desc">בעת חידוש שיחה (עם --resume או --continue), יוצר סשן חדש עם מזהה חדש במקום להמשיך את הסשן המקורי. כמו "fork" ב-Git — השיחה המקורית נשמרת כמו שהיא, והעבודה ממשיכה בעותק נפרד. שימושי כשרוצים לנסות גישה אחרת מבלי "לזהם" את השיחה המקורית.</div>
+    <div class="syntax">claude --resume abc --fork-session</div>
+    <div class="syntax">claude --continue --fork-session</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--from-pr [number|url]</span>
+      <span class="title">חידוש מ-PR</span>
+    </div>
+    <div class="desc">מחדש סשן שמקושר ל-Pull Request ב-GitHub. ניתן לציין מספר PR, URL מלא, או לפתוח בוחר אינטראקטיבי עם חיפוש. שימושי כשעבדתם על PR עם Claude ורוצים לחזור ולהמשיך מאותה נקודה — למשל לטפל בתגובות code review.</div>
+    <div class="syntax">claude --from-pr 42</div>
+    <div class="syntax">claude --from-pr https://github.com/org/repo/pull/42</div>
+    <div class="syntax">claude --from-pr "fix login bug"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--no-session-persistence</span>
+      <span class="title">ללא שמירת סשן</span>
+    </div>
+    <div class="desc">מבטל שמירת סשן לדיסק — השיחה לא תישמר ולא ניתן יהיה לחדש אותה מאוחר יותר. עובד רק עם --print. שימושי בסקריפטים וב-CI/CD כשלא צריכים היסטוריה ורוצים לחסוך מקום בדיסק.</div>
+    <div class="syntax">claude -p --no-session-persistence "explain this code"</div>
+  </div>
+
+  <!-- Model & Output -->
+  <h3 style="color:#ffa657; font-size:1rem; margin:1.2rem 0 0.6rem;">מודל ופלט</h3>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--model &lt;model&gt;</span>
+      <span class="title">בחירת מודל</span>
+    </div>
+    <div class="desc">מגדיר את מודל ה-AI לסשן הנוכחי. ניתן להשתמש בשם מקוצר (opus, sonnet, haiku) או במזהה מלא. Opus = הכי חכם ויקר (משימות מורכבות), Sonnet = איזון מעולה (שימוש יומיומי), Haiku = מהיר וזול (משימות פשוטות).</div>
+    <div class="syntax">claude --model sonnet</div>
+    <div class="syntax">claude --model opus</div>
+    <div class="syntax">claude --model claude-sonnet-4-6</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--fallback-model &lt;model&gt;</span>
+      <span class="title">מודל חלופי</span>
+    </div>
+    <div class="desc">מגדיר מודל גיבוי שמופעל אוטומטית כשהמודל הראשי עמוס (overloaded) ומחזיר שגיאת 529. עובד רק עם --print. מבטיח שהסקריפט ימשיך לעבוד גם בעומסים — למשל Opus כראשי עם Sonnet כגיבוי.</div>
+    <div class="syntax">claude -p --fallback-model haiku "prompt"</div>
+    <div class="syntax">claude -p --model opus --fallback-model sonnet "explain this"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--effort &lt;level&gt;</span>
+      <span class="title">רמת מאמץ</span>
+    </div>
+    <div class="desc">קובע רמת מאמץ (effort) לתשובות. low = תשובות קצרות ומהירות עם פחות חשיבה, medium = ברירת מחדל מאוזנת, high = חשיבה מעמיקה עם תשובות מפורטות. משפיע על כמות הטוקנים שמושקעים בכל תשובה.</div>
+    <div class="syntax">claude --effort low</div>
+    <div class="syntax">claude --effort high</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">-p, --print</span>
+      <span class="title">מצב הדפסה</span>
+    </div>
+    <div class="desc">מצב לא-אינטראקטיבי: מקבל prompt, מדפיס תשובה, ויוצא. הבסיס לאוטומציה, סקריפטים, ו-CI/CD. מדלג על דיאלוג trust של תיקייה. ניתן להזין prompt כארגומנט, דרך pipe, או מקובץ. משתלב עם כלי Unix סטנדרטיים.</div>
+    <div class="syntax">claude -p "explain this function"</div>
+    <div class="syntax">echo "explain this" | claude -p</div>
+    <div class="syntax">cat error.log | claude -p "what went wrong?"</div>
+    <div class="syntax">claude -p "generate a README" > README.md</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--output-format &lt;format&gt;</span>
+      <span class="title">פורמט פלט</span>
+    </div>
+    <div class="desc">פורמט הפלט (עם --print בלבד). text = טקסט רגיל (ברירת מחדל), json = אובייקט JSON יחיד עם כל המידע כולל metadata, stream-json = שורות JSON שנשלחות בזמן אמת תוך כדי יצירת התשובה. json ו-stream-json שימושיים לאינטגרציה פרוגרמטית.</div>
+    <div class="syntax">claude -p --output-format text "prompt"</div>
+    <div class="syntax">claude -p --output-format json "prompt"</div>
+    <div class="syntax">claude -p --output-format stream-json "prompt"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--input-format &lt;format&gt;</span>
+      <span class="title">פורמט קלט</span>
+    </div>
+    <div class="desc">פורמט הקלט (עם --print בלבד). text = טקסט רגיל (ברירת מחדל), stream-json = שורות JSON שנשלחות בזמן אמת, מאפשר שליחת הודעות חדשות תוך כדי שהמודל עונה. שימושי לבניית אינטגרציות מתקדמות שמתקשרות עם Claude בזמן אמת.</div>
+    <div class="syntax">claude -p --input-format stream-json</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--json-schema &lt;schema&gt;</span>
+      <span class="title">סכמת JSON</span>
+    </div>
+    <div class="desc">מאלץ את Claude להחזיר פלט מובנה שתואם ל-JSON Schema שהוגדר. מבטיח שהתשובה תהיה ב-JSON תקין עם כל השדות הנדרשים. שימושי מאוד באוטומציה כשצריכים פלט צפוי ומפורסר (parseable).</div>
+    <div class="syntax">claude -p --json-schema '{"type":"object","properties":{"name":{"type":"string"},"age":{"type":"number"}},"required":["name"]}' "extract user info from: John is 30"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--include-partial-messages</span>
+      <span class="title">הודעות חלקיות</span>
+    </div>
+    <div class="desc">כולל chunks חלקיים בזמן אמת. עובד עם --print ו-stream-json.</div>
+    <div class="syntax">claude -p --output-format stream-json --include-partial-messages</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--replay-user-messages</span>
+      <span class="title">שידור חוזר של הודעות</span>
+    </div>
+    <div class="desc">משדר חזרה הודעות משתמש מ-stdin ל-stdout לאישור קבלה. עובד עם stream-json.</div>
+    <div class="syntax">claude -p --input-format stream-json --output-format stream-json --replay-user-messages</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--verbose</span>
+      <span class="title">מצב מפורט</span>
+    </div>
+    <div class="desc">דורס את הגדרת verbose מהקונפיגורציה ומפעיל מצב מפורט. במצב זה Claude Code מציג מידע נוסף על מה שקורה ברקע: קריאות כלים, חיפושי קבצים, ופעולות שמתבצעות. שימושי להבנת מה Claude עושה ולדיבוג.</div>
+    <div class="syntax">claude --verbose</div>
+  </div>
+
+  <!-- Permissions & Security -->
+  <h3 style="color:#ffa657; font-size:1rem; margin:1.2rem 0 0.6rem;">הרשאות ואבטחה</h3>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--dangerously-skip-permissions</span>
+      <span class="title">דילוג על הרשאות</span>
+    </div>
+    <div class="desc">⚠️ <strong>מסוכן!</strong> עוקף את כל בדיקות ההרשאות — Claude יכול לקרוא, לכתוב, למחוק קבצים ולהריץ כל פקודה בלי לשאול. מומלץ אך ורק ל-sandboxes מבודדים ללא גישה לאינטרנט (כמו Docker containers). לעולם אל תשתמשו בזה על המכונה האישית שלכם — Claude עלול לבצע פעולות הרסניות.</div>
+    <div class="syntax">claude --dangerously-skip-permissions</div>
+    <div class="syntax">claude --dangerously-skip-permissions -p "refactor everything"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--allow-dangerously-skip-permissions</span>
+      <span class="title">אפשור דילוג הרשאות</span>
+    </div>
+    <div class="desc">⚠️ מאפשר עקיפת הרשאות כאופציה זמינה — אבל לא מפעיל אותה כברירת מחדל. Claude עדיין ישאל אישור, אבל יש אפשרות לדלג. גרסה "רכה" יותר של --dangerously-skip-permissions. מומלץ רק ל-sandboxes.</div>
+    <div class="syntax">claude --allow-dangerously-skip-permissions</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--permission-mode &lt;mode&gt;</span>
+      <span class="title">מצב הרשאות</span>
+    </div>
+    <div class="desc">קובע מצב הרשאות לסשן. <strong>default</strong> = שואל אישור לכל פעולה, <strong>plan</strong> = קריאה בלבד (מתכנן אבל לא מבצע), <strong>acceptEdits</strong> = מאשר עריכות קבצים אוטומטית אבל שואל על פקודות Bash, <strong>dontAsk</strong> = מאשר הכל אוטומטית (רק כלים מותרים), <strong>bypassPermissions</strong> = עוקף הכל.</div>
+    <div class="syntax">claude --permission-mode plan</div>
+    <div class="syntax">claude --permission-mode acceptEdits</div>
+    <div class="syntax">claude --permission-mode default</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--allowedTools &lt;tools...&gt;</span>
+      <span class="title">כלים מותרים</span>
+    </div>
+    <div class="desc">רשימת כלים מותרים שלא ידרשו אישור, מופרדים בפסיק או רווח. ניתן להשתמש ב-wildcards: <code>Bash(git:*)</code> מאשר כל פקודת git. הכלים המובנים כוללים: Bash, Read, Edit, Write, Glob, Grep, Agent, WebSearch, WebFetch ועוד.</div>
+    <div class="syntax">claude --allowedTools "Bash(git:*) Edit"</div>
+    <div class="syntax">claude --allowedTools "Read,Glob,Grep"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--disallowedTools &lt;tools...&gt;</span>
+      <span class="title">כלים חסומים</span>
+    </div>
+    <div class="desc">רשימת כלים חסומים שלא יהיו זמינים בסשן, מופרדים בפסיק או רווח. Claude לא יוכל להשתמש בכלים האלה כלל. שימושי כשרוצים להגביל מה Claude יכול לעשות — למשל לחסום כתיבת קבצים או הרצת פקודות.</div>
+    <div class="syntax">claude --disallowedTools "Bash(git:*)"</div>
+    <div class="syntax">claude --disallowedTools "Write,Bash"</div>
+  </div>
+
+  <!-- Prompt & System -->
+  <h3 style="color:#ffa657; font-size:1rem; margin:1.2rem 0 0.6rem;">פרומפט ומערכת</h3>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--system-prompt &lt;prompt&gt;</span>
+      <span class="title">פרומפט מערכת</span>
+    </div>
+    <div class="desc">מחליף לחלוטין את פרומפט המערכת של הסשן בטקסט מותאם אישית. פרומפט המערכת הוא ההנחיה הפנימית שמגדירה את ההתנהגות של Claude. שימושי ליצירת "אישיות" מותאמת או התנהגות ספציפית מאוד.</div>
+    <div class="syntax">claude --system-prompt "You are a Go expert. Only suggest Go solutions."</div>
+    <div class="syntax">claude --system-prompt "Respond only in Hebrew. Be very concise."</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--append-system-prompt &lt;prompt&gt;</span>
+      <span class="title">הוספה לפרומפט מערכת</span>
+    </div>
+    <div class="desc">מוסיף טקסט לסוף פרומפט המערכת הקיים בלי למחוק אותו. שונה מ---system-prompt שמחליף — כאן ההוספה היא בנוסף לפרומפט הרגיל. שימושי כשרוצים להוסיף הנחיה ספציפית בלי לאבד את ההתנהגות הבסיסית.</div>
+    <div class="syntax">claude --append-system-prompt "Always respond in JSON"</div>
+    <div class="syntax">claude --append-system-prompt "Never modify files in the /config directory"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--max-budget-usd &lt;amount&gt;</span>
+      <span class="title">תקציב מקסימלי</span>
+    </div>
+    <div class="desc">מגביל הוצאה מקסימלית בדולרים לסשן. כשהתקציב מתמלא — Claude מפסיק. עובד רק עם --print. שימושי ב-CI/CD ובסקריפטים כדי למנוע הוצאות לא צפויות.</div>
+    <div class="syntax">claude -p --max-budget-usd 5.00 "prompt"</div>
+    <div class="syntax">claude -p --max-budget-usd 0.50 "quick question"</div>
+  </div>
+
+  <!-- MCP & Plugins -->
+  <h3 style="color:#ffa657; font-size:1rem; margin:1.2rem 0 0.6rem;">MCP ותוספים</h3>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--mcp-config &lt;configs...&gt;</span>
+      <span class="title">קונפיגורציית MCP</span>
+    </div>
+    <div class="desc">טוען הגדרות שרתי MCP מקובצי JSON או מחרוזות JSON (מופרדים ברווח). מאפשר לחבר כלים חיצוניים כמו GitHub, Slack, Sentry ועוד בלי להגדיר אותם מראש. ניתן לטעון מספר קבצי הגדרות במקביל.</div>
+    <div class="syntax">claude --mcp-config servers.json</div>
+    <div class="syntax">claude --mcp-config github.json slack.json</div>
+    <div class="syntax">claude --mcp-config '{"mcpServers":{"github":{"command":"npx","args":["@modelcontextprotocol/server-github"]}}}'</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--strict-mcp-config</span>
+      <span class="title">MCP מוגבל</span>
+    </div>
+    <div class="desc">משתמש אך ורק בשרתי MCP שצוינו ב---mcp-config, ומתעלם מכל קונפיגורציה אחרת (גלובלית, פרויקטית, .mcp.json). שימושי כשרוצים שליטה מלאה על אילו כלים חיצוניים זמינים — למשל בסביבת CI/CD.</div>
+    <div class="syntax">claude --strict-mcp-config --mcp-config my-servers.json</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--plugin-dir &lt;paths...&gt;</span>
+      <span class="title">תיקיות פלאגינים</span>
+    </div>
+    <div class="desc">טוען פלאגינים מתיקיות מסוימות לסשן הנוכחי בלבד. הפלאגינים לא מתקנים — הם זמינים רק לסשן הזה. שימושי לפיתוח ובדיקה של פלאגינים חדשים.</div>
+    <div class="syntax">claude --plugin-dir ./my-plugins</div>
+    <div class="syntax">claude --plugin-dir ./plugin-a ./plugin-b</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--disable-slash-commands</span>
+      <span class="title">ביטול Skills</span>
+    </div>
+    <div class="desc">מבטל את כל פקודות ה-slash (skills) בסשן. Claude לא יכיר פקודות כמו /review, /plan וכו'. שימושי כשרוצים סשן "נקי" בלי skills מותאמים, או כשיש קונפליקטים בין skills.</div>
+    <div class="syntax">claude --disable-slash-commands</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--betas &lt;betas...&gt;</span>
+      <span class="title">בטא הדרים</span>
+    </div>
+    <div class="desc">מוסיף Beta headers לבקשות API. זמין רק למשתמשים עם מפתח API (לא Pro/Team). מאפשר גישה לתכונות בטא שעדיין לא שוחררו רשמית.</div>
+    <div class="syntax">claude --betas "my-beta-feature"</div>
+  </div>
+
+  <!-- Agents & Tools -->
+  <h3 style="color:#ffa657; font-size:1rem; margin:1.2rem 0 0.6rem;">סוכנים וכלים</h3>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--agent &lt;agent&gt;</span>
+      <span class="title">סוכן לסשן</span>
+    </div>
+    <div class="desc">מפעיל סוכן (agent) ספציפי לסשן הנוכחי. סוכנים הם "אישיויות" מוגדרות מראש עם הנחיות ותיאורים מותאמים — למשל סוכן code reviewer, סוכן architect, או סוכן שכותב תיעוד. דורס את הגדרת 'agent' בקונפיגורציה.</div>
+    <div class="syntax">claude --agent reviewer</div>
+    <div class="syntax">claude --agent architect</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--agents &lt;json&gt;</span>
+      <span class="title">הגדרת סוכנים</span>
+    </div>
+    <div class="desc">מגדיר סוכנים מותאמים אישית באמצעות JSON inline. כל סוכן צריך description (תיאור) ו-prompt (הנחיות מערכת). מאפשר יצירת סוכנים "on the fly" בלי קובץ הגדרות. משלב עם --agent כדי להפעיל סוכן ספציפי.</div>
+    <div class="syntax">claude --agents '{"reviewer":{"description":"Reviews code","prompt":"You are a senior code reviewer"}}' --agent reviewer</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--tools &lt;tools...&gt;</span>
+      <span class="title">כלים זמינים</span>
+    </div>
+    <div class="desc">מגדיר אילו כלים מובנים זמינים בסשן. <code>""</code> (ריק) = ללא כלים כלל (Claude רק מדבר), <code>"default"</code> = כל הכלים, או שמות ספציפיים. שונה מ---allowedTools שמגדיר מה לא דורש אישור — כאן מגדירים מה בכלל קיים.</div>
+    <div class="syntax">claude --tools "Bash,Edit,Read"</div>
+    <div class="syntax">claude --tools ""</div>
+    <div class="syntax">claude --tools "default"</div>
+  </div>
+
+  <!-- Workspace & Files -->
+  <h3 style="color:#ffa657; font-size:1rem; margin:1.2rem 0 0.6rem;">סביבת עבודה וקבצים</h3>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--add-dir &lt;dirs...&gt;</span>
+      <span class="title">תיקיות נוספות</span>
+    </div>
+    <div class="desc">מוסיף תיקיות נוספות שהכלים של Claude יכולים לגשת אליהן מעבר לתיקייה הנוכחית. שימושי למונו-ריפו או כשקוד תלוי בספריות מחוץ לפרויקט. זהה ל-slash command <code>/add-dir</code> אבל מהטרמינל בהפעלה.</div>
+    <div class="syntax">claude --add-dir ../shared-lib</div>
+    <div class="syntax">claude --add-dir ../frontend ../backend ../shared</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--file &lt;specs...&gt;</span>
+      <span class="title">קבצים להורדה</span>
+    </div>
+    <div class="desc">קבצים להורדה אוטומטית בתחילת הסשן. פורמט: <code>file_id:relative_path</code>. הקבצים נשמרים בנתיב היחסי שצוין. שימושי באינטגרציות שמספקות קבצים דרך API (למשל Claude.ai עם קבצים מצורפים).</div>
+    <div class="syntax">claude --file file_abc:doc.txt</div>
+    <div class="syntax">claude --file file_abc:doc.txt file_def:img.png</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">-w, --worktree [name]</span>
+      <span class="title">Git Worktree</span>
+    </div>
+    <div class="desc">יוצר git worktree חדש לסשן — עותק נפרד של הריפו בתיקייה חדשה. מאפשר ל-Claude לעבוד על ענף נפרד בלי להפריע לעבודה שלך. כל שינוי שClaude עושה קורה ב-worktree ולא בתיקייה המקורית.</div>
+    <div class="syntax">claude --worktree</div>
+    <div class="syntax">claude --worktree feature-branch</div>
+    <div class="syntax">claude -w my-feature</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--tmux</span>
+      <span class="title">סשן tmux</span>
+    </div>
+    <div class="desc">יוצר סשן tmux עבור ה-worktree, כך שאפשר לנהל את הסשן ברקע ולהתחבר/להתנתק ממנו. ב-iTerm2 משתמש ב-native panes (חלונות מקומיים); ניתן לכפות tmux קלאסי עם <code>--tmux=classic</code>. דורש שימוש ביחד עם --worktree.</div>
+    <div class="syntax">claude --worktree feature --tmux</div>
+    <div class="syntax">claude -w my-feature --tmux=classic</div>
+  </div>
+
+  <!-- Settings & Config -->
+  <h3 style="color:#ffa657; font-size:1rem; margin:1.2rem 0 0.6rem;">הגדרות וקונפיגורציה</h3>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--settings &lt;file-or-json&gt;</span>
+      <span class="title">קובץ הגדרות</span>
+    </div>
+    <div class="desc">טוען הגדרות נוספות מקובץ JSON או מחרוזת JSON. ההגדרות מתמזגות עם ההגדרות הקיימות. שימושי כשיש פרופילי הגדרות שונים — למשל פרופיל לפיתוח, פרופיל ל-CI, ופרופיל לסקירת קוד.</div>
+    <div class="syntax">claude --settings my-settings.json</div>
+    <div class="syntax">claude --settings '{"model":"sonnet","verbose":true}'</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--setting-sources &lt;sources&gt;</span>
+      <span class="title">מקורות הגדרות</span>
+    </div>
+    <div class="desc">קובע אילו מקורות הגדרות ייטענו. <strong>user</strong> = הגדרות גלובליות (~/.claude/), <strong>project</strong> = הגדרות פרויקט (.claude/ בשורש), <strong>local</strong> = הגדרות מקומיות (.claude.local/). ניתן לבחור חלק מהם כדי להתעלם ממקורות מסוימים.</div>
+    <div class="syntax">claude --setting-sources "user,project"</div>
+    <div class="syntax">claude --setting-sources "user"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--chrome / --no-chrome</span>
+      <span class="title">אינטגרציית Chrome</span>
+    </div>
+    <div class="desc">מפעיל או מכבה אינטגרציית "Claude in Chrome". כשמופעל, Claude Code יכול לתקשר עם דפדפן Chrome — לקרוא תוכן מדפי אינטרנט, לבצע פעולות, ולראות מה מוצג על המסך.</div>
+    <div class="syntax">claude --chrome</div>
+    <div class="syntax">claude --no-chrome</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--ide</span>
+      <span class="title">חיבור IDE</span>
+    </div>
+    <div class="desc">מתחבר אוטומטית ל-IDE (כמו VS Code, Cursor, או JetBrains) בהפעלה. מופעל רק כשיש בדיוק IDE אחד תקף וזמין. מאפשר ל-Claude לתקשר עם עורך הקוד — למשל לפתוח קבצים, לנווט לשורות, ולסנכרן שינויים.</div>
+    <div class="syntax">claude --ide</div>
+  </div>
+
+  <!-- Debug & Info -->
+  <h3 style="color:#ffa657; font-size:1rem; margin:1.2rem 0 0.6rem;">דיבוג ומידע</h3>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">-d, --debug [filter]</span>
+      <span class="title">מצב דיבוג</span>
+    </div>
+    <div class="desc">מפעיל מצב דיבוג שמציג לוגים מפורטים של מה שקורה ברקע. ניתן לסנן לפי קטגוריה: <code>api</code> = קריאות API, <code>hooks</code> = hooks, <code>mcp</code> = שרתי MCP. סימן <code>!</code> שולל קטגוריה. בלי filter — מציג הכל.</div>
+    <div class="syntax">claude --debug</div>
+    <div class="syntax">claude --debug "api"</div>
+    <div class="syntax">claude --debug "api,hooks"</div>
+    <div class="syntax">claude -d "!1p,!file"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">--debug-file &lt;path&gt;</span>
+      <span class="title">קובץ דיבוג</span>
+    </div>
+    <div class="desc">כותב את כל לוגי הדיבוג לקובץ במקום למסך. מפעיל מצב דיבוג אוטומטית. שימושי כשרוצים לנתח את הלוגים בנפרד או לשתף אותם עם צוות התמיכה בדיווח באג.</div>
+    <div class="syntax">claude --debug-file ./debug.log</div>
+    <div class="syntax">claude --debug-file ~/claude-debug.log</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">-v, --version</span>
+      <span class="title">גרסה</span>
+    </div>
+    <div class="desc">מציג את מספר הגרסה של Claude Code.</div>
+    <div class="syntax">claude --version</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-flag">-h, --help</span>
+      <span class="title">עזרה</span>
+    </div>
+    <div class="desc">מציג את מסך העזרה עם כל הפלאגים והפקודות.</div>
+    <div class="syntax">claude --help</div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- SECTION 3: SUBCOMMANDS                     -->
+  <!-- ═══════════════════════════════════════════ -->
+  <h2 class="section-title" id="subcommands">פקודות משנה — Subcommands</h2>
+  <p class="section-desc">פקודות עצמאיות שרצות ישירות מהטרמינל: <code style="color:#79c0ff">claude &lt;command&gt;</code></p>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-sub">claude agents</span>
+      <span class="title">רשימת סוכנים</span>
+    </div>
+    <div class="desc">מציג את כל הסוכנים (agents) המוגדרים במערכת — גלובליים, פרויקטיים ומקומיים. מציג את השם, התיאור, והמקור של כל סוכן. שימושי לראות אילו סוכנים זמינים לפני שמפעילים אחד עם --agent.</div>
+    <div class="syntax">claude agents</div>
+    <div class="syntax">claude agents --setting-sources "user,project"</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-sub">claude auth</span>
+      <span class="title">ניהול אימות</span>
+    </div>
+    <div class="desc">ניהול אימות (authentication) מהטרמינל. מאפשר התחברות, התנתקות, ובדיקת מצב חיבור — בלי לפתוח סשן אינטראקטיבי.</div>
+    <div class="sub-list">
+      <div class="sub-item">
+        <code>claude auth login</code> — התחברות לחשבון Anthropic. פותח דפדפן לתהליך OAuth.
+        <div class="syntax">claude auth login</div>
+      </div>
+      <div class="sub-item">
+        <code>claude auth logout</code> — התנתקות מהחשבון הנוכחי ומחיקת טוקן האימות.
+        <div class="syntax">claude auth logout</div>
+      </div>
+      <div class="sub-item">
+        <code>claude auth status</code> — מציג מצב אימות: האם מחובר, סוג חשבון (Pro, API, Team), ושם המשתמש.
+        <div class="syntax">claude auth status</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-sub">claude doctor</span>
+      <span class="title">בדיקת תקינות</span>
+    </div>
+    <div class="desc">בודק את תקינות ה-auto-updater של Claude Code ומוודא שהמערכת מעודכנת ופועלת כראוי. מריץ סדרת בדיקות ומדווח על בעיות שנמצאו.</div>
+    <div class="syntax">claude doctor</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-sub">claude install</span>
+      <span class="title">התקנת Native Build</span>
+    </div>
+    <div class="desc">מתקין את ה-native build של Claude Code (במקום גרסת npm). ה-native build מהיר יותר וצורך פחות זיכרון. אפשר לציין גרסה: <code>stable</code> (יציבה), <code>latest</code> (אחרונה), או מספר גרסה ספציפי. <code>--force</code> מתקין מחדש גם אם כבר מותקן.</div>
+    <div class="syntax">claude install</div>
+    <div class="syntax">claude install stable</div>
+    <div class="syntax">claude install latest</div>
+    <div class="syntax">claude install 2.1.70 --force</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-sub">claude mcp</span>
+      <span class="title">ניהול שרתי MCP</span>
+    </div>
+    <div class="desc">ניהול מלא של שרתי Model Context Protocol (MCP) מהטרמינל. MCP מאפשר ל-Claude להתחבר לכלים חיצוניים — GitHub, Slack, Sentry, בסיסי נתונים, ועוד. השרתים נשמרים בהגדרות ונטענים אוטומטית.</div>
+    <div class="sub-list">
+      <div class="sub-item">
+        <code>claude mcp add &lt;name&gt; &lt;commandOrUrl&gt;</code> — הוספת שרת MCP. תומך ב-HTTP (URL) ו-stdio (פקודה). ניתן להוסיף headers ומשתני סביבה.
+        <div class="syntax">claude mcp add --transport http sentry https://mcp.sentry.dev/mcp</div>
+        <div class="syntax">claude mcp add --transport http corridor https://app.corridor.dev/api/mcp --header "Authorization: Bearer TOKEN"</div>
+        <div class="syntax">claude mcp add -e API_KEY=xxx my-server -- npx my-mcp-server</div>
+        <div class="syntax">claude mcp add my-server -- my-command --some-flag arg1</div>
+      </div>
+      <div class="sub-item">
+        <code>claude mcp add-json &lt;name&gt; &lt;json&gt;</code> — הוספת שרת עם הגדרות JSON מלאות. שימושי כשיש הגדרה מורכבת עם מספר ארגומנטים ומשתני סביבה.
+        <div class="syntax">claude mcp add-json github '{"command":"npx","args":["@modelcontextprotocol/server-github"],"env":{"GITHUB_TOKEN":"ghp_xxx"}}'</div>
+      </div>
+      <div class="sub-item">
+        <code>claude mcp add-from-claude-desktop</code> — מייבא שרתי MCP שכבר מוגדרים באפליקציית Claude Desktop. עובד ב-Mac וב-WSL. חוסך הגדרה כפולה.
+        <div class="syntax">claude mcp add-from-claude-desktop</div>
+      </div>
+      <div class="sub-item">
+        <code>claude mcp list</code> — מציג את כל שרתי ה-MCP המוגדרים עם הסטטוס שלהם (מחובר/מנותק).
+        <div class="syntax">claude mcp list</div>
+      </div>
+      <div class="sub-item">
+        <code>claude mcp get &lt;name&gt;</code> — מציג פרטים מלאים על שרת ספציפי: כתובת, הגדרות, כלים שהוא מספק, וסטטוס חיבור.
+        <div class="syntax">claude mcp get github</div>
+      </div>
+      <div class="sub-item">
+        <code>claude mcp remove &lt;name&gt;</code> — מסיר שרת MCP מההגדרות.
+        <div class="syntax">claude mcp remove my-server</div>
+      </div>
+      <div class="sub-item">
+        <code>claude mcp reset-project-choices</code> — מאפס את כל ההחלטות (אישור/דחייה) על שרתים ברמת פרויקט (.mcp.json). שימושי אם דחית שרת בטעות ורוצה לאשר אותו מחדש.
+        <div class="syntax">claude mcp reset-project-choices</div>
+      </div>
+      <div class="sub-item">
+        <code>claude mcp serve</code> — מפעיל את Claude Code עצמו כשרת MCP. מאפשר לכלים אחרים (כמו IDE או תוכנות אחרות) לתקשר עם Claude דרך פרוטוקול MCP.
+        <div class="syntax">claude mcp serve</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-sub">claude plugin</span>
+      <span class="title">ניהול פלאגינים</span>
+    </div>
+    <div class="desc">התקנה, הסרה וניהול פלאגינים של Claude Code.</div>
+    <div class="sub-list">
+      <div class="sub-item">
+        <code>claude plugin install &lt;plugin&gt;</code> — התקנת פלאגין מ-marketplace. אפשר לציין scope: user, project, local.
+        <div class="syntax">claude plugin install my-plugin -s project</div>
+        <div class="syntax">claude plugin install my-plugin@my-marketplace</div>
+      </div>
+      <div class="sub-item">
+        <code>claude plugin uninstall &lt;plugin&gt;</code> — הסרת פלאגין מותקן. אפשר לציין scope.
+        <div class="syntax">claude plugin uninstall my-plugin</div>
+        <div class="syntax">claude plugin uninstall my-plugin -s project</div>
+      </div>
+      <div class="sub-item">
+        <code>claude plugin update &lt;plugin&gt;</code> — עדכון פלאגין לגרסה האחרונה (דורש restart).
+        <div class="syntax">claude plugin update my-plugin</div>
+        <div class="syntax">claude plugin update my-plugin -s local</div>
+      </div>
+      <div class="sub-item">
+        <code>claude plugin list</code> — רשימת כל הפלאגינים המותקנים. תומך ב-JSON ובהצגת פלאגינים זמינים.
+        <div class="syntax">claude plugin list</div>
+        <div class="syntax">claude plugin list --json --available</div>
+      </div>
+      <div class="sub-item">
+        <code>claude plugin enable &lt;plugin&gt;</code> — הפעלת פלאגין שבוטל. scope אוטומטי או ידני.
+        <div class="syntax">claude plugin enable my-plugin</div>
+        <div class="syntax">claude plugin enable my-plugin -s user</div>
+      </div>
+      <div class="sub-item">
+        <code>claude plugin disable [plugin]</code> — ביטול פלאגין. עם --all מבטל את הכל.
+        <div class="syntax">claude plugin disable my-plugin</div>
+        <div class="syntax">claude plugin disable --all</div>
+      </div>
+      <div class="sub-item">
+        <code>claude plugin validate &lt;path&gt;</code> — בדיקת תקינות של manifest פלאגין או marketplace.
+        <div class="syntax">claude plugin validate ./my-plugin</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plugin Marketplace (dedicated card) -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-sub">claude plugin marketplace</span>
+      <span class="title">ניהול Marketplace</span>
+    </div>
+    <div class="desc">ניהול מקורות פלאגינים (marketplaces) — הוספה מ-URL, GitHub repo, או נתיב מקומי.</div>
+    <div class="sub-list">
+      <div class="sub-item">
+        <code>claude plugin marketplace add &lt;source&gt;</code> — הוספת marketplace. אפשר לציין scope ו-sparse checkout למונו-ריפו.
+        <div class="syntax">claude plugin marketplace add https://github.com/user/marketplace</div>
+        <div class="syntax">claude plugin marketplace add ./local-marketplace --scope project</div>
+        <div class="syntax">claude plugin marketplace add https://github.com/org/monorepo --sparse .claude-plugin plugins</div>
+      </div>
+      <div class="sub-item">
+        <code>claude plugin marketplace list</code> — רשימת כל ה-marketplaces המוגדרים. תומך בפלט JSON.
+        <div class="syntax">claude plugin marketplace list</div>
+        <div class="syntax">claude plugin marketplace list --json</div>
+      </div>
+      <div class="sub-item">
+        <code>claude plugin marketplace remove &lt;name&gt;</code> — הסרת marketplace לפי שם.
+        <div class="syntax">claude plugin marketplace remove my-marketplace</div>
+      </div>
+      <div class="sub-item">
+        <code>claude plugin marketplace update [name]</code> — עדכון marketplace מהמקור. בלי שם — מעדכן הכל.
+        <div class="syntax">claude plugin marketplace update</div>
+        <div class="syntax">claude plugin marketplace update my-marketplace</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-sub">claude setup-token</span>
+      <span class="title">הגדרת טוקן</span>
+    </div>
+    <div class="desc">מגדיר טוקן אימות ארוך-טווח שלא פג תוקף. שונה מהתחברות רגילה (OAuth) שצריכה חידוש מדי פעם. דורש מנוי Claude פעיל (Pro/Team). שימושי לשרתים, CI/CD, ומכונות שצריכות גישה רציפה בלי התערבות ידנית.</div>
+    <div class="syntax">claude setup-token</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd cmd-sub">claude update</span>
+      <span class="title">עדכון</span>
+    </div>
+    <div class="desc">בודק אם יש גרסה חדשה של Claude Code ומתקין אותה אוטומטית. גם <code>claude upgrade</code> עושה את אותו הדבר (alias). מומלץ להריץ מדי פעם כי גרסאות חדשות כוללות שיפורי ביצועים, תיקוני באגים, ותכונות חדשות.</div>
+    <div class="syntax">claude update</div>
+    <div class="syntax">claude upgrade</div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- SECTION 4: KEYBOARD SHORTCUTS              -->
+  <!-- ═══════════════════════════════════════════ -->
+  <h2 class="section-title" id="keyboard">קיצורי מקלדת</h2>
+  <p class="section-desc">קיצורים שעובדים בתוך שיחה אינטראקטיבית</p>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd" style="color:#ffa657;">Ctrl+C</span>
+      <span class="title">ביטול / יציאה</span>
+    </div>
+    <div class="desc">לחיצה אחת מבטלת את הפעולה שClaude מבצע כרגע (למשל עוצר הרצת פקודה ארוכה או יצירת תשובה). לחיצה כפולה (Ctrl+C פעמיים) יוצאת מהתוכנה לגמרי. הפקודה הכי חשובה כשמשהו נתקע או רוצים לעצור Claude באמצע.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd" style="color:#ffa657;">Ctrl+D</span>
+      <span class="title">יציאה</span>
+    </div>
+    <div class="desc">יוצא מ-Claude Code מיידית (כמו /exit). שולח אות EOF (End of File). השיחה נשמרת אוטומטית וניתן לחדש עם --continue.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd" style="color:#ffa657;">Shift+Enter</span>
+      <span class="title">שורה חדשה</span>
+    </div>
+    <div class="desc">מוסיף שורה חדשה (newline) בהודעה במקום לשלוח אותה. דורש הגדרה ראשונית עם <code>/terminal-setup</code>. בלי זה, Enter תמיד שולח את ההודעה. חיוני כשכותבים הודעות ארוכות עם קוד או רשימות.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd" style="color:#ffa657;">Esc</span>
+      <span class="title">ביטול עריכה</span>
+    </div>
+    <div class="desc">מבטל מצב עריכה, סוגר תפריט פתוח, או חוזר לשדה הקלט הראשי. במצב Vim, עובר ממצב Insert למצב Normal. שימושי גם לביטול השלמה אוטומטית שנפתחה.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd" style="color:#ffa657;">Tab</span>
+      <span class="title">השלמה אוטומטית</span>
+    </div>
+    <div class="desc">מפעיל השלמה אוטומטית (autocomplete). עובד על פקודות slash (מקלידים <code>/</code> ואז Tab לרשימה), נתיבי קבצים (מקלידים נתיב חלקי ו-Tab), ושמות כלים. חוסך הקלדה ומונע שגיאות כתיב.</div>
+  </div>
+
+
+  <footer>
+    Claude Code v2.1.70 — מדריך פקודות מלא &bull; מבוסס על <code style="color:#79c0ff">claude --help</code><br>
+    <a href="https://docs.anthropic.com/en/docs/claude-code">docs.anthropic.com/claude-code</a>
+  </footer>
+</div>
+
+</body>
+</html>
