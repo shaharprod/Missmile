@@ -4446,6 +4446,89 @@ function normalizeOrefHistoricalPayload(orefData, daysBack) {
   return collectedByDay;
 }
 
+function buildDayStatsFromHistory(histData, targetDateKey) {
+  var rows = [];
+  (histData || []).forEach(function(group) {
+    if (!group || !Array.isArray(group.alerts)) return;
+    group.alerts.forEach(function(a) {
+      if (!a || a.isDrill) return;
+      var dt = resolveAlertDate(a);
+      if (!dt || isNaN(dt.getTime())) return;
+      var dk = localDateKey(dt);
+      if (dk !== targetDateKey) return;
+      var areas = resolveAlertAreas(a);
+      if (!areas) return;
+      var timeStr = String(dt.getHours()).padStart(2, '0') + ':' + String(dt.getMinutes()).padStart(2, '0');
+      var threat = a.threat;
+      var type = (threat === 5) ? 'uav' : 'missile';
+      var title = a.title || ((type === 'uav') ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים');
+      var source = classifyAlertSource(type, areas, title);
+      rows.push({ time: timeStr, areas: areas, type: type, title: title, source: source });
+    });
+  });
+  if (rows.length === 0) return null;
+
+  // raw counters
+  var rawMissiles = 0, rawUavs = 0;
+  var wavesIran = {}, wavesLeb = {};
+  var hourlyRaw = new Array(24).fill(0);
+  var mergedMap = {};
+  rows.forEach(function(r) {
+    if (r.type === 'uav') rawUavs++; else rawMissiles++;
+    if (r.source === 'lebanon') wavesLeb[r.time] = true; else wavesIran[r.time] = true;
+    var hh = parseInt(r.time.substring(0, 2), 10);
+    if (!isNaN(hh) && hh >= 0 && hh < 24) hourlyRaw[hh]++;
+    var k = r.time + '|' + r.type + '|' + r.source;
+    if (!mergedMap[k]) mergedMap[k] = { time: r.time, areas: r.areas, type: r.type, title: r.title };
+    else mergedMap[k].areas = mergeAreasText(mergedMap[k].areas, r.areas);
+  });
+
+  var mergedAlerts = Object.keys(mergedMap).map(function(k) { return mergedMap[k]; })
+    .sort(function(a, b) { return a.time.localeCompare(b.time); });
+
+  var maxH = Math.max.apply(null, hourlyRaw) || 1;
+  var hourly = hourlyRaw.map(function(c) { return Math.round((c / maxH) * 90) / 100; });
+  return {
+    dateKey: targetDateKey,
+    rawCount: rows.length,
+    rawMissiles: rawMissiles,
+    rawUavs: rawUavs,
+    iranWaves: Object.keys(wavesIran).length,
+    lebWaves: Object.keys(wavesLeb).length,
+    mergedAlerts: mergedAlerts,
+    hourly: hourly
+  };
+}
+
+function applyVerifiedDayStats(dayStats) {
+  if (!dayStats) return false;
+  var dateKey = dayStats.dateKey;
+  ALERTS_BY_DAY[dateKey] = dayStats.mergedAlerts;
+  HOURLY_DATA_PER_DAY[dateKey] = dayStats.hourly;
+  var row = DAILY_DATA.find(function(d) { return d.date === dateKey; });
+  if (!row) row = ensureDailyDataRow(dateKey);
+  row.iranWaves = dayStats.iranWaves;
+  row.lebWaves = dayStats.lebWaves;
+  row.missilesLaunched = dayStats.rawMissiles;
+  row.clusterMissiles = Math.round(dayStats.rawMissiles * 0.5);
+  row.uavsLaunched = dayStats.rawUavs;
+  row.interceptions = row.interceptions || '~90%';
+  row.interceptionsCount = '~' + Math.round(dayStats.rawMissiles * 0.9);
+  row.impacts = row.impacts || 0;
+  row.events = dayStats.rawCount + ' אזעקות פיקוד העורף (מאומת API). ' +
+    dayStats.iranWaves + ' גלי איראן, ' + dayStats.lebWaves + ' גלי לבנון. ' +
+    dayStats.rawMissiles + ' ירי רקטות/טילים, ' + dayStats.rawUavs + ' כטב"מ.';
+  try {
+    var saved = JSON.parse(localStorage.getItem('safetime_verified_day_stats') || '{}');
+    saved[dateKey] = {
+      rawCount: dayStats.rawCount, rawMissiles: dayStats.rawMissiles, rawUavs: dayStats.rawUavs,
+      iranWaves: dayStats.iranWaves, lebWaves: dayStats.lebWaves, ts: Date.now()
+    };
+    localStorage.setItem('safetime_verified_day_stats', JSON.stringify(saved));
+  } catch (e) {}
+  return true;
+}
+
 async function fetchOrefHistoryWithFallback() {
   try {
     var directRes = await fetch(OREF_HISTORY_URL, {
@@ -4492,6 +4575,10 @@ async function syncHistoricalDaysFromApi(daysBack) {
       }
     }
 
+    // תיקון קשיח ליום 17.03.2026: מחשב מחדש ישירות מהיסטוריית API במקום seed
+    var fixed1703 = buildDayStatsFromHistory(histData, '2026-03-17');
+    if (fixed1703) applyVerifiedDayStats(fixed1703);
+
     var collectedByDay = normalizeHistoricalPayload(histData, daysBack);
     // הרחבת כיסוי: היסטוריית פיקוד העורף כמקור משלים במקרה חוסר ב-api של צבע אדום
     var orefData = await fetchOrefHistoryWithFallback();
@@ -4507,8 +4594,11 @@ async function syncHistoricalDaysFromApi(daysBack) {
       saveDynamicAlertsBatch(changedDays);
       renderTimeline();
       recalculate();
+      renderDailyTable();
       return true;
     }
+    // גם אם לא היו שינויים במיזוג, ודא שהטבלה מתעדכנת אחרי תיקון 17.03
+    renderDailyTable();
   } catch (e) {}
   return false;
 }
@@ -5104,6 +5194,22 @@ function init() {
       applyLiveCasualtyUpdate(dk, Number(row.killed || 0), Number(row.injured || 0), 'cache');
     });
   } catch (e) {}
+  // טעינת day-stats מאומתים קודמים (אם היו) כדי למנוע חזרה ל-seed ברענון
+  try {
+    var verified = JSON.parse(localStorage.getItem('safetime_verified_day_stats') || '{}');
+    if (verified['2026-03-17']) {
+      var v = verified['2026-03-17'];
+      var row1703 = DAILY_DATA.find(function(d) { return d.date === '2026-03-17'; });
+      if (!row1703) row1703 = ensureDailyDataRow('2026-03-17');
+      row1703.iranWaves = Number(v.iranWaves || row1703.iranWaves || 0);
+      row1703.lebWaves = Number(v.lebWaves || row1703.lebWaves || 0);
+      row1703.missilesLaunched = Number(v.rawMissiles || row1703.missilesLaunched || 0);
+      row1703.uavsLaunched = Number(v.rawUavs || row1703.uavsLaunched || 0);
+      row1703.clusterMissiles = Math.round(Number(row1703.missilesLaunched || 0) * 0.5);
+      row1703.interceptionsCount = '~' + Math.round(Number(row1703.missilesLaunched || 0) * 0.9);
+      row1703.events = Number(v.rawCount || 0) + ' אזעקות פיקוד העורף (מאומת API — cache).';
+    }
+  } catch (e2) {}
 
   // Selectors hidden — auto-set by autoSetSelectors()
 
