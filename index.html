@@ -3878,6 +3878,31 @@ function resolveAlertAreas(payload) {
   return '';
 }
 
+function parseAreasList(areasText) {
+  return String(areasText || '')
+    .split(',')
+    .map(function(v) { return String(v || '').trim(); })
+    .filter(Boolean);
+}
+
+function mergeAreasText(existingAreas, newAreas) {
+  var out = [];
+  var seen = {};
+  parseAreasList(existingAreas).concat(parseAreasList(newAreas)).forEach(function(a) {
+    if (!a || seen[a]) return;
+    seen[a] = true;
+    out.push(a);
+  });
+  return out.join(', ');
+}
+
+function findWaveInAlertsLog(dateKey, timeStr, type, source) {
+  return alertsLog.find(function(e) {
+    var eDate = String(e.alertDate || '').split(' ')[0];
+    return eDate === dateKey && e.time === timeStr && e.type === type && (e.source || 'unknown') === source;
+  });
+}
+
 function stableNotificationId(payload, timeStr, areas) {
   if (payload && payload.notificationId) return String(payload.notificationId);
   var threat = payload && typeof payload.threat !== 'undefined' ? String(payload.threat) : 'na';
@@ -3896,13 +3921,16 @@ function classifyAlertSource(type, areas, title) {
 function upsertAlertInDay(dateKey, timeStr, areas, type, title) {
   if (!dateKey || !timeStr || !areas) return;
   if (!ALERTS_BY_DAY[dateKey]) ALERTS_BY_DAY[dateKey] = [];
-  var exists = ALERTS_BY_DAY[dateKey].some(function(e) {
-    return e.time === timeStr && e.areas === areas;
+  var existingWave = ALERTS_BY_DAY[dateKey].find(function(e) {
+    return e.time === timeStr && e.type === type;
   });
-  if (!exists) {
-    ALERTS_BY_DAY[dateKey].push({ time: timeStr, areas: areas, type: type, title: title || '' });
-    ALERTS_BY_DAY[dateKey].sort(function(a, b) { return a.time.localeCompare(b.time); });
+  if (existingWave) {
+    existingWave.areas = mergeAreasText(existingWave.areas, areas);
+    if (title && (!existingWave.title || existingWave.title.length < title.length)) existingWave.title = title;
+    return;
   }
+  ALERTS_BY_DAY[dateKey].push({ time: timeStr, areas: areas, type: type, title: title || '' });
+  ALERTS_BY_DAY[dateKey].sort(function(a, b) { return a.time.localeCompare(b.time); });
 }
 
 // fetch notifications דרך CORS proxy
@@ -3945,14 +3973,25 @@ function processTzevaadomAlert(data, source) {
   var type = (threat === 5) ? 'uav' : 'missile';
   var title = (threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים';
   var alertSource = classifyAlertSource(type, areas, title);
+  var dateKey = localDateKey(alertDate);
 
-  // בדיקת כפילות נוספת מול alertsLog (למקרה של נתונים ישנים)
-  var isDuplicate = alertsLog.some(function(existing) {
-    return existing.area === areas && existing.time === timeStr;
-  });
+  // איחוד גל: אותו זמן+סוג+מקור מתמזג לרשומה אחת במקום ספאם כפילויות
+  var existingWave = findWaveInAlertsLog(dateKey, timeStr, type, alertSource);
+  if (existingWave) {
+    existingWave.area = mergeAreasText(existingWave.area, areas);
+    if (title && (!existingWave.title || existingWave.title.length < title.length)) existingWave.title = title;
+    upsertAlertInDay(dateKey, timeStr, areas, type, title);
+    saveDynamicAlert(dateKey, timeStr, existingWave.area, type, existingWave.title || title);
+    renderAlertLog();
+    renderTimeline();
+    return;
+  }
+
+  // בדיקת כפילות קשיחה ישנה (תואם מלא זמן+אזור)
+  var isDuplicate = alertsLog.some(function(existing) { return existing.area === areas && existing.time === timeStr; });
   if (!isDuplicate) {
     alertsLog.unshift({
-      time: timeStr, alertDate: localDateKey(alertDate) + ' ' + timeStr,
+      time: timeStr, alertDate: dateKey + ' ' + timeStr,
       area: areas, type: type, title: title, source: alertSource, live: true
     });
     todayAlertCount++;
@@ -3963,7 +4002,6 @@ function processTzevaadomAlert(data, source) {
     saveAlerts();
     renderAlertLog();
     recalculate();
-    var dateKey = localDateKey(alertDate);
     upsertAlertInDay(dateKey, timeStr, areas, type, title);
     saveDynamicAlert(dateKey, timeStr, areas, type, title);
     // עדכון דינמי של DAILY_DATA ו-HOURLY_DATA_PER_DAY
@@ -4452,11 +4490,22 @@ function processOrefAlerts(alertsData) {
     if (title.indexOf('רקטות') !== -1 || title.indexOf('טילים') !== -1) type = 'missile';
 
     var alertSource = classifyAlertSource(type, area, title);
+    var dateKey = fullDate.split(' ')[0];
 
-    // בדיקת כפילויות — השוואה לכל הלוג
-    var isDuplicate = alertsLog.some(function(existing) {
-      return existing.area === area && existing.time === timeStr;
-    });
+    // איחוד גל: אותו זמן+סוג+מקור => מיזוג אזורים לרשומה אחת
+    var existingWave = findWaveInAlertsLog(dateKey, timeStr, type, alertSource);
+    if (existingWave) {
+      existingWave.area = mergeAreasText(existingWave.area, area);
+      if (title && (!existingWave.title || existingWave.title.length < title.length)) existingWave.title = title;
+      upsertAlertInDay(dateKey, timeStr.substring(0, 5), area, type, title);
+      saveDynamicAlert(dateKey, timeStr, existingWave.area, type, existingWave.title || title);
+      renderAlertLog();
+      renderTimeline();
+      return;
+    }
+
+    // בדיקת כפילויות קשיחה — השוואה לכל הלוג
+    var isDuplicate = alertsLog.some(function(existing) { return existing.area === area && existing.time === timeStr; });
     if (!isDuplicate) {
       alertsLog.unshift({
         time: timeStr,
@@ -4472,7 +4521,6 @@ function processOrefAlerts(alertsData) {
       showEarlyWarning(type, area, title);
 
       // שמירה דינמית ל-ALERTS_BY_DAY
-      var dateKey = fullDate.split(' ')[0];
       upsertAlertInDay(dateKey, timeStr.substring(0, 5), area, type, title);
       saveDynamicAlert(dateKey, timeStr, area, type, title);
       updateLiveDayData(dateKey, type, area);
@@ -4637,9 +4685,8 @@ async function fullDaySync() {
     var todayCutoff = todayMidnight.getTime();
     var todayKey = localDateKey();
 
-    // בניית רשימה סמכותית מה-API — כל האזעקות מהיום
-    var apiAlerts = [];
-    var seenKeys = {};
+    // בניית רשימה סמכותית מה-API — איחוד גלים לפי זמן+סוג+מקור
+    var apiAlertsMap = {};
     histData.forEach(function(group) {
       if (!group.alerts) return;
       group.alerts.forEach(function(a) {
@@ -4653,22 +4700,22 @@ async function fullDaySync() {
         var areas = resolveAlertAreas(a);
         if (!areas) return;
 
-        // דדופליקציה לפי שעה:דקה + 30 תווים ראשונים
-        var key = timeStr + '|' + areas.substring(0, 30);
-        if (seenKeys[key]) return;
-        seenKeys[key] = true;
-
         var threat = a.threat;
         var type = (threat === 5) ? 'uav' : 'missile';
         var title = (threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים';
         var alertSource = classifyAlertSource(type, areas, title);
-
-        apiAlerts.push({
-          time: timeStr, alertDate: todayKey + ' ' + timeStr,
-          area: areas, type: type, title: title, source: alertSource, live: true
-        });
+        var waveKey = timeStr + '|' + type + '|' + alertSource;
+        if (!apiAlertsMap[waveKey]) {
+          apiAlertsMap[waveKey] = {
+            time: timeStr, alertDate: todayKey + ' ' + timeStr,
+            area: areas, type: type, title: title, source: alertSource, live: true
+          };
+        } else {
+          apiAlertsMap[waveKey].area = mergeAreasText(apiAlertsMap[waveKey].area, areas);
+        }
       });
     });
+    var apiAlerts = Object.keys(apiAlertsMap).map(function(k) { return apiAlertsMap[k]; });
 
     // מיזוג: API הוא מקור האמת. הוסף seed alerts שלא קיימים ב-API
     var seedAlerts = (TODAY_SEED_ALERTS || []).filter(function(s) {
