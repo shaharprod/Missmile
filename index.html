@@ -3765,6 +3765,47 @@ async function tzevaadomBackupAPI() {
   setTimeout(tzevaadomBackupAPI, 3000);
 }
 
+function resolveAlertDate(payload) {
+  if (!payload) return new Date();
+  var t = payload.time;
+  if (typeof t === 'number' && isFinite(t)) {
+    if (t > 1000000000000) return new Date(t); // milliseconds epoch
+    if (t > 1000000000) return new Date(t * 1000); // seconds epoch
+  }
+  if (typeof t === 'string' && t.trim()) {
+    var parsed = Date.parse(t);
+    if (!isNaN(parsed)) return new Date(parsed);
+    if (/^\d{2}:\d{2}(:\d{2})?$/.test(t)) {
+      var now = new Date();
+      var parts = t.split(':');
+      now.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), parts[2] ? parseInt(parts[2], 10) : 0, 0);
+      return now;
+    }
+  }
+  return new Date();
+}
+
+function resolveAlertAreas(payload) {
+  if (!payload) return '';
+  var list = [];
+  if (Array.isArray(payload.cities)) list = payload.cities.slice();
+  else if (Array.isArray(payload.areas)) list = payload.areas.slice();
+  else if (typeof payload.cities === 'string') list = payload.cities.split(',');
+  else if (typeof payload.area === 'string') list = payload.area.split(',');
+  else if (typeof payload.city === 'string') list = payload.city.split(',');
+
+  list = list.map(function(v) { return String(v || '').trim(); }).filter(Boolean);
+  if (list.length > 0) return list.join(', ');
+  if (typeof payload.data === 'string' && payload.data.trim()) return payload.data.trim();
+  return '';
+}
+
+function stableNotificationId(payload, timeStr, areas) {
+  if (payload && payload.notificationId) return String(payload.notificationId);
+  var threat = payload && typeof payload.threat !== 'undefined' ? String(payload.threat) : 'na';
+  return 'auto_' + timeStr + '_' + threat + '_' + String(areas || '').substring(0, 120);
+}
+
 // fetch notifications דרך CORS proxy
 async function fetchTzevaadomNotificationsViaProxy() {
   for (var i = 0; i < CORS_PROXIES.length; i++) {
@@ -3780,29 +3821,25 @@ async function fetchTzevaadomNotificationsViaProxy() {
 // עיבוד אזעקה — בדיוק כמו getAlerts() של צבע אדום
 // כולל דדופליקציה לפי notificationId (מערך של 100 אחרונים)
 function processTzevaadomAlert(data, source) {
+  if (!data || typeof data !== 'object') return;
+
+  var alertDate = resolveAlertDate(data);
+  var timeStr = String(alertDate.getHours()).padStart(2, '0') + ':' + String(alertDate.getMinutes()).padStart(2, '0');
+  var areas = resolveAlertAreas(data);
+  if (!areas) return;
+
   // ברירות מחדל — בדיוק כמו צבע אדום
-  if (!data.notificationId) data.notificationId = String(Math.random());
+  if (!data.notificationId) data.notificationId = stableNotificationId(data, timeStr, areas);
   if (!data.isDrill) data.isDrill = false;
   if (typeof data.threat === 'undefined') data.threat = 8;
 
   // דדופליקציה לפי notificationId — מנגנון צבע אדום
   if (rcvNotificationIds.indexOf(data.notificationId) !== -1) return;
   rcvNotificationIds.push(data.notificationId);
-  if (rcvNotificationIds.length > 100) rcvNotificationIds.shift();
+  if (rcvNotificationIds.length > 500) rcvNotificationIds.shift();
 
   // דלג על תרגילים
   if (data.isDrill) return;
-
-  // שימוש בזמן האזעקה מה-API (לא שעון מקומי) למניעת פערים בין מכשירים
-  var alertDate;
-  if (data.time && typeof data.time === 'number' && data.time > 1000000000) {
-    alertDate = new Date(data.time * 1000); // Unix timestamp בשניות
-  } else {
-    alertDate = new Date(); // fallback לשעון מקומי
-  }
-  var timeStr = String(alertDate.getHours()).padStart(2, '0') + ':' + String(alertDate.getMinutes()).padStart(2, '0');
-  var areas = (data.cities || []).join(', ');
-  if (!areas) return;
 
   var threat = data.threat;
   // צבע אדום API: threat 0 = רקטות/טילים, threat 5 = כטב"מ
@@ -3815,7 +3852,7 @@ function processTzevaadomAlert(data, source) {
   });
   if (!isDuplicate) {
     alertsLog.unshift({
-      time: timeStr, alertDate: localDateKey(now) + ' ' + timeStr,
+      time: timeStr, alertDate: localDateKey(alertDate) + ' ' + timeStr,
       area: areas, type: type, title: title, source: 'live', live: true
     });
     todayAlertCount++;
@@ -3826,7 +3863,7 @@ function processTzevaadomAlert(data, source) {
     saveAlerts();
     renderAlertLog();
     recalculate();
-    var dateKey = localDateKey(now);
+    var dateKey = localDateKey(alertDate);
     saveDynamicAlert(dateKey, timeStr, areas, type, title);
     // עדכון דינמי של DAILY_DATA ו-HOURLY_DATA_PER_DAY
     updateLiveDayData(dateKey, type);
@@ -4209,6 +4246,16 @@ function scheduleNextPoll() {
 async function fullDaySync() {
   try {
     var histData = await fetchTzevaadomWithFallback();
+    if (!Array.isArray(histData) || histData.length === 0) {
+      // fallback קשיח: אם history לא זמין, נסה notifications כדי לא להיתקע על מידע ישן
+      try {
+        var nRes = await fetch(TZEVAADOM_NOTIFICATIONS_URL, { signal: AbortSignal.timeout(6000) });
+        if (nRes.ok) {
+          var nData = await nRes.json();
+          if (Array.isArray(nData) && nData.length > 0) histData = [{ alerts: nData }];
+        }
+      } catch(e0) {}
+    }
     if (!Array.isArray(histData) || histData.length === 0) return;
 
     var todayMidnight = new Date();
@@ -4223,12 +4270,13 @@ async function fullDaySync() {
       if (!group.alerts) return;
       group.alerts.forEach(function(a) {
         if (a.isDrill) return;
-        var alertTime = a.time * 1000;
+        var resolvedDate = resolveAlertDate(a);
+        var alertTime = resolvedDate.getTime();
         if (alertTime < todayCutoff) return;
 
         var alertDate = new Date(alertTime);
         var timeStr = String(alertDate.getHours()).padStart(2, '0') + ':' + String(alertDate.getMinutes()).padStart(2, '0');
-        var areas = (a.cities || []).join(', ');
+        var areas = resolveAlertAreas(a);
         if (!areas) return;
 
         // דדופליקציה לפי שעה:דקה + 30 תווים ראשונים
