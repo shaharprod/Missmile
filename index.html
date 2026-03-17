@@ -1112,13 +1112,13 @@ const DAILY_DATA = [
     events: '184 אזעקות. ~10 מטחים מאיראן (133 סירנות), ~20 גלי חיזבאללה (51 ירי). מקור גלים: אומדן על בסיס אלמ"א. גלים 00:33-22:21.'
   },
   {
-    // 17.3.2026 (שלישי, יום 18) — seed חלקי בלבד
+    // 17.3.2026 (שלישי, יום 18) — seed מינימלי בלבד
     // הערכים מתעדכנים אוטומטית מה-API ההיסטורי אחרי טעינת הדף
     date: '2026-03-17', dayName: 'שלישי',
-    iranWaves: 0, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    iranWaves: 2, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 0, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 0, clusterMissiles: 0, uavsLaunched: 0, interceptions: '—', interceptionsCount: '—', impacts: 0, killed: 0, injured: 0,
-    events: 'נתוני seed חלקיים בלבד — מתעדכן אוטומטית מה-API ההיסטורי.'
+    missilesLaunched: 2, clusterMissiles: 1, uavsLaunched: 0, interceptions: '—', interceptionsCount: '—', impacts: 0, killed: 0, injured: 0,
+    events: 'נתוני seed מינימליים (2 התראות) — מתעדכן אוטומטית מה-API ההיסטורי.'
   },
   // 18.3 ואילך — יתווסף רק כשהתאריך יגיע בפועל
 ];
@@ -1302,6 +1302,15 @@ const HOURLY_DATA_PER_DAY = {
     0.55, 0.50, 0.55, 0.50,  // 12-15
     0.50, 0.55, 0.50, 0.45,  // 16-19
     0.50, 0.45, 0.45, 0.00   // 20-23 גלים עד 22:21
+  ],
+  '2026-03-17': [
+    // 17.3.2026 (שלישי, יום 18) — seed מינימלי לפני סנכרון API
+    0.00, 0.60, 0.00, 0.60,  // 00-03 01:03, 03:35
+    0.00, 0.00, 0.00, 0.00,  // 04-07
+    0.00, 0.00, 0.00, 0.00,  // 08-11
+    0.00, 0.00, 0.00, 0.00,  // 12-15
+    0.00, 0.00, 0.00, 0.00,  // 16-19
+    0.00, 0.00, 0.00, 0.00   // 20-23
   ],
   // 18.3 ואילך — יתווסף רק כשהתאריך יגיע בפועל
 };
@@ -4030,6 +4039,8 @@ function updateLiveDayData(dateKey, type, areas) {
     if (typeof buildDayOptions === 'function') buildDayOptions();
     if (typeof renderIntensityTabs === 'function') renderIntensityTabs();
   }
+  // ודא שהטבלה היומית תמיד מתרעננת אחרי פיוס נתונים
+  if (typeof renderDailyTable === 'function') renderDailyTable();
 }
 
 // ==================== צבע אדום REST API ====================
