@@ -1112,13 +1112,13 @@ const DAILY_DATA = [
     events: '184 אזעקות. ~10 מטחים מאיראן (133 סירנות), ~20 גלי חיזבאללה (51 ירי). מקור גלים: אומדן על בסיס אלמ"א. גלים 00:33-22:21.'
   },
   {
-    // 17.3.2026 (שלישי, יום 18) — מקורות: צבע אדום API
-    // צפירה=2 (בליסטי), ירי רקטות=0. ~2 גלי איראן, 0 גלי חיזבאללה
+    // 17.3.2026 (שלישי, יום 18) — seed חלקי בלבד
+    // הערכים מתעדכנים אוטומטית מה-API ההיסטורי אחרי טעינת הדף
     date: '2026-03-17', dayName: 'שלישי',
-    iranWaves: 2, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    iranWaves: 0, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 0, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 2, clusterMissiles: 1, uavsLaunched: 0, interceptions: '~100%', interceptionsCount: '~2', impacts: 0, killed: 0, injured: 0,
-    events: '2 אזעקות. 2 מטחים מאיראן (2 סירנות), 0 גלי חיזבאללה. גלים מינימליים.'
+    missilesLaunched: 0, clusterMissiles: 0, uavsLaunched: 0, interceptions: '—', interceptionsCount: '—', impacts: 0, killed: 0, injured: 0,
+    events: 'נתוני seed חלקיים בלבד — מתעדכן אוטומטית מה-API ההיסטורי.'
   },
   // 18.3 ואילך — יתווסף רק כשהתאריך יגיע בפועל
 ];
@@ -1667,7 +1667,7 @@ function loadAlerts() {
 // ║  מידע שגוי עלול לגרום למוות. אנשים מסתמכים על נתונים אלה.          ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 //
-var SEED_VERSION = 29; // v29: historical backfill from alerts-history + per-day stats reconciliation (including missing 17.03 data)
+var SEED_VERSION = 30; // v30: authoritative rebuild for recent historical days (yesterday/today) + stronger fallback coverage
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: Xinhua timeline, JPost, CNN liveblog
@@ -4071,76 +4071,136 @@ function saveDynamicAlertsBatch(changedDays) {
   } catch (e) {}
 }
 
-async function syncHistoricalDaysFromApi(daysBack) {
+async function fetchNotificationsWithFallback() {
   try {
-    var historyDaysBack = Math.max(1, parseInt(daysBack || '3', 10) || 3);
-    var histData = await fetchTzevaadomWithFallback();
-    if (!Array.isArray(histData) || histData.length === 0) return false;
+    var res = await fetch(TZEVAADOM_NOTIFICATIONS_URL, { signal: AbortSignal.timeout(6000) });
+    if (res.ok) {
+      var data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
+  } catch (e) {}
+  for (var i = 0; i < CORS_PROXIES.length; i++) {
+    try {
+      var proxyUrl = CORS_PROXIES[i](TZEVAADOM_NOTIFICATIONS_URL);
+      var res2 = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+      if (res2.ok) {
+        var text = await res2.text();
+        var parsed = JSON.parse(text);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e2) {}
+  }
+  return null;
+}
 
-    var now = new Date();
-    var minDate = new Date(now);
-    minDate.setDate(minDate.getDate() - historyDaysBack);
-    var minKey = localDateKey(minDate);
-    var maxKey = localDateKey(now);
+function normalizeHistoricalPayload(histData, daysBack) {
+  var historyDaysBack = Math.max(1, parseInt(daysBack || '3', 10) || 3);
+  var now = new Date();
+  var minDate = new Date(now);
+  minDate.setDate(minDate.getDate() - historyDaysBack);
+  var minKey = localDateKey(minDate);
+  var maxKey = localDateKey(now);
 
-    var collectedByDay = {};
-    histData.forEach(function(group) {
-      if (!group || !Array.isArray(group.alerts)) return;
-      group.alerts.forEach(function(a) {
-        if (!a || a.isDrill) return;
-        var resolvedDate = resolveAlertDate(a);
-        if (!resolvedDate || isNaN(resolvedDate.getTime())) return;
-        var dateKey = localDateKey(resolvedDate);
-        if (dateKey < minKey || dateKey > maxKey) return;
+  var collectedByDay = {};
+  (histData || []).forEach(function(group) {
+    if (!group || !Array.isArray(group.alerts)) return;
+    group.alerts.forEach(function(a) {
+      if (!a || a.isDrill) return;
+      var resolvedDate = resolveAlertDate(a);
+      if (!resolvedDate || isNaN(resolvedDate.getTime())) return;
+      var dateKey = localDateKey(resolvedDate);
+      if (dateKey < minKey || dateKey > maxKey) return;
 
-        var areas = resolveAlertAreas(a);
-        if (!areas) return;
-        var timeStr = String(resolvedDate.getHours()).padStart(2, '0') + ':' + String(resolvedDate.getMinutes()).padStart(2, '0');
-        var threat = a.threat;
-        var type = (threat === 5) ? 'uav' : 'missile';
-        var title = a.title || ((threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים');
+      var areas = resolveAlertAreas(a);
+      if (!areas) return;
+      var timeStr = String(resolvedDate.getHours()).padStart(2, '0') + ':' + String(resolvedDate.getMinutes()).padStart(2, '0');
+      var threat = a.threat;
+      var type = (threat === 5) ? 'uav' : 'missile';
+      var title = a.title || ((threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים');
 
-        if (!collectedByDay[dateKey]) collectedByDay[dateKey] = {};
-        // דדופליקציה שמרנית: זמן + 40 תווים ראשונים של אזורים
-        var dedupKey = timeStr + '|' + areas.substring(0, 40);
-        if (!collectedByDay[dateKey][dedupKey]) {
-          collectedByDay[dateKey][dedupKey] = {
-            time: timeStr,
-            areas: areas,
-            type: type,
-            title: title
-          };
-        }
-      });
+      if (!collectedByDay[dateKey]) collectedByDay[dateKey] = {};
+      // דדופליקציה: זמן + אזורים מלאים (לא לקצץ כדי לא לאבד רשומות אמיתיות)
+      var dedupKey = timeStr + '|' + areas;
+      if (!collectedByDay[dateKey][dedupKey]) {
+        collectedByDay[dateKey][dedupKey] = {
+          time: timeStr,
+          areas: areas,
+          type: type,
+          title: title
+        };
+      }
     });
+  });
+  return collectedByDay;
+}
 
-    var changedDays = [];
-    Object.keys(collectedByDay).forEach(function(dateKey) {
-      var existing = ALERTS_BY_DAY[dateKey] || [];
-      var merged = existing.slice();
-      var existingKeys = {};
-      existing.forEach(function(a) {
-        var t = String(a.time || '').substring(0, 5);
-        var ar = a.areas || '';
-        existingKeys[t + '|' + ar.substring(0, 40)] = true;
-      });
+function applyHistoricalToDayStores(collectedByDay) {
+  var changedDays = [];
+  var todayKey = localDateKey();
+  var yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  var yesterdayKey = localDateKey(yesterday);
 
-      var incoming = Object.keys(collectedByDay[dateKey]).map(function(k) { return collectedByDay[dateKey][k]; });
-      incoming.forEach(function(a) {
-        var k = a.time + '|' + a.areas.substring(0, 40);
-        if (!existingKeys[k]) {
-          merged.push(a);
-          existingKeys[k] = true;
-        }
-      });
+  Object.keys(collectedByDay).forEach(function(dateKey) {
+    var incoming = Object.keys(collectedByDay[dateKey]).map(function(k) { return collectedByDay[dateKey][k]; });
+    incoming.sort(function(a, b) { return String(a.time || '').localeCompare(String(b.time || '')); });
+    if (incoming.length === 0) return;
 
-      if (merged.length !== existing.length) {
-        merged.sort(function(x, y) { return String(x.time || '').localeCompare(String(y.time || '')); });
-        ALERTS_BY_DAY[dateKey] = merged;
+    var existing = ALERTS_BY_DAY[dateKey] || [];
+    var shouldReplace = (dateKey === todayKey || dateKey === yesterdayKey);
+
+    if (shouldReplace) {
+      // ימים קריטיים (היום/אתמול): מקור אמת = היסטוריית API
+      var oldSig = JSON.stringify(existing.map(function(a) { return [a.time, a.areas, a.type]; }));
+      var newSig = JSON.stringify(incoming.map(function(a) { return [a.time, a.areas, a.type]; }));
+      if (oldSig !== newSig) {
+        ALERTS_BY_DAY[dateKey] = incoming;
         updateLiveDayData(dateKey, null, null);
         changedDays.push(dateKey);
       }
+      return;
+    }
+
+    // ימים ישנים יותר: מיזוג זהיר (לא למחוק seed אם ה-API חלקי)
+    var merged = existing.slice();
+    var existingKeys = {};
+    existing.forEach(function(a) {
+      var t = String(a.time || '').substring(0, 5);
+      var ar = a.areas || '';
+      existingKeys[t + '|' + ar] = true;
     });
+    incoming.forEach(function(a) {
+      var k = a.time + '|' + a.areas;
+      if (!existingKeys[k]) {
+        merged.push(a);
+        existingKeys[k] = true;
+      }
+    });
+    if (merged.length !== existing.length) {
+      merged.sort(function(x, y) { return String(x.time || '').localeCompare(String(y.time || '')); });
+      ALERTS_BY_DAY[dateKey] = merged;
+      updateLiveDayData(dateKey, null, null);
+      changedDays.push(dateKey);
+    }
+  });
+  return changedDays;
+}
+
+async function syncHistoricalDaysFromApi(daysBack) {
+  try {
+    var histData = await fetchTzevaadomWithFallback();
+    if (!Array.isArray(histData) || histData.length === 0) {
+      // fallback קשיח: בנה payload גם מ-notifications אם history נחסם
+      var notifications = await fetchNotificationsWithFallback();
+      if (Array.isArray(notifications) && notifications.length > 0) {
+        histData = [{ alerts: notifications }];
+      } else {
+        return false;
+      }
+    }
+
+    var collectedByDay = normalizeHistoricalPayload(histData, daysBack);
+    var changedDays = applyHistoricalToDayStores(collectedByDay);
 
     if (changedDays.length > 0) {
       saveDynamicAlertsBatch(changedDays);
@@ -4767,8 +4827,10 @@ function init() {
   setInterval(scheduleFullDaySync, 10000);
   setTimeout(fullDaySync, 3000); // סנכרון ראשוני 3 שניות אחרי טעינה
   // סנכרון היסטורי (עד חודש אחורה; בפועל תלוי בכיסוי שה-API מספק)
-  setTimeout(function() { syncHistoricalDaysFromApi(30); }, 4500);
-  setInterval(function() { syncHistoricalDaysFromApi(30); }, 10 * 60 * 1000);
+  syncHistoricalDaysFromApi(30); // סנכרון מיידי לסגירת פערים לפני שהמשתמש רואה טבלה ישנה
+  setTimeout(function() { syncHistoricalDaysFromApi(30); }, 1000);
+  // ריענון תדיר יותר כדי להשלים אתמול/היום מהר ולצמצם פערים גלויים למשתמש
+  setInterval(function() { syncHistoricalDaysFromApi(30); }, 2 * 60 * 1000);
 
   // כפתור רענון ידני
   $('connRefresh').addEventListener('click', function() {
