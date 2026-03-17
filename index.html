@@ -880,7 +880,8 @@ body {
           <th>יום</th>
           <th>מקור</th>
           <th>גלי תקיפה</th>
-          <th>טילים</th>
+          <th>טילים רגילים</th>
+          <th>מתפצלים/מצררים</th>
           <th>כטב"מים</th>
           <th>יירוטים</th>
           <th>נפילות</th>
@@ -963,7 +964,7 @@ const DAILY_DATA = [
     date: '2026-02-28', dayName: 'שבת',
     iranWaves: 25, iranMissiles: '100-150', iranUAVs: 'עשרות', iranKilled: 2, iranInjured: 456,
     lebWaves: 0, lebRockets: 0,
-    missilesLaunched: 150, uavsLaunched: 500, interceptions: '~90%', interceptionsCount: '~135', impacts: '~15', killed: 2, injured: 456,
+    missilesLaunched: 150, clusterMissiles: 75, uavsLaunched: 500, interceptions: '~90%', interceptionsCount: '~135', impacts: '~15', killed: 2, injured: 456,
     events: 'פתיחת מבצע "שאגת הארי" ~08:20. תגובת איראן מ-10:00. 3 מטחים (10:00, 15:45, 23:30). הרוגה מטיל בגוש דן (מטפלת זרה). מרינה בלייב (68) נפטרה מדום לב בריצה למרחב מוגן. מד"א: 456 פונו.'
   },
   {
@@ -971,7 +972,7 @@ const DAILY_DATA = [
     date: '2026-03-01', dayName: 'ראשון',
     iranWaves: 63, iranMissiles: 'שיא — גלים גדולים', iranUAVs: 'מאות', iranKilled: 9, iranInjured: 700,
     lebWaves: 1, lebRockets: 3,
-    missilesLaunched: 200, uavsLaunched: 800, interceptions: '~88%', interceptionsCount: '~176', impacts: '~24', killed: 9, injured: 700,
+    missilesLaunched: 200, clusterMissiles: 100, uavsLaunched: 800, interceptions: '~88%', interceptionsCount: '~176', impacts: '~24', killed: 9, injured: 700,
     events: 'שיא: 63 גלים (אלמ"א). פגיעה ישירה בבית כנסת בית שמש — 9 הרוגים (Al Jazeera). חיזבאללה: ירי ראשון מאז הפסקת אש 2024 — 01:17. מד"א: 700+ פונו.'
   },
   {
@@ -979,7 +980,7 @@ const DAILY_DATA = [
     date: '2026-03-02', dayName: 'שני',
     iranWaves: 24, iranMissiles: 'ירידה', iranUAVs: 'מאות', iranKilled: 0, iranInjured: 700,
     lebWaves: 10, lebRockets: 'טילי דיוק + כטב"מים',
-    missilesLaunched: 100, uavsLaunched: 500, interceptions: '~90%', interceptionsCount: '~90', impacts: '~10', killed: 0, injured: 700,
+    missilesLaunched: 100, clusterMissiles: 50, uavsLaunched: 500, interceptions: '~90%', interceptionsCount: '~90', impacts: '~10', killed: 0, injured: 700,
     events: '24 גלים מאיראן (112 מצטבר, אלמ"א). חיזבאללה — 10 תקיפות כנגד משמר הכרמל. פגיעה בב"ש — 19 פצועים (Al Jazeera). כטב"מ יורט ע"י אור איתן.'
   },
   {
@@ -987,7 +988,7 @@ const DAILY_DATA = [
     date: '2026-03-03', dayName: 'שלישי',
     iranWaves: 8, iranMissiles: 'ירידה 86%', iranUAVs: 'ירידה', iranKilled: 1, iranInjured: 1000,
     lebWaves: 14, lebRockets: 'עשרות',
-    missilesLaunched: 50, uavsLaunched: 200, interceptions: '~93%', interceptionsCount: '~47', impacts: '~3', killed: 1, injured: 1000,
+    missilesLaunched: 50, clusterMissiles: 25, uavsLaunched: 200, interceptions: '~93%', interceptionsCount: '~47', impacts: '~3', killed: 1, injured: 1000,
     events: 'ירידה 86% בבליסטיים (US Joint Chiefs). 8 גלים מאיראן. חיזבאללה: 14 תקיפות. 7 פצועים קל מרסיסי יירוט (CNN). סה"כ 4 ימים (CENTCOM): 500 טילים + 2,000 כטב"מים.'
   },
   {
@@ -997,7 +998,7 @@ const DAILY_DATA = [
     date: '2026-03-04', dayName: 'רביעי',
     iranWaves: 8, iranMissiles: 'מטפטף', iranUAVs: 'מטפטף', iranKilled: 2, iranInjured: 1200,
     lebWaves: 38, lebRockets: 'עשרות שיגורים',
-    missilesLaunched: 45, uavsLaunched: 80, interceptions: '~95%', interceptionsCount: '~43', impacts: '~2', killed: 2, injured: 1200,
+    missilesLaunched: 45, clusterMissiles: 22, uavsLaunched: 80, interceptions: '~95%', interceptionsCount: '~43', impacts: '~2', killed: 2, injured: 1200,
     events: '7+ גלי תקיפה מאיראן (FDD). חיזבאללה: 38 אירועי ירי (hamal.co.il). טיל נ"ט במרגליות — הרוג הודי, 7 פצועים (ToI). סה"כ 128 גלים מצטבר.'
   },
   {
@@ -1008,7 +1009,7 @@ const DAILY_DATA = [
     // צפירה=193 (בליסטי), ירי רקטות=34. 7+ גלי איראן, 10+ גלי חיזבאללה
     iranWaves: 7, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 10, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 193, uavsLaunched: 34, interceptions: '~90%', interceptionsCount: '~174', impacts: '~19', killed: 0, injured: 0,
+    missilesLaunched: 193, clusterMissiles: 97, uavsLaunched: 34, interceptions: '~90%', interceptionsCount: '~174', impacts: '~19', killed: 0, injured: 0,
     events: '227 אזעקות פיקוד העורף. 7+ מטחים מאיראן (193 סירנות), 10+ גלי חיזבאללה (34 ירי). גלים 00:34-20:34.'
   },
   {
@@ -1017,7 +1018,7 @@ const DAILY_DATA = [
     date: '2026-03-06', dayName: 'שישי',
     iranWaves: 10, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 15, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 69, uavsLaunched: 101, interceptions: '~90%', interceptionsCount: '~62', impacts: '~7', killed: 0, injured: 50,
+    missilesLaunched: 69, clusterMissiles: 35, uavsLaunched: 101, interceptions: '~90%', interceptionsCount: '~62', impacts: '~7', killed: 0, injured: 50,
     events: '202 אזעקות פיקוד העורף. ~10 מטחים מאיראן (69 סירנות), ~15 גלי חיזבאללה (101 ירי). מקור גלים: אלמ"א. גלים 12:03-23:37.'
   },
   {
@@ -1026,7 +1027,7 @@ const DAILY_DATA = [
     date: '2026-03-07', dayName: 'שבת',
     iranWaves: 10, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 25, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 193, uavsLaunched: 56, interceptions: '~90%', interceptionsCount: '~174', impacts: '~19', killed: 0, injured: 50,
+    missilesLaunched: 193, clusterMissiles: 97, uavsLaunched: 56, interceptions: '~90%', interceptionsCount: '~174', impacts: '~19', killed: 0, injured: 50,
     events: '274 אזעקות. ~10 מטחים מאיראן (193 סירנות), ~25 גלי חיזבאללה (56 ירי). מקור גלים: אלמ"א. גלים 01:02-23:38.'
   },
   {
@@ -1035,7 +1036,7 @@ const DAILY_DATA = [
     date: '2026-03-08', dayName: 'ראשון',
     iranWaves: 9, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 31, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 176, uavsLaunched: 105, interceptions: '~90%', interceptionsCount: '~158', impacts: '~18', killed: 0, injured: 50,
+    missilesLaunched: 176, clusterMissiles: 88, uavsLaunched: 105, interceptions: '~90%', interceptionsCount: '~158', impacts: '~18', killed: 0, injured: 50,
     events: '282 אזעקות. ~9 מטחים מאיראן (176 סירנות), ~31 גלי חיזבאללה (105 ירי). אלמ"א: מצטבר 174 איראן, 223 חיזבאללה, 12 הרוגים, 2,142 פצועים. גלים 01:39-23:34.'
   },
   {
@@ -1044,7 +1045,7 @@ const DAILY_DATA = [
     date: '2026-03-09', dayName: 'שני',
     iranWaves: 12, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 2, iranInjured: 197,
     lebWaves: 46, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 164, uavsLaunched: 25, interceptions: '~90%', interceptionsCount: '~148', impacts: '~16', killed: 2, injured: 197,
+    missilesLaunched: 164, clusterMissiles: 82, uavsLaunched: 25, interceptions: '~90%', interceptionsCount: '~148', impacts: '~16', killed: 2, injured: 197,
     events: '189 אזעקות. 12 מטחים מאיראן (164 סירנות), 46 גלי חיזבאללה (25 ירי). אלמ"א: מצטבר 186 איראן, 269 חיזבאללה. 2 הרוגים ביום, 197 פצועים. גלים 00:40-23:59.'
   },
   {
@@ -1053,7 +1054,7 @@ const DAILY_DATA = [
     date: '2026-03-10', dayName: 'שלישי',
     iranWaves: 10, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 30, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 169, uavsLaunched: 31, interceptions: '~90%', interceptionsCount: '~152', impacts: '~17', killed: 0, injured: 180,
+    missilesLaunched: 169, clusterMissiles: 85, uavsLaunched: 31, interceptions: '~90%', interceptionsCount: '~152', impacts: '~17', killed: 0, injured: 180,
     events: '200 אזעקות. ~10 מטחים מאיראן (169 סירנות), ~30 גלי חיזבאללה (31 ירי). מקור גלים: אלמ"א. גלים 00:00-23:38.'
   },
   {
@@ -1062,7 +1063,7 @@ const DAILY_DATA = [
     date: '2026-03-11', dayName: 'רביעי',
     iranWaves: 10, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 1, iranInjured: 170,
     lebWaves: 33, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 150, uavsLaunched: 157, interceptions: '~90%', interceptionsCount: '~135', impacts: '~15', killed: 1, injured: 170,
+    missilesLaunched: 150, clusterMissiles: 75, uavsLaunched: 157, interceptions: '~90%', interceptionsCount: '~135', impacts: '~15', killed: 1, injured: 170,
     events: '338 אזעקות — שיא מאז יום 2! ~10 מטחים מאיראן (150 סירנות), ~33 גלי חיזבאללה (157 ירי). אלמ"א: הרוג 1. מקור גלים: אלמ"א. גלים 03:47-23:19.'
   },
   {
@@ -1071,7 +1072,7 @@ const DAILY_DATA = [
     date: '2026-03-12', dayName: 'חמישי',
     iranWaves: 9, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 32, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 118, uavsLaunched: 80, interceptions: '~90%', interceptionsCount: '~106', impacts: '~12', killed: 0, injured: 170,
+    missilesLaunched: 118, clusterMissiles: 59, uavsLaunched: 80, interceptions: '~90%', interceptionsCount: '~106', impacts: '~12', killed: 0, injured: 170,
     events: '198 אזעקות. ~9 מטחים מאיראן (118 סירנות), ~32 גלי חיזבאללה (80 ירי). מקור גלים: אלמ"א. גלים 00:24-22:22.'
   },
   {
@@ -1080,7 +1081,7 @@ const DAILY_DATA = [
     date: '2026-03-13', dayName: 'שישי',
     iranWaves: 9, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 48, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 114, uavsLaunched: 32, interceptions: '~90%', interceptionsCount: '~103', impacts: '~11', killed: 0, injured: 105,
+    missilesLaunched: 114, clusterMissiles: 57, uavsLaunched: 32, interceptions: '~90%', interceptionsCount: '~103', impacts: '~11', killed: 0, injured: 105,
     events: '146 אזעקות. 9 מטחים מאיראן (114 סירנות), ~48 גלי חיזבאללה (32 ירי). מקור גלים: אלמ"א. גלים 00:20-23:24.'
   },
   {
@@ -1089,7 +1090,7 @@ const DAILY_DATA = [
     date: '2026-03-14', dayName: 'שבת',
     iranWaves: 9, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 49, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 141, uavsLaunched: 62, interceptions: '~90%', interceptionsCount: '~127', impacts: '~14', killed: 0, injured: 105,
+    missilesLaunched: 141, clusterMissiles: 71, uavsLaunched: 62, interceptions: '~90%', interceptionsCount: '~127', impacts: '~14', killed: 0, injured: 105,
     events: '203 אזעקות. 9 מטחים מאיראן (141 סירנות), 49 גלי חיזבאללה (62 ירי). אלמ"א: מצטבר 235 איראן, 465 חיזבאללה, 15 הרוגים, 3,195 פצועים. גלים 00:34-22:24.'
   },
   {
@@ -1098,7 +1099,7 @@ const DAILY_DATA = [
     date: '2026-03-15', dayName: 'ראשון',
     iranWaves: 10, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 34, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 150, uavsLaunched: 22, interceptions: '~90%', interceptionsCount: '~135', impacts: '~15', killed: 0, injured: 134,
+    missilesLaunched: 150, clusterMissiles: 75, uavsLaunched: 22, interceptions: '~90%', interceptionsCount: '~135', impacts: '~15', killed: 0, injured: 134,
     events: '172 אזעקות. 10 מטחים מאיראן (150 סירנות), 34 גלי חיזבאללה (22 ירי). אלמ"א: מצטבר 245 איראן, 485 חיזבאללה, 15 הרוגים, 3,329 פצועים. גלים 01:20-22:58.'
   },
   {
@@ -1107,7 +1108,7 @@ const DAILY_DATA = [
     date: '2026-03-16', dayName: 'שני',
     iranWaves: 10, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 20, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 133, uavsLaunched: 51, interceptions: '~90%', interceptionsCount: '~120', impacts: '~13', killed: 0, injured: 0,
+    missilesLaunched: 133, clusterMissiles: 67, uavsLaunched: 51, interceptions: '~90%', interceptionsCount: '~120', impacts: '~13', killed: 0, injured: 0,
     events: '184 אזעקות. ~10 מטחים מאיראן (133 סירנות), ~20 גלי חיזבאללה (51 ירי). מקור גלים: אומדן על בסיס אלמ"א. גלים 00:33-22:21.'
   },
   {
@@ -1116,7 +1117,7 @@ const DAILY_DATA = [
     date: '2026-03-17', dayName: 'שלישי',
     iranWaves: 2, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
     lebWaves: 0, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 2, uavsLaunched: 0, interceptions: '~100%', interceptionsCount: '~2', impacts: 0, killed: 0, injured: 0,
+    missilesLaunched: 2, clusterMissiles: 1, uavsLaunched: 0, interceptions: '~100%', interceptionsCount: '~2', impacts: 0, killed: 0, injured: 0,
     events: '2 אזעקות. 2 מטחים מאיראן (2 סירנות), 0 גלי חיזבאללה. גלים מינימליים.'
   },
   // 18.3 ואילך — יתווסף רק כשהתאריך יגיע בפועל
@@ -2051,7 +2052,7 @@ loadDynamicAlerts();
         date: dateKey, dayName: dayName,
         iranWaves: missiles, iranMissiles: 0, iranUAVs: 0, iranKilled: 0, iranInjured: 0,
         lebWaves: uavs, lebRockets: 'רקטות+כטב"מים',
-        missilesLaunched: missiles, uavsLaunched: uavs, interceptions: '~90%', interceptionsCount: '~' + Math.round(missiles * 0.9), impacts: 0, killed: 0, injured: 0,
+        missilesLaunched: missiles, clusterMissiles: Math.round(missiles * 0.5), uavsLaunched: uavs, interceptions: '~90%', interceptionsCount: '~' + Math.round(missiles * 0.9), impacts: 0, killed: 0, injured: 0,
         events: alerts.length + ' אזעקות פיקוד העורף (צבע אדום API — עדכון דינמי). ' + missiles + ' ירי רקטות, ' + uavs + ' כטב"מ.'
       });
       existingDailyDates[dateKey] = true;
@@ -2683,17 +2684,21 @@ function renderDailyTable() {
   }
 
   var filter = dailySourceFilter;
-  var totals = { waves: 0, missiles: 0, uavs: 0, interceptions: 0, impacts: 0, killed: 0, injured: 0 };
+  var totals = { waves: 0, missiles: 0, cluster: 0, uavs: 0, interceptions: 0, impacts: 0, killed: 0, injured: 0 };
 
   DAILY_DATA.forEach(function(d) {
     var iranW = numVal(d.iranWaves);
     var lebW = numVal(d.lebWaves);
 
     // חישוב ערכים לפי פילטר
-    var waves, missiles, uavs, interc, imp, killed, injured, srcHtml;
+    var waves, missiles, cluster, uavs, interc, imp, killed, injured, srcHtml;
+    var totalMissiles = numVal(d.missilesLaunched);
+    var clusterM = numVal(d.clusterMissiles || 0);
+    var regularM = totalMissiles - clusterM;
     if (filter === 'iran') {
       waves = iranW;
-      missiles = numVal(d.missilesLaunched);
+      missiles = regularM;
+      cluster = clusterM;
       uavs = numVal(d.uavsLaunched);
       interc = numVal(d.interceptionsCount);
       imp = numVal(d.impacts);
@@ -2702,7 +2707,8 @@ function renderDailyTable() {
       srcHtml = '<span class="src-tag" style="background:rgba(171,71,188,0.15);color:var(--purple)">איראן</span>';
     } else if (filter === 'leb') {
       waves = lebW;
-      missiles = numVal(d.missilesLaunched);
+      missiles = regularM;
+      cluster = clusterM;
       uavs = numVal(d.uavsLaunched);
       interc = numVal(d.interceptionsCount);
       imp = numVal(d.impacts);
@@ -2711,7 +2717,8 @@ function renderDailyTable() {
       srcHtml = lebW > 0 ? '<span class="src-tag" style="background:rgba(255,202,40,0.15);color:var(--yellow)">לבנון</span>' : '<span style="color:#555">—</span>';
     } else {
       waves = iranW + lebW;
-      missiles = numVal(d.missilesLaunched);
+      missiles = regularM;
+      cluster = clusterM;
       uavs = numVal(d.uavsLaunched);
       interc = numVal(d.interceptionsCount);
       imp = numVal(d.impacts);
@@ -2723,6 +2730,7 @@ function renderDailyTable() {
 
     totals.waves += waves;
     totals.missiles += missiles;
+    totals.cluster += cluster;
     totals.uavs += uavs;
     totals.interceptions += interc;
     totals.impacts += imp;
@@ -2738,6 +2746,7 @@ function renderDailyTable() {
       '<td>' + srcHtml + '</td>' +
       '<td class="num">' + (filter === 'all' ? (iranW + (lebW > 0 ? '+' + lebW : '')) : waves) + '</td>' +
       '<td class="num">' + missiles + '</td>' +
+      '<td class="num" style="color:#E040FB">' + cluster + '</td>' +
       '<td class="num">' + uavs + '</td>' +
       '<td class="num" style="color:var(--green)">' + (interc > 0 ? '~' + interc : '0') + '</td>' +
       '<td class="num" style="color:var(--orange)">' + (imp > 0 ? '~' + imp : '0') + '</td>' +
@@ -2757,6 +2766,7 @@ function renderDailyTable() {
     '<td colspan="3" style="font-size:0.82rem">' + filterLabel + '</td>' +
     '<td class="num">' + totals.waves + '</td>' +
     '<td class="num">' + totals.missiles + '</td>' +
+    '<td class="num" style="color:#E040FB">' + totals.cluster + '</td>' +
     '<td class="num">' + totals.uavs + '</td>' +
     '<td class="num" style="color:var(--green)">~' + totals.interceptions + '</td>' +
     '<td class="num" style="color:var(--orange)">~' + totals.impacts + '</td>' +
@@ -2786,8 +2796,11 @@ function renderDailyCharts() {
     { key: 'waves', label: 'גלי תקיפה', color: '#00BCD4', extract: function(d) {
       return filter === 'iran' ? numVal(d.iranWaves) : filter === 'leb' ? numVal(d.lebWaves) : numVal(d.iranWaves) + numVal(d.lebWaves);
     } },
-    { key: 'missiles', label: 'טילים', color: '#AB47BC', extract: function(d) {
-      return numVal(d.missilesLaunched);
+    { key: 'missiles', label: 'טילים רגילים', color: '#AB47BC', extract: function(d) {
+      return numVal(d.missilesLaunched) - numVal(d.clusterMissiles || 0);
+    } },
+    { key: 'cluster', label: 'מתפצלים/מצררים', color: '#E040FB', extract: function(d) {
+      return numVal(d.clusterMissiles || 0);
     } },
     { key: 'uavs', label: 'כטב"מים', color: '#FFCA28', extract: function(d) {
       return numVal(d.uavsLaunched);
