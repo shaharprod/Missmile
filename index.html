@@ -3086,37 +3086,56 @@ function renderAverageHourChart(currentHour) {
   if (!chart) return;
   chart.innerHTML = '';
 
-  // חישוב ממוצע גלי אזעקה לשעה — ספירה ישירה מ-ALERTS_BY_DAY
-  // לכל יום: סופרים כמה גלים ייחודיים (לפי שעה) היו בכל שעה
-  // ממוצע = סך הגלים בשעה X / מספר הימים
-  // תוצאה: מספר ממשי — למשל "בשעה 14:00 יש בממוצע 3.2 גלי אזעקה"
+  // חישוב ממוצע גלי אזעקה לשעה על פני כל הימים עד היום.
+  // סדר עדיפויות לכל יום:
+  // 1) ALERTS_BY_DAY: ספירה בפועל של גלים ייחודיים לפי שעה
+  // 2) fallback: שימוש ב-HOURLY_DATA_PER_DAY + DAILY_DATA להערכת חלוקה שעתית
   var hourTotals = new Array(24).fill(0);
   var dayCount = 0;
+  var todayKey = localDateKey();
 
-  // שלב 1: ספירה ישירה מ-ALERTS_BY_DAY
-  Object.keys(ALERTS_BY_DAY).forEach(function(dateKey) {
-    var alerts = ALERTS_BY_DAY[dateKey];
-    if (!alerts || alerts.length === 0) return;
-    dayCount++;
-    // ספירת גלים ייחודיים לפי שעה (אותו זמן HH:MM = גל אחד)
-    var hourWaves = new Array(24).fill(0);
-    var seenTimes = {};
-    alerts.forEach(function(a) {
-      var timeKey = a.time; // HH:MM
-      if (seenTimes[timeKey]) return;
-      seenTimes[timeKey] = true;
-      var h = parseInt(timeKey.split(':')[0]);
-      if (h >= 0 && h < 24) hourWaves[h]++;
-    });
+  WAR_DAYS.forEach(function(wd) {
+    var dateKey = wd.date;
+    if (dateKey > todayKey) return; // לא לכלול ימים עתידיים
 
-    // בדיקת רזולוציה: אם יש פחות מ-10 entries ויש DAILY_DATA עם יותר גלים — כפול
+    var alerts = ALERTS_BY_DAY[dateKey] || [];
+    if (alerts.length > 0) {
+      dayCount++;
+      var hourWaves = new Array(24).fill(0);
+      var seenTimes = {};
+      alerts.forEach(function(a) {
+        if (!a || !a.time) return;
+        var timeKey = String(a.time).substring(0, 5); // HH:MM
+        if (seenTimes[timeKey]) return;
+        seenTimes[timeKey] = true;
+        var h = parseInt(timeKey.split(':')[0], 10);
+        if (!isNaN(h) && h >= 0 && h < 24) hourWaves[h]++;
+      });
+      for (var h1 = 0; h1 < 24; h1++) {
+        hourTotals[h1] += hourWaves[h1];
+      }
+      return;
+    }
+
+    var perHourRisk = HOURLY_DATA_PER_DAY[dateKey];
+    if (!perHourRisk || perHourRisk.length !== 24) return;
+
     var dayData = DAILY_DATA.find(function(d) { return d.date === dateKey; });
-    var expectedWaves = dayData ? ((typeof dayData.iranWaves === 'number' ? dayData.iranWaves : 0) + (typeof dayData.lebWaves === 'number' ? dayData.lebWaves : 0)) : 0;
-    var actualWaves = Object.keys(seenTimes).length;
-    var scale = (actualWaves > 0 && expectedWaves > actualWaves * 1.5) ? expectedWaves / actualWaves : 1;
+    if (!dayData) return;
+    var iranW = typeof dayData.iranWaves === 'number' ? dayData.iranWaves : 0;
+    var lebW = typeof dayData.lebWaves === 'number' ? dayData.lebWaves : 0;
+    var expectedWaves = iranW + lebW;
+    if (expectedWaves <= 0) return;
 
-    for (var h = 0; h < 24; h++) {
-      hourTotals[h] += hourWaves[h] * scale;
+    var sumRisk = perHourRisk.reduce(function(acc, v) {
+      return acc + (typeof v === 'number' ? v : 0);
+    }, 0);
+    if (sumRisk <= 0) return;
+
+    dayCount++;
+    for (var h2 = 0; h2 < 24; h2++) {
+      var riskVal = typeof perHourRisk[h2] === 'number' ? perHourRisk[h2] : 0;
+      hourTotals[h2] += (riskVal / sumRisk) * expectedWaves;
     }
   });
 
