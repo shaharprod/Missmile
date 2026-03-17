@@ -695,6 +695,47 @@ body {
 
 <div class="flash-overlay" id="flashOverlay"></div>
 
+<!-- מסך הפעלת צליל — חובה ללחוץ כדי לאפשר אזעקות קוליות -->
+<div id="audioActivation" style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="activateAudio()">
+  <div style="text-align:center;color:white;font-family:system-ui,sans-serif;padding:20px;max-width:400px">
+    <div style="font-size:4rem;margin-bottom:20px">🔊</div>
+    <div style="font-size:1.4rem;font-weight:700;margin-bottom:12px;direction:rtl">לחץ כאן להפעלת צלילי אזעקה</div>
+    <div style="font-size:0.9rem;color:#aaa;direction:rtl;line-height:1.6">הדפדפן חוסם צלילים עד ללחיצה ראשונה.<br>חובה ללחוץ כדי לשמוע אזעקות בזמן אמת.<br><strong style="color:#f44336">מדובר בפיקוח נפש!</strong></div>
+  </div>
+</div>
+<script>
+function activateAudio() {
+  // פתיחת AudioContext עם אינטראקציה
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var buf = audioCtx.createBuffer(1, 1, 22050);
+    var src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioCtx.destination);
+    src.start(0);
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    audioUnlocked = true;
+  } catch(e) {}
+  // beep קצר לאישור
+  try {
+    var osc = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    osc.frequency.value = 600;
+    g.gain.value = 0.2;
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+  } catch(e) {}
+  // הסתר את המסך
+  document.getElementById('audioActivation').style.display = 'none';
+  // בקשת הרשאת התראות
+  try {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  } catch(e) {}
+}
+</script>
+
 <div class="container">
 
   <!-- Header -->
@@ -1637,7 +1678,7 @@ function loadAlerts() {
 // ║  מידע שגוי עלול לגרום למוות. אנשים מסתמכים על נתונים אלה.          ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 //
-var SEED_VERSION = 24; // v24: ביטול כל מתעדכן + נתוני זמן אמת + סנכרון דסקטופ/נייד
+var SEED_VERSION = 25; // v25: סנכרון מלא כל 15 שניות + מסך הפעלת צליל חובה
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: Xinhua timeline, JPost, CNN liveblog
@@ -3959,6 +4000,67 @@ function scheduleNextPoll() {
   connectionState.pollTimer = setTimeout(tryFetchLiveAlerts, connectionState.pollInterval);
 }
 
+// === סנכרון מלא — מריץ כל 15 שניות, מביא את כל האזעקות מהיום ===
+// מבטיח שדסקטופ ונייד מציגים אותם נתונים בדיוק
+async function fullDaySync() {
+  try {
+    var histData = await fetchTzevaadomWithFallback();
+    if (!Array.isArray(histData) || histData.length === 0) return;
+
+    var todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+    var todayCutoff = todayMidnight.getTime();
+    var todayKey = localDateKey();
+    var changed = false;
+
+    histData.forEach(function(group) {
+      if (!group.alerts) return;
+      group.alerts.forEach(function(a) {
+        if (a.isDrill) return;
+        var alertTime = a.time * 1000;
+        if (alertTime < todayCutoff) return;
+
+        var alertDate = new Date(alertTime);
+        var timeStr = String(alertDate.getHours()).padStart(2, '0') + ':' + String(alertDate.getMinutes()).padStart(2, '0');
+        var areas = (a.cities || []).join(', ');
+        if (!areas) return;
+
+        var threat = a.threat;
+        var type = (threat === 5) ? 'uav' : 'missile';
+        var title = (threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים';
+
+        // בדיקת כפילות מול alertsLog
+        var isDuplicate = alertsLog.some(function(existing) {
+          return existing.time === timeStr && existing.area === areas;
+        });
+
+        if (!isDuplicate) {
+          alertsLog.push({
+            time: timeStr, alertDate: todayKey + ' ' + timeStr,
+            area: areas, type: type, title: title, source: 'sync', live: true
+          });
+          changed = true;
+          saveDynamicAlert(todayKey, timeStr, areas, type, title);
+        }
+      });
+    });
+
+    if (changed) {
+      alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
+      // עדכון ספירת גלים ייחודיים
+      var uniqueTimes = {};
+      alertsLog.forEach(function(a) { uniqueTimes[a.time] = true; });
+      todayAlertCount = Object.keys(uniqueTimes).length;
+      $('todayCount').textContent = todayAlertCount;
+      saveAlerts();
+      renderAlertLog();
+      updateLiveDayData(todayKey, 'missile');
+      renderTimeline();
+      recalculate();
+    }
+  } catch(e) {}
+}
+
 // ייצוא נתונים כ-JSON
 function exportAlertData() {
   var data = {
@@ -4168,6 +4270,10 @@ function init() {
 
   // === חצות אוטומטי — יצירת יום חדש ב-00:00 ===
   scheduleMidnightNewDay();
+
+  // סנכרון מלא כל 15 שניות — מבטיח שכל המכשירים מציגים אותו מידע
+  setInterval(fullDaySync, 15000);
+  setTimeout(fullDaySync, 3000); // סנכרון ראשוני 3 שניות אחרי טעינה
 
   // כפתור רענון ידני
   $('connRefresh').addEventListener('click', function() {
