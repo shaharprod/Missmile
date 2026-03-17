@@ -2624,22 +2624,39 @@ function renderThreatSources() {
 function renderDailyTable() {
   var tbody = $('dailyTableBody');
   tbody.innerHTML = '';
-  var totals = { waves: 0, missiles: 0, uavs: 0, killed: 0, injured: 0 };
+
+  // חילוץ מספר מתוך ערך שיכול להיות מספר, מחרוזת עם ~ או טקסט
+  function numVal(v) {
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string') {
+      var n = parseInt(v.replace(/[~,+]/g, ''));
+      return isNaN(n) ? 0 : n;
+    }
+    return 0;
+  }
+
+  var totals = { waves: 0, missiles: 0, uavs: 0, interceptions: 0, impacts: 0, killed: 0, injured: 0 };
+
   DAILY_DATA.forEach(function(d) {
-    totals.waves += d.iranWaves + d.lebWaves;
-    totals.missiles += (typeof d.missilesLaunched === 'number' ? d.missilesLaunched : parseInt(d.missilesLaunched) || 0);
-    totals.uavs += (typeof d.uavsLaunched === 'number' ? d.uavsLaunched : parseInt(d.uavsLaunched) || 0);
-    totals.killed += (typeof d.killed === 'number' ? d.killed : parseInt(d.killed) || 0);
-    totals.injured += (typeof d.injured === 'number' ? d.injured : parseInt(d.injured) || 0);
+    var iranW = numVal(d.iranWaves);
+    var lebW = numVal(d.lebWaves);
+    totals.waves += iranW + lebW;
+    totals.missiles += numVal(d.missilesLaunched);
+    totals.uavs += numVal(d.uavsLaunched);
+    totals.interceptions += numVal(d.interceptionsCount);
+    totals.impacts += numVal(d.impacts);
+    totals.killed += numVal(d.killed);
+    totals.injured += numVal(d.injured);
+
     var tr = document.createElement('tr');
     tr.innerHTML =
       '<td style="font-family:var(--font-mono);direction:ltr;white-space:nowrap">' + d.date + '</td>' +
       '<td>' + d.dayName + '</td>' +
       '<td>' +
         '<span class="src-tag" style="background:rgba(171,71,188,0.15);color:var(--purple)">איראן</span>' +
-        (d.lebWaves > 0 ? ' <span class="src-tag" style="background:rgba(255,202,40,0.15);color:var(--yellow)">לבנון</span>' : '') +
+        (lebW > 0 ? ' <span class="src-tag" style="background:rgba(255,202,40,0.15);color:var(--yellow)">לבנון</span>' : '') +
       '</td>' +
-      '<td class="num">' + d.iranWaves + (d.lebWaves > 0 ? '+' + d.lebWaves : '') + '</td>' +
+      '<td class="num">' + iranW + (lebW > 0 ? '+' + lebW : '') + '</td>' +
       '<td class="num">' + d.missilesLaunched + '</td>' +
       '<td class="num">' + d.uavsLaunched + '</td>' +
       '<td class="num" style="color:var(--green)">' + d.interceptionsCount + '</td>' +
@@ -2650,7 +2667,7 @@ function renderDailyTable() {
     tbody.appendChild(tr);
   });
 
-  // שורת סיכום
+  // שורת סיכום — סוכם הכל, כולל יירוטים ונפילות
   var existingTfoot = document.querySelector('#dailyTable tfoot');
   if (existingTfoot) existingTfoot.remove();
   var tfoot = document.createElement('tfoot');
@@ -2660,8 +2677,8 @@ function renderDailyTable() {
     '<td class="num">' + totals.waves + '</td>' +
     '<td class="num">' + totals.missiles + '</td>' +
     '<td class="num">' + totals.uavs + '</td>' +
-    '<td class="num" style="color:var(--green)">—</td>' +
-    '<td class="num" style="color:var(--orange)">—</td>' +
+    '<td class="num" style="color:var(--green)">~' + totals.interceptions + '</td>' +
+    '<td class="num" style="color:var(--orange)">~' + totals.impacts + '</td>' +
     '<td class="num" style="color:var(--red)">' + totals.killed + '</td>' +
     '<td class="num" style="color:var(--orange)">' + totals.injured + '+</td>' +
     '<td></td>' +
