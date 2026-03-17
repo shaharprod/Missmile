@@ -887,6 +887,12 @@ body {
       <tbody id="dailyTableBody"></tbody>
     </table>
     </div>
+
+    <!-- גרפים יומיים — עמודות לכל מדד לפי ימים -->
+    <div style="margin-top:24px;direction:rtl">
+      <div class="chart-title" style="margin-bottom:16px">גרפים יומיים</div>
+      <div id="dailyCharts"></div>
+    </div>
   </div>
 
   <!-- Launch Intensity for Selected Day -->
@@ -2684,6 +2690,90 @@ function renderDailyTable() {
     '<td></td>' +
     '</tr>';
   document.getElementById('dailyTable').appendChild(tfoot);
+
+  // רינדור גרפים יומיים
+  renderDailyCharts();
+}
+
+function renderDailyCharts() {
+  var container = $('dailyCharts');
+  if (!container) return;
+  container.innerHTML = '';
+
+  function numVal(v) {
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string') { var n = parseInt(v.replace(/[~,+]/g, '')); return isNaN(n) ? 0 : n; }
+    return 0;
+  }
+
+  // הגדרת הגרפים
+  var charts = [
+    { key: 'waves', label: 'גלי תקיפה', color: '#00BCD4', extract: function(d) { return numVal(d.iranWaves) + numVal(d.lebWaves); } },
+    { key: 'missiles', label: 'טילים', color: '#AB47BC', extract: function(d) { return numVal(d.missilesLaunched); } },
+    { key: 'uavs', label: 'כטב"מים', color: '#FFCA28', extract: function(d) { return numVal(d.uavsLaunched); } },
+    { key: 'interceptions', label: 'יירוטים', color: '#00E676', extract: function(d) { return numVal(d.interceptionsCount); } },
+    { key: 'impacts', label: 'נפילות', color: '#FF6D00', extract: function(d) { return numVal(d.impacts); } },
+    { key: 'killed', label: 'הרוגים', color: '#F44336', extract: function(d) { return numVal(d.killed); } },
+    { key: 'injured', label: 'פצועים', color: '#FF9800', extract: function(d) { return numVal(d.injured); } }
+  ];
+
+  // תוויות ימים
+  var dayLabels = DAILY_DATA.map(function(d) {
+    var parts = d.date.split('-');
+    return parseInt(parts[2]) + '.' + parseInt(parts[1]);
+  });
+
+  charts.forEach(function(chart) {
+    var values = DAILY_DATA.map(chart.extract);
+    var maxVal = Math.max.apply(null, values);
+    if (maxVal === 0) maxVal = 1;
+
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'margin-bottom:20px;padding:12px 16px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px solid rgba(255,255,255,0.05)';
+
+    // כותרת + סה"כ
+    var total = values.reduce(function(a, b) { return a + b; }, 0);
+    var titleDiv = document.createElement('div');
+    titleDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;direction:rtl';
+    titleDiv.innerHTML = '<span style="font-weight:700;font-size:0.9rem;color:' + chart.color + '">' + chart.label + '</span>' +
+      '<span style="font-size:0.75rem;color:#888">סה"כ: <strong style="color:' + chart.color + '">' + (chart.key === 'interceptions' || chart.key === 'impacts' ? '~' : '') + total.toLocaleString() + '</strong></span>';
+    wrap.appendChild(titleDiv);
+
+    // עמודות
+    var barsDiv = document.createElement('div');
+    barsDiv.style.cssText = 'display:flex;align-items:flex-end;gap:3px;height:80px;direction:rtl';
+
+    values.forEach(function(val, i) {
+      var pct = (val / maxVal) * 100;
+      var barWrap = document.createElement('div');
+      barWrap.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;min-width:0';
+
+      // ערך מעל העמודה
+      var valLabel = document.createElement('div');
+      valLabel.style.cssText = 'font-size:0.55rem;color:#aaa;margin-bottom:2px;font-family:var(--font-mono);white-space:nowrap;overflow:hidden';
+      valLabel.textContent = val > 0 ? val : '';
+      barWrap.appendChild(valLabel);
+
+      // עמודה
+      var bar = document.createElement('div');
+      bar.style.cssText = 'width:100%;border-radius:2px 2px 0 0;min-height:2px;transition:height 0.3s';
+      bar.style.height = Math.max(2, pct * 0.7) + '%';
+      bar.style.background = val > 0 ? chart.color : 'rgba(255,255,255,0.03)';
+      bar.style.opacity = val > 0 ? (0.4 + (pct / 100) * 0.6) : 0.1;
+      barWrap.appendChild(bar);
+
+      // תווית יום
+      var dayLabel = document.createElement('div');
+      dayLabel.style.cssText = 'font-size:0.5rem;color:#666;margin-top:3px;white-space:nowrap';
+      dayLabel.textContent = dayLabels[i];
+      barWrap.appendChild(dayLabel);
+
+      barsDiv.appendChild(barWrap);
+    });
+
+    wrap.appendChild(barsDiv);
+    container.appendChild(wrap);
+  });
 }
 
 function updateMainMeter(safety) {
