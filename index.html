@@ -1607,6 +1607,9 @@ let alertsLog = [];
 let selectedActivity = null;
 let timelineFilter = 'all';
 
+// ==================== DOM REFS ====================
+const $ = id => document.getElementById(id);
+
 // ==================== PERSISTENCE ====================
 function getTodayKey() {
   var d = new Date();
@@ -1664,7 +1667,7 @@ function loadAlerts() {
 // ║  מידע שגוי עלול לגרום למוות. אנשים מסתמכים על נתונים אלה.          ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 //
-var SEED_VERSION = 27; // v27: fullDaySync סמכותי — API הוא מקור האמת היחיד
+var SEED_VERSION = 28; // v28: bug fixes — calcSafety fallback, area-based source, alertDate time diff, dynamic hourly avg, adaptive sync
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: Xinhua timeline, JPost, CNN liveblog
@@ -2168,24 +2171,63 @@ function seedTodayAlerts() {
   saveAlerts();
 }
 
-// ==================== DOM REFS ====================
-const $ = id => document.getElementById(id);
-
 // ==================== CORE LOGIC ====================
 
 function clamp(val, min, max) {
   return Math.max(min, Math.min(max, val));
 }
 
+// Compute average hourly risk from recent days with actual data
+function computeRecentHourlyAverage(excludeDateKey) {
+  var keys = Object.keys(HOURLY_DATA_PER_DAY).filter(function(k) {
+    if (k === excludeDateKey) return false;
+    var data = HOURLY_DATA_PER_DAY[k];
+    var sum = 0;
+    for (var i = 0; i < data.length; i++) sum += data[i];
+    return sum > 0; // only days with actual data
+  });
+  // Sort descending to get most recent first
+  keys.sort(function(a, b) { return b.localeCompare(a); });
+  // Take last 5 days with data
+  var recentKeys = keys.slice(0, 5);
+  if (recentKeys.length === 0) return null;
+  var avg = new Array(24).fill(0);
+  recentKeys.forEach(function(k) {
+    var data = HOURLY_DATA_PER_DAY[k];
+    for (var i = 0; i < 24; i++) avg[i] += data[i];
+  });
+  for (var i = 0; i < 24; i++) avg[i] /= recentKeys.length;
+  return avg;
+}
+
 function calcSafety(hour, dateKey) {
   // Use per-date hourly data if available
   var perDay = HOURLY_DATA_PER_DAY[dateKey];
   if (perDay) {
-    var risk = perDay[hour];
+    // Check if today's data is all zeros (no alerts yet) — fall back to recent average
+    var sum = 0;
+    for (var i = 0; i < perDay.length; i++) sum += perDay[i];
+    if (sum > 0) {
+      var risk = perDay[hour];
+      var safetyRaw = 1 - (risk / 1.2);
+      return clamp(safetyRaw * 80 + 10, 5, 92);
+    }
+    // All zeros — use average of recent days instead
+    var recentAvg = computeRecentHourlyAverage(dateKey);
+    if (recentAvg) {
+      var risk = recentAvg[hour];
+      var safetyRaw = 1 - (risk / 1.2);
+      return clamp(safetyRaw * 80 + 10, 5, 92);
+    }
+  }
+  // Fallback: compute dynamic distribution from all available HOURLY_DATA_PER_DAY
+  var recentAvg = computeRecentHourlyAverage(null);
+  if (recentAvg) {
+    var risk = recentAvg[hour];
     var safetyRaw = 1 - (risk / 1.2);
     return clamp(safetyRaw * 80 + 10, 5, 92);
   }
-  // Fallback to generic distribution
+  // Ultimate fallback to static distribution (only if no HOURLY_DATA_PER_DAY at all)
   var hourBase = HOURLY_DISTRIBUTION[hour];
   var d = new Date(dateKey);
   var dayMult = DAY_MULTIPLIER[d.getDay()];
@@ -2384,11 +2426,31 @@ function getMinutesSinceLastAlert() {
   var source = liveAlerts.length > 0 ? liveAlerts : alertsLog;
   if (source.length === 0) return 999;
   var now = new Date();
-  var parts = source[0].time.split(':');
+  var latest = source[0];
+
+  // Use alertDate field if available (format: "YYYY-MM-DD HH:MM")
+  if (latest.alertDate) {
+    var adParts = latest.alertDate.split(' ');
+    if (adParts.length === 2) {
+      var dateParts = adParts[0].split('-');
+      var timeParts = adParts[1].split(':');
+      if (dateParts.length === 3 && timeParts.length === 2) {
+        var alertDateObj = new Date(
+          parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]),
+          parseInt(timeParts[0]), parseInt(timeParts[1]), 0
+        );
+        var diffMs = now.getTime() - alertDateObj.getTime();
+        if (diffMs < 0) return 999; // future alert — invalid
+        return Math.floor(diffMs / 60000);
+      }
+    }
+  }
+
+  // Fallback: time-only comparison (same day only)
+  var parts = latest.time.split(':');
   var alertMinutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
   var nowMinutes = now.getHours() * 60 + now.getMinutes();
   var diff = nowMinutes - alertMinutes;
-  // אם ההפרש שלילי — האזעקה מאתמול (יותר מ-24 שעות)
   if (diff < 0) return 999;
   return diff;
 }
@@ -3866,7 +3928,7 @@ function processTzevaadomAlert(data, source) {
     var dateKey = localDateKey(alertDate);
     saveDynamicAlert(dateKey, timeStr, areas, type, title);
     // עדכון דינמי של DAILY_DATA ו-HOURLY_DATA_PER_DAY
-    updateLiveDayData(dateKey, type);
+    updateLiveDayData(dateKey, type, areas);
     // עדכון רשימת שיגורים כרונולוגית בזמן אמת
     renderTimeline();
   }
@@ -3874,19 +3936,30 @@ function processTzevaadomAlert(data, source) {
 }
 
 // עדכון דינמי של נתוני יום בזמן אמת כשמתקבלת אזעקה חדשה
-function updateLiveDayData(dateKey, type) {
+function updateLiveDayData(dateKey, type, areas) {
   var alerts = ALERTS_BY_DAY[dateKey] || [];
+
+  // Northern areas list for source classification (Lebanon vs Iran)
+  var northAreas = ['גליל', 'קריית שמונה', 'מטולה', 'חיפה', 'עכו', 'נהריה', 'צפון', 'מרגליות', 'שומרה', 'גורן', 'דוב"ב', 'מלכיה', 'יפתח', 'רמות נפתלי', 'אביבים', 'יראון', 'מנרה', 'שניר', 'שאר ישוב', 'דפנה', 'הגושרים', 'אצבע הגליל', 'בית הלל', 'כפר בלום', 'נאות מרדכי', 'שדה נחמיה', 'לב החולה'];
+
+  // Classify alerts by source (area-based) and weapon type separately
+  var iranWaves = 0, lebWaves = 0, missiles = 0, uavs = 0;
+  alerts.forEach(function(a) {
+    // Weapon type classification
+    if (a.type === 'uav') uavs++; else missiles++;
+    // Source classification by target area
+    var alertAreas = a.areas || '';
+    var isNorth = northAreas.some(function(n) { return alertAreas.indexOf(n) !== -1; });
+    if (isNorth) lebWaves++; else iranWaves++;
+  });
+  var eventsText = alerts.length + ' אזעקות פיקוד העורף (צבע אדום — זמן אמת). ' + missiles + ' ירי רקטות, ' + uavs + ' כטב"מ. ' + iranWaves + ' מאיראן, ' + lebWaves + ' מלבנון.';
 
   // עדכון/יצירת DAILY_DATA
   var existing = DAILY_DATA.find(function(d) { return d.date === dateKey; });
-  var missiles = 0, uavs = 0;
-  alerts.forEach(function(a) { if (a.type === 'uav') uavs++; else missiles++; });
-  var eventsText = alerts.length + ' אזעקות פיקוד העורף (צבע אדום — זמן אמת). ' + missiles + ' ירי רקטות, ' + uavs + ' כטב"מ.';
-
   if (existing) {
     existing.events = eventsText;
-    existing.iranWaves = missiles;
-    existing.lebWaves = uavs;
+    existing.iranWaves = iranWaves;
+    existing.lebWaves = lebWaves;
     existing.missilesLaunched = missiles;
     existing.uavsLaunched = uavs;
     existing.interceptionsCount = '~' + Math.round(missiles * 0.9);
@@ -3894,8 +3967,8 @@ function updateLiveDayData(dateKey, type) {
     var d = new Date(dateKey);
     DAILY_DATA.push({
       date: dateKey, dayName: DAY_NAMES[d.getDay()],
-      iranWaves: missiles, iranMissiles: 0, iranUAVs: 0, iranKilled: 0, iranInjured: 0,
-      lebWaves: uavs, lebRockets: 'רקטות+כטב"מים',
+      iranWaves: iranWaves, iranMissiles: 0, iranUAVs: 0, iranKilled: 0, iranInjured: 0,
+      lebWaves: lebWaves, lebRockets: 'רקטות+כטב"מים',
       missilesLaunched: missiles, uavsLaunched: uavs, interceptions: '~90%', interceptionsCount: '~' + Math.round(missiles * 0.9), impacts: 0, killed: 0, injured: 0,
       events: eventsText
     });
@@ -4323,7 +4396,7 @@ async function fullDaySync() {
     $('todayCount').textContent = todayAlertCount;
     saveAlerts();
     renderAlertLog();
-    updateLiveDayData(todayKey, 'missile');
+    updateLiveDayData(todayKey, null, null);
     recalculate();
   } catch(e) {}
 }
@@ -4538,8 +4611,16 @@ function init() {
   // === חצות אוטומטי — יצירת יום חדש ב-00:00 ===
   scheduleMidnightNewDay();
 
-  // סנכרון מלא כל 15 שניות — מבטיח שכל המכשירים מציגים אותו מידע
-  setInterval(fullDaySync, 15000);
+  // סנכרון מלא — 60 שניות כש-WS מחובר, 15 שניות כשלא
+  var fullDaySyncTimer = null;
+  function scheduleFullDaySync() {
+    if (fullDaySyncTimer) clearInterval(fullDaySyncTimer);
+    var interval = wsConnected ? 60000 : 15000;
+    fullDaySyncTimer = setInterval(fullDaySync, interval);
+  }
+  scheduleFullDaySync();
+  // Re-evaluate sync interval when WS state changes
+  setInterval(scheduleFullDaySync, 10000);
   setTimeout(fullDaySync, 3000); // סנכרון ראשוני 3 שניות אחרי טעינה
 
   // כפתור רענון ידני
