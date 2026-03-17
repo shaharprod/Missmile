@@ -867,6 +867,11 @@ body {
   <!-- Daily Summary Table -->
   <div class="panel">
     <div class="chart-title">סיכום יומי מפורט</div>
+    <div id="dailySourceFilter" style="display:flex;gap:8px;margin-bottom:12px;direction:rtl">
+      <button onclick="setDailyFilter('all')" class="daily-filter-btn active" data-filter="all" style="background:var(--blue);color:#fff;border:1px solid var(--blue);border-radius:20px;padding:4px 14px;font-family:var(--font-heb);font-size:0.78rem;cursor:pointer;transition:all 0.2s">הכל</button>
+      <button onclick="setDailyFilter('iran')" class="daily-filter-btn" data-filter="iran" style="background:#1A1D26;color:var(--text-dim);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:4px 14px;font-family:var(--font-heb);font-size:0.78rem;cursor:pointer;transition:all 0.2s">🇮🇷 איראן</button>
+      <button onclick="setDailyFilter('leb')" class="daily-filter-btn" data-filter="leb" style="background:#1A1D26;color:var(--text-dim);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:4px 14px;font-family:var(--font-heb);font-size:0.78rem;cursor:pointer;transition:all 0.2s">🇱🇧 לבנון</button>
+    </div>
     <div class="daily-table-wrap">
     <table class="daily-table" id="dailyTable">
       <thead>
@@ -2636,6 +2641,29 @@ function renderThreatSources() {
   });
 }
 
+var dailySourceFilter = 'all'; // 'all' | 'iran' | 'leb'
+
+function setDailyFilter(source) {
+  dailySourceFilter = source;
+  // עדכון כפתורים
+  var btns = document.querySelectorAll('.daily-filter-btn');
+  btns.forEach(function(btn) {
+    var f = btn.getAttribute('data-filter');
+    if (f === source) {
+      btn.style.background = f === 'iran' ? 'var(--purple)' : f === 'leb' ? 'var(--yellow)' : 'var(--blue)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = f === 'iran' ? 'var(--purple)' : f === 'leb' ? 'var(--yellow)' : 'var(--blue)';
+      btn.classList.add('active');
+    } else {
+      btn.style.background = '#1A1D26';
+      btn.style.color = 'var(--text-dim)';
+      btn.style.borderColor = 'rgba(255,255,255,0.08)';
+      btn.classList.remove('active');
+    }
+  });
+  renderDailyTable();
+}
+
 function renderDailyTable() {
   var tbody = $('dailyTableBody');
   tbody.innerHTML = '';
@@ -2650,45 +2678,79 @@ function renderDailyTable() {
     return 0;
   }
 
+  var filter = dailySourceFilter;
   var totals = { waves: 0, missiles: 0, uavs: 0, interceptions: 0, impacts: 0, killed: 0, injured: 0 };
 
   DAILY_DATA.forEach(function(d) {
     var iranW = numVal(d.iranWaves);
     var lebW = numVal(d.lebWaves);
-    totals.waves += iranW + lebW;
-    totals.missiles += numVal(d.missilesLaunched);
-    totals.uavs += numVal(d.uavsLaunched);
-    totals.interceptions += numVal(d.interceptionsCount);
-    totals.impacts += numVal(d.impacts);
-    totals.killed += numVal(d.killed);
-    totals.injured += numVal(d.injured);
+
+    // חישוב ערכים לפי פילטר
+    var waves, missiles, uavs, interc, imp, killed, injured, srcHtml;
+    if (filter === 'iran') {
+      waves = iranW;
+      missiles = numVal(d.missilesLaunched);
+      uavs = 0;
+      interc = numVal(d.interceptionsCount);
+      imp = numVal(d.impacts);
+      killed = numVal(d.killed);
+      injured = numVal(d.iranInjured || 0);
+      srcHtml = '<span class="src-tag" style="background:rgba(171,71,188,0.15);color:var(--purple)">איראן</span>';
+    } else if (filter === 'leb') {
+      waves = lebW;
+      missiles = 0;
+      uavs = numVal(d.uavsLaunched);
+      interc = 0;
+      imp = 0;
+      killed = 0;
+      injured = 0;
+      srcHtml = lebW > 0 ? '<span class="src-tag" style="background:rgba(255,202,40,0.15);color:var(--yellow)">לבנון</span>' : '<span style="color:#555">—</span>';
+    } else {
+      waves = iranW + lebW;
+      missiles = numVal(d.missilesLaunched);
+      uavs = numVal(d.uavsLaunched);
+      interc = numVal(d.interceptionsCount);
+      imp = numVal(d.impacts);
+      killed = numVal(d.killed);
+      injured = numVal(d.injured);
+      srcHtml = '<span class="src-tag" style="background:rgba(171,71,188,0.15);color:var(--purple)">איראן</span>' +
+        (lebW > 0 ? ' <span class="src-tag" style="background:rgba(255,202,40,0.15);color:var(--yellow)">לבנון</span>' : '');
+    }
+
+    totals.waves += waves;
+    totals.missiles += missiles;
+    totals.uavs += uavs;
+    totals.interceptions += interc;
+    totals.impacts += imp;
+    totals.killed += killed;
+    totals.injured += injured;
 
     var tr = document.createElement('tr');
+    // שקיפות לשורות ללא נתונים בפילטר
+    if (filter !== 'all' && waves === 0) tr.style.opacity = '0.35';
     tr.innerHTML =
       '<td style="font-family:var(--font-mono);direction:ltr;white-space:nowrap">' + d.date + '</td>' +
       '<td>' + d.dayName + '</td>' +
-      '<td>' +
-        '<span class="src-tag" style="background:rgba(171,71,188,0.15);color:var(--purple)">איראן</span>' +
-        (lebW > 0 ? ' <span class="src-tag" style="background:rgba(255,202,40,0.15);color:var(--yellow)">לבנון</span>' : '') +
-      '</td>' +
-      '<td class="num">' + iranW + (lebW > 0 ? '+' + lebW : '') + '</td>' +
-      '<td class="num">' + d.missilesLaunched + '</td>' +
-      '<td class="num">' + d.uavsLaunched + '</td>' +
-      '<td class="num" style="color:var(--green)">' + d.interceptionsCount + '</td>' +
-      '<td class="num" style="color:var(--orange)">' + d.impacts + '</td>' +
-      '<td class="num" style="color:var(--red)">' + d.killed + '</td>' +
-      '<td class="num" style="color:var(--orange)">' + d.injured + '</td>' +
+      '<td>' + srcHtml + '</td>' +
+      '<td class="num">' + (filter === 'all' ? (iranW + (lebW > 0 ? '+' + lebW : '')) : waves) + '</td>' +
+      '<td class="num">' + missiles + '</td>' +
+      '<td class="num">' + uavs + '</td>' +
+      '<td class="num" style="color:var(--green)">' + (interc > 0 ? '~' + interc : '0') + '</td>' +
+      '<td class="num" style="color:var(--orange)">' + (imp > 0 ? '~' + imp : '0') + '</td>' +
+      '<td class="num" style="color:var(--red)">' + killed + '</td>' +
+      '<td class="num" style="color:var(--orange)">' + injured + '</td>' +
       '<td style="font-size:0.72rem;color:#aaa;max-width:220px;text-align:right">' + d.events + '</td>';
     tbody.appendChild(tr);
   });
 
-  // שורת סיכום — סוכם הכל, כולל יירוטים ונפילות
+  // שורת סיכום
   var existingTfoot = document.querySelector('#dailyTable tfoot');
   if (existingTfoot) existingTfoot.remove();
   var tfoot = document.createElement('tfoot');
+  var filterLabel = filter === 'iran' ? 'סה"כ איראן' : filter === 'leb' ? 'סה"כ לבנון' : 'סה"כ מצטבר';
   tfoot.innerHTML =
     '<tr style="background:#1A1D26;font-weight:700">' +
-    '<td colspan="3" style="font-size:0.82rem">סה"כ מצטבר</td>' +
+    '<td colspan="3" style="font-size:0.82rem">' + filterLabel + '</td>' +
     '<td class="num">' + totals.waves + '</td>' +
     '<td class="num">' + totals.missiles + '</td>' +
     '<td class="num">' + totals.uavs + '</td>' +
@@ -2715,14 +2777,29 @@ function renderDailyCharts() {
     return 0;
   }
 
+  var filter = dailySourceFilter;
   var charts = [
-    { key: 'waves', label: 'גלי תקיפה', color: '#00BCD4', extract: function(d) { return numVal(d.iranWaves) + numVal(d.lebWaves); } },
-    { key: 'missiles', label: 'טילים', color: '#AB47BC', extract: function(d) { return numVal(d.missilesLaunched); } },
-    { key: 'uavs', label: 'כטב"מים', color: '#FFCA28', extract: function(d) { return numVal(d.uavsLaunched); } },
-    { key: 'interceptions', label: 'יירוטים', color: '#00E676', extract: function(d) { return numVal(d.interceptionsCount); } },
-    { key: 'impacts', label: 'נפילות', color: '#FF6D00', extract: function(d) { return numVal(d.impacts); } },
-    { key: 'killed', label: 'הרוגים', color: '#F44336', extract: function(d) { return numVal(d.killed); } },
-    { key: 'injured', label: 'פצועים', color: '#FF9800', extract: function(d) { return numVal(d.injured); } }
+    { key: 'waves', label: 'גלי תקיפה', color: '#00BCD4', extract: function(d) {
+      return filter === 'iran' ? numVal(d.iranWaves) : filter === 'leb' ? numVal(d.lebWaves) : numVal(d.iranWaves) + numVal(d.lebWaves);
+    } },
+    { key: 'missiles', label: 'טילים', color: '#AB47BC', extract: function(d) {
+      return filter === 'leb' ? 0 : numVal(d.missilesLaunched);
+    } },
+    { key: 'uavs', label: 'כטב"מים', color: '#FFCA28', extract: function(d) {
+      return filter === 'iran' ? 0 : numVal(d.uavsLaunched);
+    } },
+    { key: 'interceptions', label: 'יירוטים', color: '#00E676', extract: function(d) {
+      return filter === 'leb' ? 0 : numVal(d.interceptionsCount);
+    } },
+    { key: 'impacts', label: 'נפילות', color: '#FF6D00', extract: function(d) {
+      return filter === 'leb' ? 0 : numVal(d.impacts);
+    } },
+    { key: 'killed', label: 'הרוגים', color: '#F44336', extract: function(d) {
+      return filter === 'leb' ? 0 : numVal(d.killed);
+    } },
+    { key: 'injured', label: 'פצועים', color: '#FF9800', extract: function(d) {
+      return filter === 'leb' ? 0 : filter === 'iran' ? numVal(d.iranInjured || 0) : numVal(d.injured);
+    } }
   ];
 
   var dayLabels = DAILY_DATA.map(function(d) {
