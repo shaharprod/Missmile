@@ -1639,7 +1639,7 @@ function loadAlerts() {
 // ║  מידע שגוי עלול לגרום למוות. אנשים מסתמכים על נתונים אלה.          ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 //
-var SEED_VERSION = 25; // v25: סנכרון מלא כל 15 שניות + מסך הפעלת צליל חובה
+var SEED_VERSION = 26; // v26: תיקון זמן אזעקה מ-API + דדופליקציה משופרת
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: Xinhua timeline, JPost, CNN liveblog
@@ -3557,8 +3557,14 @@ function processTzevaadomAlert(data, source) {
   // דלג על תרגילים
   if (data.isDrill) return;
 
-  var now = new Date();
-  var timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  // שימוש בזמן האזעקה מה-API (לא שעון מקומי) למניעת פערים בין מכשירים
+  var alertDate;
+  if (data.time && typeof data.time === 'number' && data.time > 1000000000) {
+    alertDate = new Date(data.time * 1000); // Unix timestamp בשניות
+  } else {
+    alertDate = new Date(); // fallback לשעון מקומי
+  }
+  var timeStr = String(alertDate.getHours()).padStart(2, '0') + ':' + String(alertDate.getMinutes()).padStart(2, '0');
   var areas = (data.cities || []).join(', ');
   if (!areas) return;
 
@@ -3990,9 +3996,10 @@ async function fullDaySync() {
         var type = (threat === 5) ? 'uav' : 'missile';
         var title = (threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים';
 
-        // בדיקת כפילות מול alertsLog
+        // בדיקת כפילות מול alertsLog — לפי שעה:דקה + תחילת אזורים (נמנע פערים בגלל שינוי סדר ערים)
+        var areasStart = areas.substring(0, 30);
         var isDuplicate = alertsLog.some(function(existing) {
-          return existing.time === timeStr && existing.area === areas;
+          return existing.time === timeStr && existing.area.substring(0, 30) === areasStart;
         });
 
         if (!isDuplicate) {
