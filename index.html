@@ -4186,6 +4186,93 @@ function applyHistoricalToDayStores(collectedByDay) {
   return changedDays;
 }
 
+function mergeCollectedByDay(base, extra) {
+  base = base || {};
+  extra = extra || {};
+  Object.keys(extra).forEach(function(dateKey) {
+    if (!base[dateKey]) base[dateKey] = {};
+    Object.keys(extra[dateKey]).forEach(function(k) {
+      if (!base[dateKey][k]) base[dateKey][k] = extra[dateKey][k];
+    });
+  });
+  return base;
+}
+
+function normalizeOrefHistoricalPayload(orefData, daysBack) {
+  var historyDaysBack = Math.max(1, parseInt(daysBack || '3', 10) || 3);
+  var now = new Date();
+  var minDate = new Date(now);
+  minDate.setDate(minDate.getDate() - historyDaysBack);
+  var minKey = localDateKey(minDate);
+  var maxKey = localDateKey(now);
+  var collectedByDay = {};
+  var alerts = Array.isArray(orefData) ? orefData : [];
+
+  alerts.forEach(function(a) {
+    if (!a) return;
+    var cat = parseInt(a.category || a.cat || '1');
+    if (cat === 10 || cat === 13) return; // "האירוע הסתיים"
+
+    var rawDate = a.alertDate || a.time || '';
+    var resolvedDate = rawDate ? resolveAlertDate({ time: rawDate }) : resolveAlertDate(a);
+    if (!resolvedDate || isNaN(resolvedDate.getTime())) return;
+    var dateKey = localDateKey(resolvedDate);
+    if (dateKey < minKey || dateKey > maxKey) return;
+
+    var area = (a.data || a.areas || a.area || '').toString();
+    if (!area) return;
+    var timeStr = String(resolvedDate.getHours()).padStart(2, '0') + ':' + String(resolvedDate.getMinutes()).padStart(2, '0');
+    var title = a.title || '';
+    var type = (cat === 2 || cat === 6) ? 'uav' : 'missile';
+    if (title.indexOf('כלי טיס') !== -1 || title.indexOf('חדירת') !== -1) type = 'uav';
+    if (title.indexOf('רקטות') !== -1 || title.indexOf('טילים') !== -1) type = 'missile';
+    if (!title) title = (type === 'uav') ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים';
+
+    if (!collectedByDay[dateKey]) collectedByDay[dateKey] = {};
+    var dedupKey = timeStr + '|' + area;
+    if (!collectedByDay[dateKey][dedupKey]) {
+      collectedByDay[dateKey][dedupKey] = { time: timeStr, areas: area, type: type, title: title };
+    }
+  });
+  return collectedByDay;
+}
+
+async function fetchOrefHistoryWithFallback() {
+  try {
+    var directRes = await fetch(OREF_HISTORY_URL, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Referer': 'https://www.oref.org.il/' },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (directRes.ok) {
+      var directText = await directRes.text();
+      if (directText.charCodeAt(0) === 0xFEFF) directText = directText.slice(1);
+      var parsed = JSON.parse(directText);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  try {
+    var histResult = await fetchWithProxies(OREF_HISTORY_URL, 8000);
+    var parsedProxy = JSON.parse(histResult.text);
+    if (Array.isArray(parsedProxy) && parsedProxy.length > 0) return parsedProxy;
+  } catch (e2) {}
+  return null;
+}
+
+function reconcileRecentDailyStatsFromAlerts(daysBack) {
+  var back = Math.max(1, parseInt(daysBack || '2', 10) || 2);
+  var now = new Date();
+  var keys = [];
+  for (var i = 0; i <= back; i++) {
+    var d = new Date(now);
+    d.setDate(now.getDate() - i);
+    keys.push(localDateKey(d));
+  }
+  keys.forEach(function(dateKey) {
+    var alerts = ALERTS_BY_DAY[dateKey] || [];
+    if (alerts.length > 0) updateLiveDayData(dateKey, null, null);
+  });
+}
+
 async function syncHistoricalDaysFromApi(daysBack) {
   try {
     var histData = await fetchTzevaadomWithFallback();
@@ -4200,7 +4287,15 @@ async function syncHistoricalDaysFromApi(daysBack) {
     }
 
     var collectedByDay = normalizeHistoricalPayload(histData, daysBack);
+    // הרחבת כיסוי: היסטוריית פיקוד העורף כמקור משלים במקרה חוסר ב-api של צבע אדום
+    var orefData = await fetchOrefHistoryWithFallback();
+    if (Array.isArray(orefData) && orefData.length > 0) {
+      var orefCollected = normalizeOrefHistoricalPayload(orefData, daysBack);
+      collectedByDay = mergeCollectedByDay(collectedByDay, orefCollected);
+    }
     var changedDays = applyHistoricalToDayStores(collectedByDay);
+    // גם אם לא היו שינויים במיזוג, אל תשאיר טבלת DAILY_DATA עם seed-0 לימים שיש להם alerts בפועל
+    reconcileRecentDailyStatsFromAlerts(2);
 
     if (changedDays.length > 0) {
       saveDynamicAlertsBatch(changedDays);
@@ -4783,6 +4878,8 @@ function init() {
   renderTimeline();
   renderIntensityTabs();
   showIntensityForDate(selectedIntensityDate);
+  // מונע מצב שבו DAILY_DATA נשאר עם seed חלקי למרות שקיימות התראות ב-ALERTS_BY_DAY
+  reconcileRecentDailyStatsFromAlerts(2);
   seedTodayAlerts();
 
   // Selectors hidden — auto-set by autoSetSelectors()
