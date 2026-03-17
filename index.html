@@ -3558,13 +3558,17 @@ async function tryFetchTzevaadomAPI() {
     if (!Array.isArray(histData) || histData.length === 0) return false;
 
     var newAlerts = false;
-    var thirtyMinAgo = Date.now() - 30 * 60 * 1000;
+    // סנכרון מלא — טוען את כל האזעקות מהיום (לא רק 30 דקות אחרונות)
+    // כך כל מכשיר שנפתח מאוחר יותר מקבל את אותם נתונים
+    var todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+    var todayCutoff = todayMidnight.getTime();
 
     histData.forEach(function(group) {
       if (!group.alerts) return;
       group.alerts.forEach(function(a) {
         var alertTime = a.time * 1000;
-        if (alertTime < thirtyMinAgo) return;
+        if (alertTime < todayCutoff) return;
         // המר לפורמט של processTzevaadomAlert
         var alertData = {
           cities: a.cities || [],
