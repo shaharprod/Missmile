@@ -3131,21 +3131,26 @@ var earlyWarningCountdownInterval = null;
 // טעינת מצב השתקה מ-localStorage
 try { alertMuted = localStorage.getItem('safetime_muted') === 'true'; } catch(e) {}
 
-// דפדפנים חוסמים אודיו עד אינטראקציה ראשונה — נפתח AudioContext בלחיצה
-document.addEventListener('click', function unlockAudio() {
-  if (!audioUnlocked) {
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      // צליל שקט כדי "לפתוח" את האודיו
-      var buf = audioCtx.createBuffer(1, 1, 22050);
-      var src = audioCtx.createBufferSource();
-      src.buffer = buf;
-      src.connect(audioCtx.destination);
-      src.start(0);
-      audioUnlocked = true;
-    } catch(e) {}
-  }
-}, { once: false });
+// דפדפנים חוסמים אודיו עד אינטראקציה ראשונה
+// נפתח AudioContext בכל סוג אינטראקציה — לחיצה, נגיעה, מקש, גלילה
+function unlockAudio() {
+  if (audioUnlocked) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // צליל שקט כדי "לפתוח" את האודיו
+    var buf = audioCtx.createBuffer(1, 1, 22050);
+    var src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioCtx.destination);
+    src.start(0);
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    audioUnlocked = true;
+  } catch(e) {}
+}
+// נסה לפתוח אודיו בכל אינטראקציה אפשרית (דסקטופ + נייד)
+['click', 'touchstart', 'touchend', 'keydown', 'mousedown', 'scroll'].forEach(function(evt) {
+  document.addEventListener(evt, unlockAudio, { once: false, passive: true });
+});
 
 function toggleMute() {
   alertMuted = !alertMuted;
@@ -3166,6 +3171,17 @@ function stopSiren() {
 
 function playAlertSound() {
   if (alertMuted) return;
+
+  // רטט במכשירים שתומכים (נייד)
+  try { if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]); } catch(e) {}
+
+  // הודעת מערכת (דסקטופ) — אם אישרו הרשאה
+  try {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      new Notification('🚨 אזעקה!', { body: 'היכנס למרחב מוגן מיד!', icon: '🚨', requireInteraction: true, tag: 'safetime-alert' });
+    }
+  } catch(e) {}
+
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -4085,6 +4101,13 @@ function init() {
 
   setInterval(updateClock, 1000);
   setInterval(updateConnectionAgo, 5000);
+  // בקשת הרשאת התראות (דסקטופ) — חיוני לקבלת אזעקות גם ללא אודיו
+  try {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  } catch(e) {}
+
   // אזעקות בזמן אמת — עדיפות: 1) צבע אדום WebSocket 2) צבע אדום REST 3) Oref proxies
   connectTzevaadomWS();
   tryFetchLiveAlerts(); // מפעיל scheduleNextPoll אוטומטית
