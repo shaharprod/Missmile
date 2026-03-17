@@ -530,7 +530,7 @@ body {
 .alert-detail { font-size: 0.65rem; color: var(--text-dim); font-family: var(--font-mono); flex-shrink: 0; }
 
 /* Intensity Panel */
-.intensity-panel { padding: 16px 20px; }
+.intensity-panel { padding: 16px 20px; direction: rtl; text-align: right; }
 .intensity-day-tabs {
   display: flex;
   gap: 4px;
@@ -563,7 +563,8 @@ body {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-end;
+  direction: rtl;
   margin-top: 10px;
 }
 .intensity-stat { text-align: center; min-width: 80px; }
@@ -2608,16 +2609,16 @@ function showIntensityForDate(dateKey) {
   // רשימת אזעקות מפיקוד העורף
   var alertsHtml = '';
   if (alerts.length > 0) {
-    alertsHtml = '<div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.08);padding-top:10px">' +
-      '<div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:8px;font-weight:600">אזעקות פיקוד העורף (' + alerts.filter(function(a,i,arr) { return arr.findIndex(function(b) { return b.time === a.time; }) === i; }).length + ' גלים)</div>';
+    alertsHtml = '<div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.08);padding-top:10px;direction:rtl">' +
+      '<div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:8px;font-weight:600;text-align:right">אזעקות פיקוד העורף (' + alerts.filter(function(a,i,arr) { return arr.findIndex(function(b) { return b.time === a.time; }) === i; }).length + ' גלים)</div>';
     alerts.forEach(function(a) {
       var icon = a.type === 'uav' ? '🛩️' : (a.type === 'rocket' ? '🚀' : '🚀');
       var typeColor = a.type === 'uav' ? 'var(--yellow)' : 'var(--red)';
       var typeName = a.type === 'uav' ? 'כטב"מ' : (a.type === 'rocket' ? 'רקטות' : 'טילים');
-      alertsHtml += '<div style="display:flex;gap:8px;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.8rem;direction:rtl">' +
+      alertsHtml += '<div style="display:flex;flex-direction:row;gap:8px;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.8rem;direction:rtl;text-align:right">' +
         '<span style="font-weight:700;color:var(--cyan);white-space:nowrap;min-width:44px;font-family:var(--font-mono);text-align:center;display:inline-block">' + a.time + '</span>' +
         '<span style="background:' + typeColor + '22;color:' + typeColor + ';padding:1px 6px;border-radius:4px;font-size:0.7rem;white-space:nowrap;min-width:46px;text-align:center;display:inline-block">' + icon + ' ' + typeName + '</span>' +
-        '<span style="color:var(--text);flex:1">' + a.areas + '</span>' +
+        '<span style="color:var(--text);flex:1;text-align:right">' + a.areas + '</span>' +
         '</div>';
     });
     alertsHtml += '</div>';
