@@ -1667,7 +1667,7 @@ function loadAlerts() {
 // ║  מידע שגוי עלול לגרום למוות. אנשים מסתמכים על נתונים אלה.          ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 //
-var SEED_VERSION = 28; // v28: bug fixes — calcSafety fallback, area-based source, alertDate time diff, dynamic hourly avg, adaptive sync
+var SEED_VERSION = 29; // v29: historical backfill from alerts-history + per-day stats reconciliation (including missing 17.03 data)
 var ALERTS_BY_DAY = {
   '2026-02-28': [
     // 28.2.2026 (שבת, יום 1) — מקור: Xinhua timeline, JPost, CNN liveblog
@@ -4053,6 +4053,105 @@ async function fetchTzevaadomWithFallback() {
   return null;
 }
 
+function saveDynamicAlertsBatch(changedDays) {
+  try {
+    var stored = JSON.parse(localStorage.getItem('safetime_dynamic_alerts') || '{}');
+    changedDays.forEach(function(dateKey) {
+      var dayAlerts = ALERTS_BY_DAY[dateKey] || [];
+      stored[dateKey] = dayAlerts.map(function(a) {
+        return {
+          time: String(a.time || '').substring(0, 5),
+          areas: a.areas || '',
+          type: a.type || 'missile',
+          title: a.title || ''
+        };
+      });
+    });
+    localStorage.setItem('safetime_dynamic_alerts', JSON.stringify(stored));
+  } catch (e) {}
+}
+
+async function syncHistoricalDaysFromApi(daysBack) {
+  try {
+    var historyDaysBack = Math.max(1, parseInt(daysBack || '3', 10) || 3);
+    var histData = await fetchTzevaadomWithFallback();
+    if (!Array.isArray(histData) || histData.length === 0) return false;
+
+    var now = new Date();
+    var minDate = new Date(now);
+    minDate.setDate(minDate.getDate() - historyDaysBack);
+    var minKey = localDateKey(minDate);
+    var maxKey = localDateKey(now);
+
+    var collectedByDay = {};
+    histData.forEach(function(group) {
+      if (!group || !Array.isArray(group.alerts)) return;
+      group.alerts.forEach(function(a) {
+        if (!a || a.isDrill) return;
+        var resolvedDate = resolveAlertDate(a);
+        if (!resolvedDate || isNaN(resolvedDate.getTime())) return;
+        var dateKey = localDateKey(resolvedDate);
+        if (dateKey < minKey || dateKey > maxKey) return;
+
+        var areas = resolveAlertAreas(a);
+        if (!areas) return;
+        var timeStr = String(resolvedDate.getHours()).padStart(2, '0') + ':' + String(resolvedDate.getMinutes()).padStart(2, '0');
+        var threat = a.threat;
+        var type = (threat === 5) ? 'uav' : 'missile';
+        var title = a.title || ((threat === 5) ? 'חדירת כלי טיס עוין' : 'ירי רקטות וטילים');
+
+        if (!collectedByDay[dateKey]) collectedByDay[dateKey] = {};
+        // דדופליקציה שמרנית: זמן + 40 תווים ראשונים של אזורים
+        var dedupKey = timeStr + '|' + areas.substring(0, 40);
+        if (!collectedByDay[dateKey][dedupKey]) {
+          collectedByDay[dateKey][dedupKey] = {
+            time: timeStr,
+            areas: areas,
+            type: type,
+            title: title
+          };
+        }
+      });
+    });
+
+    var changedDays = [];
+    Object.keys(collectedByDay).forEach(function(dateKey) {
+      var existing = ALERTS_BY_DAY[dateKey] || [];
+      var merged = existing.slice();
+      var existingKeys = {};
+      existing.forEach(function(a) {
+        var t = String(a.time || '').substring(0, 5);
+        var ar = a.areas || '';
+        existingKeys[t + '|' + ar.substring(0, 40)] = true;
+      });
+
+      var incoming = Object.keys(collectedByDay[dateKey]).map(function(k) { return collectedByDay[dateKey][k]; });
+      incoming.forEach(function(a) {
+        var k = a.time + '|' + a.areas.substring(0, 40);
+        if (!existingKeys[k]) {
+          merged.push(a);
+          existingKeys[k] = true;
+        }
+      });
+
+      if (merged.length !== existing.length) {
+        merged.sort(function(x, y) { return String(x.time || '').localeCompare(String(y.time || '')); });
+        ALERTS_BY_DAY[dateKey] = merged;
+        updateLiveDayData(dateKey, null, null);
+        changedDays.push(dateKey);
+      }
+    });
+
+    if (changedDays.length > 0) {
+      saveDynamicAlertsBatch(changedDays);
+      renderTimeline();
+      recalculate();
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
 async function tryFetchTzevaadomAPI() {
   try {
     // נסה קודם notifications (כמו צבע אדום backup)
@@ -4667,6 +4766,9 @@ function init() {
   // Re-evaluate sync interval when WS state changes
   setInterval(scheduleFullDaySync, 10000);
   setTimeout(fullDaySync, 3000); // סנכרון ראשוני 3 שניות אחרי טעינה
+  // סנכרון היסטורי (עד חודש אחורה; בפועל תלוי בכיסוי שה-API מספק)
+  setTimeout(function() { syncHistoricalDaysFromApi(30); }, 4500);
+  setInterval(function() { syncHistoricalDaysFromApi(30); }, 10 * 60 * 1000);
 
   // כפתור רענון ידני
   $('connRefresh').addEventListener('click', function() {
