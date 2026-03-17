@@ -931,6 +931,10 @@ body {
     <div class="sources">
       מקורות: פיקוד העורף (oref.org.il) · דובר צה"ל · מרכז אלמ"א · Alma Research Center · Times of Israel · Al Jazeera · rocketalert.live
     </div>
+    <div style="text-align:center;margin-top:16px;font-size:0.72rem;color:#555;line-height:1.6">
+      © 2026 AI Learning – All rights reserved. Sam Shahar – Educational consultant making AI learning accessible to everyone.<br>
+      Phone: +972522603831 | Email: shaharprod@gmail.com
+    </div>
   </div>
 
 </div>
@@ -2690,7 +2694,7 @@ function renderDailyTable() {
     if (filter === 'iran') {
       waves = iranW;
       missiles = numVal(d.missilesLaunched);
-      uavs = 0;
+      uavs = numVal(d.uavsLaunched);
       interc = numVal(d.interceptionsCount);
       imp = numVal(d.impacts);
       killed = numVal(d.killed);
@@ -2698,12 +2702,12 @@ function renderDailyTable() {
       srcHtml = '<span class="src-tag" style="background:rgba(171,71,188,0.15);color:var(--purple)">איראן</span>';
     } else if (filter === 'leb') {
       waves = lebW;
-      missiles = 0;
+      missiles = numVal(d.missilesLaunched);
       uavs = numVal(d.uavsLaunched);
-      interc = 0;
-      imp = 0;
-      killed = 0;
-      injured = 0;
+      interc = numVal(d.interceptionsCount);
+      imp = numVal(d.impacts);
+      killed = numVal(d.killed);
+      injured = numVal(d.injured);
       srcHtml = lebW > 0 ? '<span class="src-tag" style="background:rgba(255,202,40,0.15);color:var(--yellow)">לבנון</span>' : '<span style="color:#555">—</span>';
     } else {
       waves = iranW + lebW;
@@ -2783,22 +2787,22 @@ function renderDailyCharts() {
       return filter === 'iran' ? numVal(d.iranWaves) : filter === 'leb' ? numVal(d.lebWaves) : numVal(d.iranWaves) + numVal(d.lebWaves);
     } },
     { key: 'missiles', label: 'טילים', color: '#AB47BC', extract: function(d) {
-      return filter === 'leb' ? 0 : numVal(d.missilesLaunched);
+      return numVal(d.missilesLaunched);
     } },
     { key: 'uavs', label: 'כטב"מים', color: '#FFCA28', extract: function(d) {
-      return filter === 'iran' ? 0 : numVal(d.uavsLaunched);
+      return numVal(d.uavsLaunched);
     } },
     { key: 'interceptions', label: 'יירוטים', color: '#00E676', extract: function(d) {
-      return filter === 'leb' ? 0 : numVal(d.interceptionsCount);
+      return numVal(d.interceptionsCount);
     } },
     { key: 'impacts', label: 'נפילות', color: '#FF6D00', extract: function(d) {
-      return filter === 'leb' ? 0 : numVal(d.impacts);
+      return numVal(d.impacts);
     } },
     { key: 'killed', label: 'הרוגים', color: '#F44336', extract: function(d) {
-      return filter === 'leb' ? 0 : numVal(d.killed);
+      return numVal(d.killed);
     } },
     { key: 'injured', label: 'פצועים', color: '#FF9800', extract: function(d) {
-      return filter === 'leb' ? 0 : filter === 'iran' ? numVal(d.iranInjured || 0) : numVal(d.injured);
+      return numVal(d.injured);
     } }
   ];
 
