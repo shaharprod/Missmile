@@ -2867,32 +2867,37 @@ function renderAverageHourChart(currentHour) {
   if (!chart) return;
   chart.innerHTML = '';
 
-  // חישוב ממוצע אזעקות לשעה — מבוסס על HOURLY_DATA_PER_DAY (עוצמה אמיתית) + DAILY_DATA (סה"כ אזעקות)
-  // שיטה: עוצמה_שעתית × סה"כ_אזעקות_יום / סכום_עוצמות = אזעקות_משוערות_לשעה
-  // ממוצע על פני כל הימים — מדויק הרבה יותר מספירת ALERTS_BY_DAY (שיש בו רזולוציה לא אחידה)
+  // חישוב ממוצע גלי אזעקה לשעה — ספירה ישירה מ-ALERTS_BY_DAY
+  // לכל יום: סופרים כמה גלים ייחודיים (לפי שעה) היו בכל שעה
+  // ממוצע = סך הגלים בשעה X / מספר הימים
+  // תוצאה: מספר ממשי — למשל "בשעה 14:00 יש בממוצע 3.2 גלי אזעקה"
   var hourTotals = new Array(24).fill(0);
   var dayCount = 0;
 
-  DAILY_DATA.forEach(function(d) {
-    var hourly = HOURLY_DATA_PER_DAY[d.date];
-    if (!hourly) return;
-    // חילוץ מספר אזעקות מהאירועים
-    var evMatch = (d.events || '').match(/(\d+)\s*אזעקות/);
-    var totalAlerts = evMatch ? parseInt(evMatch[1]) : 0;
-    if (totalAlerts === 0) {
-      // ימים 1-4: שימוש בהערכה מספר גלים
-      totalAlerts = (typeof d.iranWaves === 'number' ? d.iranWaves : 0) +
-                    (typeof d.lebWaves === 'number' ? d.lebWaves : 0);
-      totalAlerts = Math.max(totalAlerts, 10); // מינימום
-    }
-    // סכום עוצמות לנרמול
-    var intensitySum = 0;
-    for (var h = 0; h < 24; h++) intensitySum += hourly[h];
-    if (intensitySum === 0) return;
+  // שלב 1: ספירה ישירה מ-ALERTS_BY_DAY
+  Object.keys(ALERTS_BY_DAY).forEach(function(dateKey) {
+    var alerts = ALERTS_BY_DAY[dateKey];
+    if (!alerts || alerts.length === 0) return;
     dayCount++;
-    // פיזור אזעקות לפי עוצמה שעתית
+    // ספירת גלים ייחודיים לפי שעה (אותו זמן HH:MM = גל אחד)
+    var hourWaves = new Array(24).fill(0);
+    var seenTimes = {};
+    alerts.forEach(function(a) {
+      var timeKey = a.time; // HH:MM
+      if (seenTimes[timeKey]) return;
+      seenTimes[timeKey] = true;
+      var h = parseInt(timeKey.split(':')[0]);
+      if (h >= 0 && h < 24) hourWaves[h]++;
+    });
+
+    // בדיקת רזולוציה: אם יש פחות מ-10 entries ויש DAILY_DATA עם יותר גלים — כפול
+    var dayData = DAILY_DATA.find(function(d) { return d.date === dateKey; });
+    var expectedWaves = dayData ? ((typeof dayData.iranWaves === 'number' ? dayData.iranWaves : 0) + (typeof dayData.lebWaves === 'number' ? dayData.lebWaves : 0)) : 0;
+    var actualWaves = Object.keys(seenTimes).length;
+    var scale = (actualWaves > 0 && expectedWaves > actualWaves * 1.5) ? expectedWaves / actualWaves : 1;
+
     for (var h = 0; h < 24; h++) {
-      hourTotals[h] += (hourly[h] / intensitySum) * totalAlerts;
+      hourTotals[h] += hourWaves[h] * scale;
     }
   });
 
