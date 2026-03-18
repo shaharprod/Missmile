@@ -2772,7 +2772,8 @@ function renderDailyTable() {
     var waves, missiles, cluster, uavs, interc, imp, killed, injured, srcHtml;
     var totalMissiles = numVal(d.missilesLaunched);
     var clusterM = numVal(d.clusterMissiles || 0);
-    var regularM = totalMissiles - clusterM;
+    if (clusterM > totalMissiles) clusterM = totalMissiles;
+    var regularM = Math.max(totalMissiles - clusterM, 0);
     if (filter === 'iran') {
       waves = iranW;
       missiles = regularM;
@@ -2875,10 +2876,15 @@ function renderDailyCharts() {
       return filter === 'iran' ? numVal(d.iranWaves) : filter === 'leb' ? numVal(d.lebWaves) : numVal(d.iranWaves) + numVal(d.lebWaves);
     } },
     { key: 'missiles', label: 'טילים רגילים', color: '#AB47BC', extract: function(d) {
-      return numVal(d.missilesLaunched) - numVal(d.clusterMissiles || 0);
+      var total = numVal(d.missilesLaunched);
+      var cluster = numVal(d.clusterMissiles || 0);
+      if (cluster > total) cluster = total;
+      return Math.max(total - cluster, 0);
     } },
     { key: 'cluster', label: 'מתפצלים/מצררים', color: '#E040FB', extract: function(d) {
-      return numVal(d.clusterMissiles || 0);
+      var total = numVal(d.missilesLaunched);
+      var cluster = numVal(d.clusterMissiles || 0);
+      return Math.min(cluster, total);
     } },
     { key: 'uavs', label: 'כטב"מים', color: '#FFCA28', extract: function(d) {
       return numVal(d.uavsLaunched);
@@ -4609,14 +4615,16 @@ async function fetchOrefHistoryWithFallback() {
   return null;
 }
 
-function reconcileAllDailyStatsFromAlerts() {
-  var keys = {};
-  Object.keys(ALERTS_BY_DAY || {}).forEach(function(k) { keys[k] = true; });
-  (DAILY_DATA || []).forEach(function(d) { if (d && d.date) keys[d.date] = true; });
-  Object.keys(keys).forEach(function(dateKey) {
+function reconcileRecentDailyStatsFromAlerts(daysBack) {
+  var back = Math.max(0, parseInt(daysBack || '2', 10) || 2);
+  var today = new Date();
+  for (var i = 0; i <= back; i++) {
+    var d = new Date(today);
+    d.setDate(today.getDate() - i);
+    var dateKey = localDateKey(d);
     var alerts = ALERTS_BY_DAY[dateKey] || [];
     if (alerts.length > 0) updateLiveDayData(dateKey, null, null);
-  });
+  }
 }
 
 async function syncHistoricalDaysFromApi(daysBack) {
@@ -4628,8 +4636,8 @@ async function syncHistoricalDaysFromApi(daysBack) {
       if (Array.isArray(notifications) && notifications.length > 0) {
         histData = [{ alerts: notifications }];
       } else {
-        // גם אם מקורות חיצוניים נפלו — פיוס מתוך הנתונים שכבר קיימים בזיכרון
-        reconcileAllDailyStatsFromAlerts();
+        // גם אם מקורות חיצוניים נפלו — פיוס רק לימים אחרונים בזמן אמת
+        reconcileRecentDailyStatsFromAlerts(2);
         return false;
       }
     }
@@ -4648,8 +4656,8 @@ async function syncHistoricalDaysFromApi(daysBack) {
     var changedDays = applyHistoricalToDayStores(collectedByDay);
     // תקן אחיד לימים דינמיים אחרונים בלבד (לא לדרוס היסטוריה מחושבת ידנית)
     standardizeRecentDaysData(2);
-    // גם אם לא היו שינויים במיזוג, אל תשאיר טבלת DAILY_DATA עם seed/0 לימים שיש להם alerts בפועל
-    reconcileAllDailyStatsFromAlerts();
+    // גם אם לא היו שינויים במיזוג, אל תשאיר טבלת DAILY_DATA עם seed/0 בימים אחרונים
+    reconcileRecentDailyStatsFromAlerts(2);
 
     if (changedDays.length > 0) {
       saveDynamicAlertsBatch(changedDays);
@@ -5248,7 +5256,7 @@ function init() {
   // מונע מצב שבו DAILY_DATA נשאר עם seed חלקי למרות שקיימות התראות ב-ALERTS_BY_DAY
   // חל רק על ימים אחרונים בזמן אמת כדי לא לעוות ימים היסטוריים
   standardizeRecentDaysData(2);
-  reconcileAllDailyStatsFromAlerts();
+  reconcileRecentDailyStatsFromAlerts(2);
   seedTodayAlerts();
   try {
     liveCasualtyByDay = JSON.parse(localStorage.getItem('safetime_live_casualty_by_day') || '{}');
