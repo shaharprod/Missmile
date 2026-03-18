@@ -4059,10 +4059,14 @@ function standardizeSingleDayFromAlerts(dateKey) {
   return true;
 }
 
-function standardizeAllDaysData() {
-  var keys = {};
-  Object.keys(ALERTS_BY_DAY || {}).forEach(function(k) { keys[k] = true; });
-  Object.keys(keys).forEach(function(dateKey) { standardizeSingleDayFromAlerts(dateKey); });
+function standardizeRecentDaysData(daysBack) {
+  var back = Math.max(0, parseInt(daysBack || '2', 10) || 2);
+  var today = new Date();
+  for (var i = 0; i <= back; i++) {
+    var d = new Date(today);
+    d.setDate(today.getDate() - i);
+    standardizeSingleDayFromAlerts(localDateKey(d));
+  }
 }
 
 async function fetchJsonDirectOrProxy(targetUrl, timeoutMs) {
@@ -4642,8 +4646,8 @@ async function syncHistoricalDaysFromApi(daysBack) {
       collectedByDay = mergeCollectedByDay(collectedByDay, orefCollected);
     }
     var changedDays = applyHistoricalToDayStores(collectedByDay);
-    // תקן אחיד לכל הימים כדי למנוע סטיות בין מקורות/פורמטים
-    standardizeAllDaysData();
+    // תקן אחיד לימים דינמיים אחרונים בלבד (לא לדרוס היסטוריה מחושבת ידנית)
+    standardizeRecentDaysData(2);
     // גם אם לא היו שינויים במיזוג, אל תשאיר טבלת DAILY_DATA עם seed/0 לימים שיש להם alerts בפועל
     reconcileAllDailyStatsFromAlerts();
 
@@ -5242,7 +5246,8 @@ function init() {
   renderIntensityTabs();
   showIntensityForDate(selectedIntensityDate);
   // מונע מצב שבו DAILY_DATA נשאר עם seed חלקי למרות שקיימות התראות ב-ALERTS_BY_DAY
-  standardizeAllDaysData();
+  // חל רק על ימים אחרונים בזמן אמת כדי לא לעוות ימים היסטוריים
+  standardizeRecentDaysData(2);
   reconcileAllDailyStatsFromAlerts();
   seedTodayAlerts();
   try {
