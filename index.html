@@ -605,13 +605,38 @@ body {
   .day-cell { padding: 8px 2px; font-size: 0.7rem; }
   .day-cell .day-val { font-size: 0.65rem; }
   .settings-row { grid-template-columns: 1fr; gap: 10px; }
-  .live-bar { justify-content: center; padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+  .live-bar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 10px;
+    padding: 10px 12px;
+    align-items: center;
+  }
   .live-indicator { font-size: 0.8rem; }
-  .alert-count { font-size: 0.8rem; }
-  .live-clock { font-size: 0.8rem; }
-  .connection-status { font-size: 0.65rem; gap: 4px; }
+  .alert-count { font-size: 0.8rem; text-align: left; }
+  .live-clock {
+    font-size: 0.78rem;
+    margin-right: 0;
+    justify-self: end;
+    text-align: left;
+  }
+  .connection-status {
+    grid-column: 1 / -1;
+    width: 100%;
+    font-size: 0.65rem;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .conn-text {
+    max-width: 58vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .conn-ago { font-size: 0.6rem; }
-  .conn-refresh { font-size: 0.75rem; padding: 1px 4px; }
+  .conn-refresh { font-size: 0.82rem; padding: 4px 8px; min-height: 32px; }
+  .mute-btn { font-size: 0.75rem; padding: 5px 10px; min-height: 32px; }
   .hour-chart { height: 80px; gap: 2px; }
   .hour-label { font-size: 0.45rem; }
   .threat-grid { grid-template-columns: 1fr; }
@@ -659,6 +684,16 @@ body {
   .alert-entry .alert-area { font-size: 0.78rem; }
   .alert-badge { font-size: 0.6rem; padding: 2px 6px; }
 
+  /* Early warning banner */
+  .early-warning { padding: 12px 12px 10px; margin-bottom: 10px; }
+  .early-warning .ew-header { gap: 8px; margin-bottom: 8px; }
+  .early-warning .ew-icon { font-size: 1.45rem; }
+  .early-warning .ew-title { font-size: 1rem; }
+  .early-warning .ew-body { font-size: 0.8rem; line-height: 1.55; }
+  .early-warning .ew-countdown { font-size: 1.25rem; margin: 6px 0; }
+  .early-warning .ew-areas { font-size: 0.72rem; margin-top: 4px; }
+  .early-warning .ew-dismiss { top: 8px; left: 8px; width: 30px; height: 30px; }
+
   /* Footer */
   .footer { padding: 16px 10px; }
   .footer .warning-box { font-size: 0.78rem; padding: 12px 14px; }
@@ -670,6 +705,11 @@ body {
   .activities-grid { grid-template-columns: repeat(2, 1fr); }
   .stats-row { grid-template-columns: 1fr 1fr; }
   .meter-value { font-size: 40px; }
+  .live-bar { grid-template-columns: 1fr; }
+  .live-clock { justify-self: start; }
+  .connection-status { justify-content: flex-start; }
+  .conn-text { max-width: 80vw; }
+  .early-warning .ew-countdown { font-size: 1.05rem; }
 }
 
 /* ====== Early Warning Banner ====== */
