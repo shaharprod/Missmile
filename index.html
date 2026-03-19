@@ -960,84 +960,88 @@ body {
 // חלוקה יומית: משוערת פרופורציונלית לגלים. מסומן ב-~ כי אין פירוט יומי מדויק מ-CENTCOM.
 const DAILY_DATA = [
   {
-    // מקור: reganews (100-150 טילים), JPost (~200 במטח ראשון, 35 נכנסו), ToI liveblog, MDA
+    // מקור: אלמ"א Patterns (44 גלים ביום 1), ToI liveblog, MDA (89 פצועים), Wikipedia
     date: '2026-02-28', dayName: 'שבת',
-    iranWaves: 25, iranMissiles: '100-150', iranUAVs: 'עשרות', iranKilled: 2, iranInjured: 456,
+    iranWaves: 44, iranMissiles: '100-150', iranUAVs: 'עשרות', iranKilled: 2, iranInjured: 89,
     lebWaves: 0, lebRockets: 0,
-    missilesLaunched: 150, clusterMissiles: 75, uavsLaunched: 500, interceptions: '~90%', interceptionsCount: '~135', impacts: '~15', killed: 2, injured: 456,
-    events: 'פתיחת מבצע "שאגת הארי" ~08:20. תגובת איראן מ-10:00. 3 מטחים (10:00, 15:45, 23:30). הרוגה מטיל בגוש דן (מטפלת זרה). מרינה בלייב (68) נפטרה מדום לב בריצה למרחב מוגן. מד"א: 456 פונו.'
+    missilesLaunched: 150, clusterMissiles: 75, uavsLaunched: 500, interceptions: '~85%', interceptionsCount: '~128', impacts: '~22', killed: 2, injured: 89,
+    events: 'פתיחת מבצע "שאגת הארי" ~08:20. תגובת איראן אחה"צ — 44 גלי תקיפה (אלמ"א Patterns). הרוגה מטיל בגוש דן (מטפלת זרה בשנות ה-40). מרינה בלייב (68) נפטרה מדום לב בריצה למרחב מוגן. מד"א: 89 פצועים (3 ישירים). חמנאי חוסל בתקיפה.'
   },
   {
-    // מקור: ToI liveblog 1.3, Al Jazeera (בית שמש), MDA סיכום יום 2 (סה"כ 10 הרוגים מצטבר)
+    // מקור: אלמ"א Patterns (55 גלים ביום 2 — שיא), ToI liveblog 1.3, Al Jazeera (בית שמש)
+    // הערה: 62 מצטבר ב-17:00 (אלמ"א daily) = 44 (28.2) + 18 עד 17:00. סה"כ יום = 55 (Patterns)
     date: '2026-03-01', dayName: 'ראשון',
-    iranWaves: 63, iranMissiles: 'שיא — גלים גדולים', iranUAVs: 'מאות', iranKilled: 9, iranInjured: 700,
-    lebWaves: 1, lebRockets: 3,
-    missilesLaunched: 200, clusterMissiles: 100, uavsLaunched: 800, interceptions: '~88%', interceptionsCount: '~176', impacts: '~24', killed: 9, injured: 700,
-    events: 'שיא: 63 גלים (אלמ"א). פגיעה ישירה בבית כנסת בית שמש — 9 הרוגים (Al Jazeera). חיזבאללה: ירי ראשון מאז הפסקת אש 2024 — 01:17. מד"א: 700+ פונו.'
+    iranWaves: 55, iranMissiles: 'שיא — גלים גדולים', iranUAVs: 'מאות', iranKilled: 9, iranInjured: 580,
+    lebWaves: 0, lebRockets: 0,
+    missilesLaunched: 200, clusterMissiles: 100, uavsLaunched: 800, interceptions: '~85%', interceptionsCount: '~170', impacts: '~30', killed: 9, injured: 580,
+    events: 'שיא: 55 גלים (אלמ"א Patterns). פגיעה ישירה בבית כנסת בית שמש — 9 הרוגים כולל 3 אחים מתבגרים (Al Jazeera, ToI). ראש קרבי ~500 ק"ג. מקלט נהרס. מצטבר: 11 הרוגים, ~700 פצועים.'
   },
   {
-    // מקור: אלמ"א (112 גלים מצטבר), NPR, Al Jazeera (ב"ש), Middle East Monitor
+    // מקור: אלמ"א daily (112 מצטבר ב-19:00 = 44+55+13 עד 19:00, סה"כ יום ~16), NPR, Al Jazeera
+    // חיזבאללה נכנס למלחמה — ירי ראשון מאז הפסקת אש 2024. 10 גלי תקיפה (אלמ"א)
     date: '2026-03-02', dayName: 'שני',
-    iranWaves: 24, iranMissiles: 'ירידה', iranUAVs: 'מאות', iranKilled: 0, iranInjured: 700,
-    lebWaves: 10, lebRockets: 'טילי דיוק + כטב"מים',
-    missilesLaunched: 100, clusterMissiles: 50, uavsLaunched: 500, interceptions: '~90%', interceptionsCount: '~90', impacts: '~10', killed: 0, injured: 700,
-    events: '24 גלים מאיראן (112 מצטבר, אלמ"א). חיזבאללה — 10 תקיפות כנגד משמר הכרמל. פגיעה בב"ש — 19 פצועים (Al Jazeera). כטב"מ יורט ע"י אור איתן.'
+    iranWaves: 16, iranMissiles: 'ירידה חדה', iranUAVs: 'מאות', iranKilled: 0, iranInjured: 300,
+    lebWaves: 10, lebRockets: 'רקטות + כטב"מים',
+    missilesLaunched: 100, clusterMissiles: 50, uavsLaunched: 500, interceptions: '~90%', interceptionsCount: '~90', impacts: '~10', killed: 0, injured: 300,
+    events: '16 גלים מאיראן — ירידה חדה (אלמ"א). חיזבאללה נכנס למלחמה: 10 גלי תקיפה ראשונים — רקטות וכטב"מים לצפון (נקמה על חיסול חמנאי). ישראל תקפה ביירות ודאחייה. מצטבר: ~112 גלי איראן.'
   },
   {
-    // מקור: US Joint Chiefs (ירידה 86%), ToI/Haaretz liveblogs
+    // מקור: אלמ"א daily (7 גלי איראן, 14 גלי חיזבאללה = 21 סה"כ), ToI/Haaretz, CNN
+    // מצטבר: 119 איראן, 24 חיזבאללה. 12 הרוגים, 1,000+ פצועים
     date: '2026-03-03', dayName: 'שלישי',
-    iranWaves: 8, iranMissiles: 'ירידה 86%', iranUAVs: 'ירידה', iranKilled: 1, iranInjured: 1000,
-    lebWaves: 14, lebRockets: 'עשרות',
-    missilesLaunched: 50, clusterMissiles: 25, uavsLaunched: 200, interceptions: '~93%', interceptionsCount: '~47', impacts: '~3', killed: 1, injured: 1000,
-    events: 'ירידה 86% בבליסטיים (US Joint Chiefs). 8 גלים מאיראן. חיזבאללה: 14 תקיפות. 7 פצועים קל מרסיסי יירוט (CNN). סה"כ 4 ימים (CENTCOM): 500 טילים + 2,000 כטב"מים.'
+    iranWaves: 7, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 1, iranInjured: 100,
+    lebWaves: 14, lebRockets: 'רקטות + כטב"מים',
+    missilesLaunched: 50, clusterMissiles: 25, uavsLaunched: 200, interceptions: '~90%', interceptionsCount: '~45', impacts: '~5', killed: 1, injured: 100,
+    events: '7 גלי איראן (אלמ"א). חיזבאללה: 14 תקיפות — פגיעה בבית בכפר יובל (4 פצועים). צה"ל יירט 100+ כטב"מים מאיראן מתחילת המלחמה. מצטבר: 119 איראן, 24 חיזבאללה, 12 הרוגים, 1,000+ פצועים.'
   },
   {
-    // מקור: FDD analysis (7+ גלים), hamal.co.il (אזעקות מ-19:03)
-    // נפגעים: ToI (הרוג הודי במרגליות, 7 פצועים)
-    // טילים/כטב"מים: לא כלולים בספירת CENTCOM (שכיסתה 4 ימים עד 3.3)
+    // מקור: אלמ"א daily (8 גלי איראן, 38 גלי חיזבאללה), FDD, hamal.co.il
+    // מצטבר: 128 איראן, 62 חיזבאללה. 12 הרוגים, 1,200+ פצועים
+    // 2 מטחים משולבים איראן+חיזבאללה לראשונה (אלמ"א)
     date: '2026-03-04', dayName: 'רביעי',
-    iranWaves: 8, iranMissiles: 'מטפטף', iranUAVs: 'מטפטף', iranKilled: 2, iranInjured: 1200,
-    lebWaves: 38, lebRockets: 'עשרות שיגורים',
-    missilesLaunched: 45, clusterMissiles: 22, uavsLaunched: 80, interceptions: '~95%', interceptionsCount: '~43', impacts: '~2', killed: 2, injured: 1200,
-    events: '7+ גלי תקיפה מאיראן (FDD). חיזבאללה: 38 אירועי ירי (hamal.co.il). טיל נ"ט במרגליות — הרוג הודי, 7 פצועים (ToI). סה"כ 128 גלים מצטבר.'
+    iranWaves: 8, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 200,
+    lebWaves: 38, lebRockets: 'רקטות+כטב"מים+נ"ט',
+    missilesLaunched: 45, clusterMissiles: 22, uavsLaunched: 80, interceptions: '~90%', interceptionsCount: '~41', impacts: '~4', killed: 0, injured: 200,
+    events: '8 גלי איראן (אלמ"א). חיזבאללה: 38 גלי תקיפה — רקטות, כטב"מים, נ"ט. 2 מטחים משולבים איראן+חיזבאללה למרכז (לראשונה). פגיעה בבית בגליל. מצטבר: 128 איראן, 62 חיזבאללה, 12 הרוגים, 1,200+ פצועים.'
   },
   {
-    // מקור: צבע אדום API — ~30 קבוצות אזעקה, ~64 אירועי התרעה עד 16:30. נכון ל-17:00
+    // מקור: אלמ"א daily (9-11 גלי איראן, 29 גלי חיזבאללה — 13 רקטות, 11 כטב"מים, 1 מטען)
+    // מצטבר: 143 איראן, 91 חיזבאללה. 12 הרוגים, 1,400+ פצועים
+    // צפירה=193 (בליסטי), ירי רקטות=34. גלים 00:34-20:34
     date: '2026-03-05', dayName: 'חמישי',
-    // 7+ מטחים כבדים: 02:22, 03:07, 04:01, 10:28, 13:46, 13:54, 16:30
-    // + חיזבאללה: רקטות לחיפה/קריות/עכו 08:30, כטב"מים 08:35, מערב הגליל 12:25
-    // צפירה=193 (בליסטי), ירי רקטות=34. 7+ גלי איראן, 10+ גלי חיזבאללה
-    iranWaves: 7, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
-    lebWaves: 10, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 193, clusterMissiles: 97, uavsLaunched: 34, interceptions: '~90%', interceptionsCount: '~174', impacts: '~19', killed: 0, injured: 0,
-    events: '227 אזעקות פיקוד העורף. 7+ מטחים מאיראן (193 סירנות), 10+ גלי חיזבאללה (34 ירי). גלים 00:34-20:34.'
+    iranWaves: 11, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 200,
+    lebWaves: 29, lebRockets: 'רקטות+כטב"מים+מטען',
+    missilesLaunched: 193, clusterMissiles: 97, uavsLaunched: 34, interceptions: '~90%', interceptionsCount: '~174', impacts: '~19', killed: 0, injured: 200,
+    events: '227 אזעקות. 11 גלי איראן (אלמ"א). חיזבאללה: 29 גלי תקיפה — 13 רקטות, 11 כטב"מים, 1 מטען נגד צה"ל בלבנון. גל 12 תקיפות צה"ל באיראן (~90 מטוסים, ~200 תחמושות). מצטבר: 143 איראן, 91 חיזבאללה.'
   },
   {
-    // 6.3.2026 (שישי, יום 7) — מקורות: צבע אדום API + מרכז אלמ"א (מצטבר עד 8.3: 174 גלי איראן, 223 גלי חיזבאללה)
-    // צפירה=69 (בליסטי מאיראן), ירי רקטות=101 (חיזבאללה). ~10 גלי איראן, ~15 גלי חיזבאללה (אלמ"א)
+    // 6.3.2026 (שישי, יום 7) — מקורות: אלמ"א weekend summary (7 גלי איראן, 43 גלי חיזבאללה)
+    // מצטבר: ~150 איראן, ~134 חיזבאללה. 12 הרוגים, 1,600+ פצועים
+    // צפירה=69 (בליסטי), ירי רקטות=101. גלים 12:03-23:37
     date: '2026-03-06', dayName: 'שישי',
-    iranWaves: 10, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
-    lebWaves: 15, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 69, clusterMissiles: 35, uavsLaunched: 101, interceptions: '~90%', interceptionsCount: '~62', impacts: '~7', killed: 0, injured: 50,
-    events: '202 אזעקות פיקוד העורף. ~10 מטחים מאיראן (69 סירנות), ~15 גלי חיזבאללה (101 ירי). מקור גלים: אלמ"א. גלים 12:03-23:37.'
+    iranWaves: 7, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 200,
+    lebWaves: 43, lebRockets: 'רקטות+כטב"מים+נ"ט',
+    missilesLaunched: 69, clusterMissiles: 35, uavsLaunched: 101, interceptions: '~90%', interceptionsCount: '~62', impacts: '~7', killed: 0, injured: 200,
+    events: '202 אזעקות. 7 גלי איראן (אלמ"א). חיזבאללה: 43 גלי תקיפה — שיא חדש. 63% מהמטחים כוונו לת"א. צה"ל: 6,500+ פצצות הוטלו באיראן. חיל הים האיראני "בלתי כשיר קרבית". אור ברזל (Iron Beam) הופעל לראשונה קרבית.'
   },
   {
-    // 7.3.2026 (שבת, יום 8) — מקורות: צבע אדום API + מרכז אלמ"א (מצטבר עד 8.3: 174 גלי איראן, 223 גלי חיזבאללה)
-    // צפירה=193 (בליסטי), ירי רקטות=56. ~10 גלי איראן, ~25 גלי חיזבאללה (אלמ"א)
+    // 7.3.2026 (שבת, יום 8) — מקורות: אלמ"א weekend summary (12 גלי איראן, 46 גלי חיזבאללה)
+    // מצטבר סוף שבוע: 19 איראן, 89 חיזבאללה. מצטבר כולל: ~162 איראן, ~180 חיזבאללה
+    // צפירה=193 (בליסטי), ירי רקטות=56. גלים 01:02-23:38
     date: '2026-03-07', dayName: 'שבת',
-    iranWaves: 10, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
-    lebWaves: 25, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 193, clusterMissiles: 97, uavsLaunched: 56, interceptions: '~90%', interceptionsCount: '~174', impacts: '~19', killed: 0, injured: 50,
-    events: '274 אזעקות. ~10 מטחים מאיראן (193 סירנות), ~25 גלי חיזבאללה (56 ירי). מקור גלים: אלמ"א. גלים 01:02-23:38.'
+    iranWaves: 12, iranMissiles: 'בליסטיים+מצרר', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 300,
+    lebWaves: 46, lebRockets: 'רקטות+כטב"מים+נ"ט',
+    missilesLaunched: 193, clusterMissiles: 97, uavsLaunched: 56, interceptions: '~90%', interceptionsCount: '~174', impacts: '~19', killed: 0, injured: 300,
+    events: '274 אזעקות. 12 גלי איראן (אלמ"א). חיזבאללה: 46 גלי תקיפה. רסיסי יירוט פגעו בבית בלוד. סירנות בקרית שמונה — יירוטים מרובים. צה"ל תקף 400+ יעדים באיראן בסופ"ש (~1,465 תחמושות). פזשכיאן: איראן תפסיק לתקוף שכנים. מצטבר: 12 הרוגים, ~1,900 פצועים.'
   },
   {
     // 8.3.2026 (ראשון, יום 9) — מקורות: צבע אדום API + מרכז אלמ"א (מצטבר: 174 גלי איראן, 223 גלי חיזבאללה, 159 רקטות, 86 כטב"מים, 9 נ"ט)
     // צפירה=176 (בליסטי), ירי רקטות=105. ~9 גלי איראן, ~31 גלי חיזבאללה (אלמ"א)
     date: '2026-03-08', dayName: 'ראשון',
-    iranWaves: 9, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 0,
+    iranWaves: 9, iranMissiles: 'בליסטיים', iranUAVs: 'כטב"מים', iranKilled: 0, iranInjured: 240,
     lebWaves: 31, lebRockets: 'רקטות+כטב"מים',
-    missilesLaunched: 176, clusterMissiles: 88, uavsLaunched: 105, interceptions: '~90%', interceptionsCount: '~158', impacts: '~18', killed: 0, injured: 50,
-    events: '282 אזעקות. ~9 מטחים מאיראן (176 סירנות), ~31 גלי חיזבאללה (105 ירי). אלמ"א: מצטבר 174 איראן, 223 חיזבאללה, 12 הרוגים, 2,142 פצועים. גלים 01:39-23:34.'
+    missilesLaunched: 176, clusterMissiles: 88, uavsLaunched: 105, interceptions: '~90%', interceptionsCount: '~158', impacts: '~18', killed: 0, injured: 240,
+    events: '282 אזעקות. 9 גלי איראן (176 סירנות), 31 גלי חיזבאללה (105 ירי). אלמ"א: מצטבר 174 איראן, 223 חיזבאללה, 12 הרוגים, 2,142 פצועים. גלים 01:39-23:34.'
   },
   {
     // 9.3.2026 (שני, יום 10) — מקורות: צבע אדום API + מרכז אלמ"א (מצטבר: 186 גלי איראן, 269 גלי חיזבאללה, 14 הרוגים, 2,339 פצועים)
