@@ -972,7 +972,9 @@ body {
 
   <!-- Timeline -->
   <div class="panel timeline-panel">
-    <div class="timeline-title">רשימת שיגורים כרונולוגית — איראן ולבנון מ-28.2.2026</div>
+    <div class="timeline-title">רשימת שיגורים כרונולוגית — איראן ולבנון מ-28.2.2026
+      <span style="display:block;color:var(--text-dim);font-size:0.78rem;font-weight:500;margin-top:6px;line-height:1.4">מתעדכנת אוטומטית: לכל יום עם נתוני פיקוד העורף/צבע אדום ב-API — מוצגים הם; לשאר הימים — שורות עזר עדכניות מהקוד.</span>
+    </div>
     <div class="timeline-filter" id="timelineFilter"></div>
     <div class="timeline-list" id="timelineList"></div>
   </div>
@@ -3152,6 +3154,51 @@ function updateActivities(safety) {
   });
 }
 
+// --- ציר שיגורים: לכל יום — אם יש אזעקות ב-ALERTS_BY_DAY (סנכרון/API) הן מקור האמת; אחרת גיבוי מ-LAUNCHES_TIMELINE ---
+var TIMELINE_DATA_START = '2026-02-28';
+
+function alertRowToTimelineEntry(dateKey, a) {
+  var areas = String(a.areas || '');
+  var title = String(a.title || '');
+  var src = classifyAlertSource(a.type || 'missile', areas, title);
+  var areaShort = areas.length > 140 ? areas.substring(0, 140) + '…' : areas;
+  var desc = (title || 'אזעקה') + (areaShort ? ' — ' + areaShort : '') + ' [סנכרון אוטומטי]';
+  return {
+    date: dateKey,
+    time: a.time,
+    source: src === 'lebanon' ? 'lebanon' : 'iran',
+    missiles: 0,
+    intercepted: 0,
+    impacted: 0,
+    desc: desc
+  };
+}
+
+function getTimelineEntriesForDate(dateKey) {
+  var alerts = ALERTS_BY_DAY[dateKey];
+  if (alerts && alerts.length > 0) {
+    return alerts.map(function(a) { return alertRowToTimelineEntry(dateKey, a); });
+  }
+  return LAUNCHES_TIMELINE.filter(function(l) { return l.date === dateKey; });
+}
+
+function getFullMergedTimeline() {
+  var out = [];
+  var cur = new Date(TIMELINE_DATA_START + 'T12:00:00');
+  var endStr = localDateKey();
+  var end = new Date(endStr + 'T12:00:00');
+  if (isNaN(cur.getTime()) || isNaN(end.getTime())) return LAUNCHES_TIMELINE.slice();
+  while (cur.getTime() <= end.getTime()) {
+    out = out.concat(getTimelineEntriesForDate(localDateKey(cur)));
+    cur.setDate(cur.getDate() + 1);
+  }
+  out.sort(function(a, b) {
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
+    return a.time.localeCompare(b.time);
+  });
+  return out;
+}
+
 function countEventsPerHour(dateKey) {
   // ספירת אירועים אמיתיים לכל שעה — מאזעקות פיקוד העורף + שיגורים
   var hourAlerts = new Array(24).fill(0);
@@ -3164,22 +3211,20 @@ function countEventsPerHour(dateKey) {
   alerts.forEach(function(a) {
     if (seenAlertTimes[a.time]) return;
     seenAlertTimes[a.time] = true;
-    var h = parseInt(a.time.split(':')[0]);
-    if (h >= 0 && h < 24) hourAlerts[h]++;
+    var h = parseInt(a.time.split(':')[0], 10);
+    if (!isNaN(h) && h >= 0 && h < 24) hourAlerts[h]++;
   });
 
-  // שיגורים מ-LAUNCHES_TIMELINE — ספירת זמנים ייחודיים
+  // שיגורים / גלים — אותו מקור כמו ציר הכרונולוגיה (דינמי או LAUNCHES_TIMELINE)
   var seenLaunchTimes = {};
-  LAUNCHES_TIMELINE.forEach(function(l) {
-    if (l.date === dateKey) {
-      var key = l.time + '_' + l.source;
-      if (seenLaunchTimes[key]) return;
-      seenLaunchTimes[key] = true;
-      var h = parseInt(l.time.split(':')[0]);
-      if (h >= 0 && h < 24) {
-        hourLaunches[h]++;
-        hourMissiles[h] += (l.missiles || 0);
-      }
+  getTimelineEntriesForDate(dateKey).forEach(function(l) {
+    var key = l.time + '_' + l.source;
+    if (seenLaunchTimes[key]) return;
+    seenLaunchTimes[key] = true;
+    var h = parseInt(l.time.split(':')[0], 10);
+    if (!isNaN(h) && h >= 0 && h < 24) {
+      hourLaunches[h]++;
+      hourMissiles[h] += (l.missiles || 0);
     }
   });
 
@@ -3496,28 +3541,8 @@ function renderTimeline() {
     filterEl.appendChild(btn);
   });
 
-  // מיזוג אזעקות בזמן אמת מהיום ל-LAUNCHES_TIMELINE לתצוגה
-  var mergedTimeline = LAUNCHES_TIMELINE.slice();
-  var todayKey = localDateKey();
-  var todayAlerts = ALERTS_BY_DAY[todayKey] || [];
-  var existingTodayTimes = {};
-  mergedTimeline.forEach(function(e) {
-    if (e.date === todayKey) existingTodayTimes[e.time] = true;
-  });
-  todayAlerts.forEach(function(a) {
-    if (existingTodayTimes[a.time]) return;
-    var isNorth = ['גליל', 'קריית שמונה', 'מטולה', 'חיפה', 'נהריה', 'שלומי', 'חניתה', 'אביבים', 'יראון', 'מנרה', 'דפנה', 'גולן'].some(function(n) { return (a.areas || '').indexOf(n) !== -1; });
-    mergedTimeline.push({
-      date: todayKey, time: a.time,
-      source: (a.type === 'uav' || isNorth) ? 'lebanon' : 'iran',
-      missiles: 0, intercepted: 0, impacted: 0,
-      desc: a.title + ' — ' + (a.areas || '').substring(0, 80) + ' (זמן אמת)'
-    });
-  });
-  mergedTimeline.sort(function(a, b) {
-    if (a.date !== b.date) return a.date.localeCompare(b.date);
-    return a.time.localeCompare(b.time);
-  });
+  // ציר מלא: מ-28.2 עד היום — כל יום עם ALERTS_BY_DAY (סנכרון) דורס את השורות הסטטיות לאותו יום
+  var mergedTimeline = getFullMergedTimeline();
 
   var filtered = timelineFilter === 'all'
     ? mergedTimeline
@@ -4784,6 +4809,8 @@ async function syncHistoricalDaysFromApi(daysBack) {
     }
     // גם אם לא היו שינויים במיזוג, ודא שהטבלה מתעדכנת אחרי תיקון 17.03
     renderDailyTable();
+    renderTimeline();
+    recalculate();
   } catch (e) {}
   return false;
 }
@@ -5212,6 +5239,7 @@ async function fullDaySync() {
     saveAlerts();
     renderAlertLog();
     updateLiveDayData(todayKey, null, null);
+    renderTimeline();
     recalculate();
   } catch(e) {}
 }
@@ -5472,7 +5500,11 @@ function init() {
   syncHistoricalDaysFromApi(30); // סנכרון מיידי לסגירת פערים לפני שהמשתמש רואה טבלה ישנה
   setTimeout(function() { syncHistoricalDaysFromApi(30); }, 1000);
   // ריענון תדיר יותר כדי להשלים אתמול/היום מהר ולצמצם פערים גלויים למשתמש
-  setInterval(function() { syncHistoricalDaysFromApi(30); }, 2 * 60 * 1000);
+  setInterval(function() {
+    syncHistoricalDaysFromApi(30);
+    renderTimeline();
+    recalculate();
+  }, 2 * 60 * 1000);
 
   // כפתור רענון ידני
   $('connRefresh').addEventListener('click', function() {
