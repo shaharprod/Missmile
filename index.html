@@ -3792,6 +3792,13 @@ var wsReconnectTimer = null;
 var wsConnected = false;
 var runBackupAPI = false; // כמו בצבע אדום — מפעיל backup polling כשה-WS מתנתק
 var rcvNotificationIds = []; // דדופליקציה לפי notificationId — בדיוק כמו צבע אדום
+// רק התרעות טריות מציגות באנר/סירנה כדי למנוע קפיצות מהיסטוריה
+function isRecentAlert(alertDate) {
+  if (!alertDate) return false;
+  var ts = (alertDate instanceof Date) ? alertDate.getTime() : Date.parse(alertDate);
+  if (isNaN(ts)) return false;
+  return Math.abs(Date.now() - ts) <= 180000; // 3 דקות
+}
 
 function updateConnectionUI(connected, sourceName) {
   var dot = $('connDot');
@@ -4265,8 +4272,10 @@ function processTzevaadomAlert(data, source) {
       area: areas, type: type, title: title, source: alertSource, live: true
     });
     todayAlertCount++;
-    flashScreen();
-    showEarlyWarning(type, areas, title);
+    if (isRecentAlert(alertDate)) {
+      flashScreen();
+      showEarlyWarning(type, areas, title);
+    }
     if (alertsLog.length > 200) alertsLog.length = 200;
     $('todayCount').textContent = todayAlertCount;
     saveAlerts();
@@ -4883,7 +4892,10 @@ function processOrefAlerts(alertsData) {
       });
       todayAlertCount++;
       newAlerts = true;
-      showEarlyWarning(type, area, title);
+      if (isRecentAlert(fullDate)) {
+        flashScreen();
+        showEarlyWarning(type, area, title);
+      }
 
       // שמירה דינמית ל-ALERTS_BY_DAY
       upsertAlertInDay(dateKey, timeStr.substring(0, 5), area, type, title);
@@ -4957,7 +4969,6 @@ async function tryFetchLiveAlerts() {
         updateConnectionUI(true, 'מחובר לפיקוד העורף — זמן אמת');
         var newAlerts = processOrefAlerts(directParsed);
         if (newAlerts) {
-          flashScreen();
           if (alertsLog.length > 200) alertsLog.length = 200;
           $('todayCount').textContent = todayAlertCount;
           saveAlerts(); renderAlertLog(); recalculate();
@@ -4980,7 +4991,6 @@ async function tryFetchLiveAlerts() {
 
     var newAlerts = processOrefAlerts(parsed);
     if (newAlerts) {
-      flashScreen();
       if (alertsLog.length > 200) alertsLog.length = 200;
       $('todayCount').textContent = todayAlertCount;
       saveAlerts();
@@ -5002,7 +5012,6 @@ async function tryFetchLiveAlerts() {
 
     var newAlerts = processOrefAlerts(histParsed);
     if (newAlerts) {
-      flashScreen();
       if (alertsLog.length > 200) alertsLog.length = 200;
       $('todayCount').textContent = todayAlertCount;
       saveAlerts();
