@@ -1116,13 +1116,12 @@ const DAILY_DATA = [
     events: '184 אזעקות. 12 גלי איראן (אלמ"א). חיזבאללה: 37 גלי תקיפה — 29 רקטות, 5 כטב"מים, 3 נ"ט. נזק לבתים בראשל"צ, שוהם, כביש 431. 142 מאושפזים (משרד הבריאות). מצטבר: 257 איראן, 522 חיזבאללה, 15 הרוגים, 3,530 פצועים.'
   },
   {
-    // 17.3.2026 (שלישי, יום 18) — מקורות: אלמ"א Mar 18 report (11 גלי איראן, 43 גלי חיזבאללה — 32 רקטות, 9 כטב"מים, 2 נ"ט)
-    // מצטבר: 268 איראן, 565 חיזבאללה, 15 הרוגים, 3,604 פצועים
+    // 17.3.2026 (שלישי, יום 18) — נתון אמת קשיח: צבע אדום API בלבד (Google Sheets seed)
     date: '2026-03-17', dayName: 'שלישי',
-    iranWaves: 11, iranMissiles: 'בליסטיים+מצרר', iranUAVs: 'כטב"מים', iranKilled: 2, iranInjured: 86,
-    lebWaves: 43, lebRockets: 'רקטות+כטב"מים+נ"ט',
-    missilesLaunched: 130, clusterMissiles: 65, uavsLaunched: 45, interceptions: '~90%', interceptionsCount: '~117', impacts: '~13', killed: 2, injured: 86,
-    events: 'צה"ל חיסל את עלי לריג\'אני (מזכיר מועצת הביטחון) ואת גולאמרזא סולימאני (מפקד הבסיג\'). 11 גלי איראן — כולל חימוש מצרר (חורמשהר-4, קדר). פגיעת מצרר ברמת גן — 2 הרוגים (ירון ואילנה משה, בני 70+). פגיעה בתחנת סבידור ת"א (רכבת הושבתה). חיזבאללה: 43 גלי תקיפה — 32 רקטות, 9 כטב"מים, 2 נ"ט. 17 תקיפות נגד צה"ל בדרום לבנון. 400+ מחבלי חיזבאללה חוסלו מאז 2.3. מצטבר: 268 איראן, 565 חיזבאללה.'
+    iranWaves: 2, iranMissiles: 'בליסטיים', iranUAVs: '—', iranKilled: 0, iranInjured: 0,
+    lebWaves: 0, lebRockets: '—',
+    missilesLaunched: 2, clusterMissiles: 1, uavsLaunched: 0, interceptions: '~90%', interceptionsCount: '~2', impacts: 0, killed: 0, injured: 0,
+    events: '2 אזעקות פיקוד העורף (מאומת API): 01:03 בקעת הירדן/גולן, 03:35 מטח ארצי רחב.'
   },
   {
     // 18.3.2026 (רביעי, יום 19) — מקורות: אלמ"א Mar 19 report (13 גלי איראן, 49 גלי חיזבאללה — 38 רקטות, 10 כטב"מים, 1 נ"ט)
@@ -1615,21 +1614,9 @@ const LAUNCHES_TIMELINE = [
   { date: '2026-03-16', time: '22:00', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי — סירנות מרכז (22:00-22:21). צבע אדום API.' },
 
   // === 17 MARCH 2026 (שלישי) — Day 18 ===
-  // מקורות: צבע אדום API, אלמ"א דו"ח 17.3, ToI liveblog, CNN, i24NEWS, The Media Line
-  // 12 גלי איראן (אלמ"א), 37 גלי חיזבאללה (29 רקטות, 5 כטב"מים, 3 נ"ט)
-  { date: '2026-03-17', time: '01:03', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי — סירנות בקעת הירדן וגולן (01:03-01:04). דגניה, צמח, חמת גדר, אפיקים (צבע אדום API).' },
-  { date: '2026-03-17', time: '03:35', source: 'iran', missiles: 15, intercepted: 13, impacted: 2, desc: 'מטח בליסטי מסיבי — סירנות ב-247+ ישובים (03:35-03:37). ת"א, חדרה, נתניה, שרון, מודיעין, שומרון (צבע אדום API).' },
-  { date: '2026-03-17', time: '07:20', source: 'iran', missiles: 10, intercepted: 9, impacted: 1, desc: 'מטח בליסטי בוקר — סירנות מרכז. יירוטים מעל גוש דן.' },
-  { date: '2026-03-17', time: '09:15', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — 29 גלי רקטות לגליל ולצפון.' },
-  { date: '2026-03-17', time: '10:30', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'צה"ל חיסל את עלי לריג\'אני (מזכיר מועצת הביטחון) ואת גולאמרזא סולימאני (מפקד הבסיג\') ליד טהרן.' },
-  { date: '2026-03-17', time: '11:30', source: 'iran', missiles: 12, intercepted: 10, impacted: 2, desc: 'מטח בליסטי כבד — חימוש מצרר (חורמשהר-4, קדר). פגיעה בבניין ברמת גן — 2 הרוגים (ירון ואילנה משה, בני 70+). 8+ אתרי פגיעת רסס מראש מצרר בודד.' },
-  { date: '2026-03-17', time: '14:00', source: 'iran', missiles: 8, intercepted: 7, impacted: 1, desc: 'מטח בליסטי צהריים — סירנות מרכז ושרון. פגיעות בפ"ת, ראש העין, כפר קאסם.' },
-  { date: '2026-03-17', time: '15:45', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — 5 גלי כטב"מים + 3 נ"ט צפון. כולם יורטו (צה"ל).' },
-  { date: '2026-03-17', time: '18:00', source: 'iran', missiles: 10, intercepted: 9, impacted: 1, desc: 'מטח בליסטי ערב — פגיעה בתחנת סבידור ת"א. רכבת ישראל הושבתה זמנית (i24NEWS).' },
-  { date: '2026-03-17', time: '21:17', source: 'lebanon', missiles: 0, intercepted: 0, impacted: 0, desc: 'חיזבאללה — פגיעה בבית בכרמיאל. אין נפגעים (ToI).' },
-  { date: '2026-03-17', time: '21:41', source: 'iran', missiles: 8, intercepted: 7, impacted: 1, desc: 'מטח בליסטי — סירנות מרכז ודרום.' },
-  { date: '2026-03-17', time: '22:00', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטח בליסטי 10 (מתוך 12) — סירנות מרכז. מטח "נקמה" על חיסול לריג\'אני. איראן אישרה רשמית את מותו (23:02).' },
-  { date: '2026-03-17', time: '23:30', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'מטחים בליסטיים 11-12 — פגיעות בבת ים, ירושלים (חצר בי"ס). 86 מאושפזים, 8 במצב קשה (משרד הבריאות).' },
+  // מקור אמת: צבע אדום API בלבד (Google Sheets seed)
+  { date: '2026-03-17', time: '01:03', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'צפירה — בקעת הירדן+גולן (צבע אדום API).' },
+  { date: '2026-03-17', time: '03:35', source: 'iran', missiles: 0, intercepted: 0, impacted: 0, desc: 'ירי רקטות וטילים — מטח בליסטי מסיבי ארצי (צבע אדום API).' },
 
   // === 18 MARCH 2026 (רביעי) — Day 19 ===
   // מקור: ToI liveblog 18.3, JPost, NPR, Al Jazeera
