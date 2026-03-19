@@ -2536,33 +2536,50 @@ function getAlertTimestampMs(alert) {
 }
 
 function getMinutesSinceLastAlert() {
-  // עדיפות לאזעקות חיות (live) מפיקוד העורף
-  var liveAlerts = alertsLog.filter(function(a) { return a.live === true; });
-  // אם אין live — השתמש בכל האזעקות (כולל seed מאומתות)
-  var source = liveAlerts.length > 0 ? liveAlerts : alertsLog;
+  var todayKey = localDateKey();
+  var source = (alertsLog || []).filter(function(a) {
+    if (!a) return false;
+    if (!a.alertDate) return true;
+    return a.alertDate.split(' ')[0] === todayKey;
+  });
+  if (source.length === 0) source = alertsLog || [];
   if (source.length === 0) return 999;
-  var now = new Date();
-  var latest = source[0];
-  var ts = getAlertTimestampMs(latest);
-  if (!isNaN(ts)) {
-    var diffMs = now.getTime() - ts;
+  var nowMs = Date.now();
+  var bestTs = -Infinity;
+  source.forEach(function(a) {
+    var ts = getAlertTimestampMs(a);
+    if (!isNaN(ts) && ts > bestTs) bestTs = ts;
+  });
+  if (bestTs > -Infinity) {
+    var diffMs = nowMs - bestTs;
     if (diffMs < 0) return 999;
     return Math.floor(diffMs / 60000);
   }
 
-  // Fallback: time-only comparison (same day only)
-  var parts = latest.time.split(':');
-  var alertMinutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+  // Fallback: time-only — האזעקה המאוחרת ביותר לפי שעה:דקה היום
+  var now = new Date();
+  var bestAlertMin = -1;
+  source.forEach(function(a) {
+    if (!a.time) return;
+    var parts = a.time.split(':');
+    var alertMinutes = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+    if (!isNaN(alertMinutes) && alertMinutes > bestAlertMin) bestAlertMin = alertMinutes;
+  });
+  if (bestAlertMin < 0) return 999;
   var nowMinutes = now.getHours() * 60 + now.getMinutes();
-  var diff = nowMinutes - alertMinutes;
+  var diff = nowMinutes - bestAlertMin;
   if (diff < 0) return 999;
   return diff;
 }
 
 function getRecentAlertRate(windowMinutes) {
-  // עדיפות ל-live, אם אין — כל האזעקות
-  var liveAlerts = alertsLog.filter(function(a) { return a.live === true; });
-  var source = liveAlerts.length > 0 ? liveAlerts : alertsLog;
+  var todayKey = localDateKey();
+  var source = (alertsLog || []).filter(function(a) {
+    if (!a) return false;
+    if (!a.alertDate) return true;
+    return a.alertDate.split(' ')[0] === todayKey;
+  });
+  if (source.length === 0) source = alertsLog || [];
   var now = new Date();
   var nowMs = now.getTime();
   var count = 0;
@@ -4979,6 +4996,16 @@ async function tryFetchLiveAlerts() {
     connectionState.failCount = 0;
     connectionState.pollInterval = 30000;
     if (btn) setTimeout(function() { btn.classList.remove('spinning'); }, 800);
+    // גם עם WebSocket: משיכת /notifications והיסטוריה משלימה פערים (הודעות שפספסנו, API מאחר)
+    try {
+      await tryFetchTzevaadomAPI();
+      connectionState.lastSuccess = Date.now();
+      if (alertsLog.length > 200) alertsLog.length = 200;
+      $('todayCount').textContent = todayAlertCount;
+      saveAlerts();
+      renderAlertLog();
+      recalculate();
+    } catch (eWs) {}
     scheduleNextPoll();
     return;
   }
@@ -5152,7 +5179,22 @@ async function fullDaySync() {
       }
     });
 
-    // החלפת alertsLog במלואו — מקור אמת יחיד
+    // מיזוג שמירה: אזעקות מהיום שכבר בלוג (WebSocket / notifications) שלא עדיין בהיסטוריית API
+    // מונע מצב שבו היסטוריה מאחרת ~דקות ומוחקת אזעקות אמיתיות שהמשתמש כבר ראה
+    var mergedByKey = {};
+    apiAlerts.forEach(function(a) {
+      var k = a.time + '|' + a.type + '|' + (a.source || '');
+      mergedByKey[k] = a;
+    });
+    (alertsLog || []).forEach(function(prev) {
+      if (!prev || !prev.alertDate) return;
+      if (prev.alertDate.split(' ')[0] !== todayKey) return;
+      var pk = prev.time + '|' + prev.type + '|' + (prev.source || '');
+      if (!mergedByKey[pk]) mergedByKey[pk] = prev;
+    });
+    apiAlerts = Object.keys(mergedByKey).map(function(k) { return mergedByKey[k]; });
+
+    // החלפת alertsLog במלואו — API + seed + שמירה על מה שהגיע בזמן אמת
     alertsLog = apiAlerts;
     alertsLog.sort(function(a, b) { return b.time.localeCompare(a.time); });
 
@@ -5418,7 +5460,8 @@ function init() {
   var fullDaySyncTimer = null;
   function scheduleFullDaySync() {
     if (fullDaySyncTimer) clearInterval(fullDaySyncTimer);
-    var interval = wsConnected ? 60000 : 15000;
+    // עם WS: סנכרון יום תכוף יותר כדי שלא ייעלמו אזעקות אחרונות לפני שההיסטוריה מתעדכנת
+    var interval = 15000;
     fullDaySyncTimer = setInterval(fullDaySync, interval);
   }
   scheduleFullDaySync();
