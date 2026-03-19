@@ -760,7 +760,7 @@ body {
   <!-- Header -->
   <div class="header">
     <h1><span>SafeTime</span> — מתי בטוח לצאת?</h1>
-    <p class="subtitle">מבצע "שאגת הארי" · מתעדכן בזמן אמת מפיקוד העורף</p>
+    <p class="subtitle">מבצע "שאגת הארי" · מתעדכן בזמן אמת מפיקוד העורף · טבלאות, גרפים וציר זמן מסתנכרנים אוטומטית עם כל מידע חדש</p>
   </div>
 
   <!-- Live Status Bar -->
@@ -920,6 +920,7 @@ body {
   <div class="panel threat-sources">
     <div class="threat-sources-title">מקורות איום — פרטים</div>
     <div class="threat-grid" id="threatGrid"></div>
+    <p class="threat-sync-footer" id="threatSyncFooter" style="margin-top:14px;font-size:0.74rem;color:var(--text-dim);line-height:1.55"></p>
   </div>
 
   <!-- Daily Summary Table -->
@@ -1447,6 +1448,9 @@ const THREAT_SOURCES = [
     statsLine: '614 גלי תקיפה (אלמ"א 19.3) · 400+ רקטות/טילים · 150+ כטב"מים · 13 נ"ט · פגיעת נ"ט מרגליות · 56 גלים ביום שיא (14.3)'
   }
 ];
+
+// תחילת טווח נתונים למלחמה (ציר, סיכומים גלובליים, סנכרון ימים)
+var TIMELINE_DATA_START = '2026-02-28';
 
 // ==================== CHRONOLOGICAL LAUNCHES — Iran & Lebanon from 28.2.2026 ====================
 // Sources: Alma Center daily reports, Wikipedia Timeline of the 2026 Iran conflict,
@@ -2807,6 +2811,36 @@ function updateIntensityPanel(dateKey) {
   }
 }
 
+function aggregateDailyDataFromSync() {
+  var iranW = 0, lebW = 0, miss = 0, uav = 0;
+  var endStr = localDateKey();
+  function numVal(v) {
+    if (typeof v === 'number' && isFinite(v)) return v;
+    if (typeof v === 'string') {
+      var n = parseInt(v.replace(/[~,+]/g, ''), 10);
+      return isNaN(n) ? 0 : n;
+    }
+    return 0;
+  }
+  DAILY_DATA.forEach(function(d) {
+    if (!d || !d.date || d.date < TIMELINE_DATA_START || d.date > endStr) return;
+    iranW += numVal(d.iranWaves);
+    lebW += numVal(d.lebWaves);
+    miss += numVal(d.missilesLaunched);
+    uav += numVal(d.uavsLaunched);
+  });
+  return { iranW: iranW, lebW: lebW, miss: miss, uav: uav };
+}
+
+function updateThreatSyncFooter() {
+  var el = $('threatSyncFooter');
+  if (!el) return;
+  var a = aggregateDailyDataFromSync();
+  el.textContent = 'סיכום אוטומטי מכל הימים עם נתוני סנכרון (פיקוד העורף / צבע אדום), עד ' + localDateKey() +
+    ': ' + a.iranW + ' גלי איראן (לפי סיווג אזור), ' + a.lebW + ' גלי צפון/לבנון, ' +
+    a.miss + ' התראות טיל/רקטה, ' + a.uav + ' כטב"מ. מספרים משתנים עם כל ריענון סנכרון.';
+}
+
 // ==================== UI FUNCTIONS ====================
 
 function renderThreatSources() {
@@ -2831,6 +2865,7 @@ function renderThreatSources() {
 
     grid.appendChild(card);
   });
+  updateThreatSyncFooter();
 }
 
 var dailySourceFilter = 'all'; // 'all' | 'iran' | 'leb'
@@ -3155,8 +3190,6 @@ function updateActivities(safety) {
 }
 
 // --- ציר שיגורים: לכל יום — אם יש אזעקות ב-ALERTS_BY_DAY (סנכרון/API) הן מקור האמת; אחרת גיבוי מ-LAUNCHES_TIMELINE ---
-var TIMELINE_DATA_START = '2026-02-28';
-
 function alertRowToTimelineEntry(dateKey, a) {
   var areas = String(a.areas || '');
   var title = String(a.title || '');
@@ -4768,6 +4801,51 @@ function reconcileRecentDailyStatsFromAlerts(daysBack) {
   }
 }
 
+function ensureWarDayRow(dateKey) {
+  if (!dateKey || WAR_DAYS.find(function(w) { return w.date === dateKey; })) return;
+  var dt = new Date(dateKey + 'T12:00:00');
+  if (isNaN(dt.getTime())) return;
+  var dayNum = WAR_DAYS.length + 1;
+  WAR_DAYS.push({
+    date: dateKey,
+    dayName: DAY_NAMES[dt.getDay()] + ' ' + dt.getDate() + '.' + (dt.getMonth() + 1),
+    dayNum: dt.getDay(),
+    label: 'יום ' + dayNum
+  });
+  if (typeof buildDayOptions === 'function') buildDayOptions();
+  if (typeof renderIntensityTabs === 'function') renderIntensityTabs();
+}
+
+/** עדכון גלובלי: כל יום עם נתונים ב-ALERTS_BY_DAY → DAILY_DATA + HOURLY + WAR_DAYS (כל חלקי האפליקציה שמסתמכים עליהם) */
+function syncAllDerivedDataFromAlerts() {
+  var endStr = localDateKey();
+  var seen = Object.create(null);
+  function runDay(dk) {
+    if (!dk || dk < TIMELINE_DATA_START || dk > endStr || seen[dk]) return;
+    seen[dk] = true;
+    var alerts = ALERTS_BY_DAY[dk];
+    if (!alerts || alerts.length === 0) return;
+    var ok = standardizeSingleDayFromAlerts(dk);
+    if (!ok) updateLiveDayData(dk, null, null);
+    ensureWarDayRow(dk);
+  }
+  var cur = new Date(TIMELINE_DATA_START + 'T12:00:00');
+  var end = new Date(endStr + 'T12:00:00');
+  if (!isNaN(cur.getTime()) && !isNaN(end.getTime())) {
+    while (cur.getTime() <= end.getTime()) {
+      runDay(localDateKey(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+  }
+  Object.keys(ALERTS_BY_DAY).forEach(function(dk) { runDay(dk); });
+  DAILY_DATA.sort(function(a, b) { return a.date.localeCompare(b.date); });
+  if (typeof renderDailyTable === 'function') renderDailyTable();
+  if (typeof renderThreatSources === 'function') renderThreatSources();
+  if (typeof showIntensityForDate === 'function' && typeof selectedIntensityDate !== 'undefined') {
+    showIntensityForDate(selectedIntensityDate);
+  }
+}
+
 async function syncHistoricalDaysFromApi(daysBack) {
   try {
     var histData = await fetchTzevaadomWithFallback();
@@ -4777,8 +4855,8 @@ async function syncHistoricalDaysFromApi(daysBack) {
       if (Array.isArray(notifications) && notifications.length > 0) {
         histData = [{ alerts: notifications }];
       } else {
-        // גם אם מקורות חיצוניים נפלו — פיוס רק לימים אחרונים בזמן אמת
-        reconcileRecentDailyStatsFromAlerts(2);
+        // גם אם מקורות חיצוניים נפלו — פיוס כל הימים שיש להם ALERTS_BY_DAY מקומי
+        syncAllDerivedDataFromAlerts();
         return false;
       }
     }
@@ -4795,10 +4873,8 @@ async function syncHistoricalDaysFromApi(daysBack) {
       collectedByDay = mergeCollectedByDay(collectedByDay, orefCollected);
     }
     var changedDays = applyHistoricalToDayStores(collectedByDay);
-    // תקן אחיד לימים דינמיים אחרונים בלבד (לא לדרוס היסטוריה מחושבת ידנית)
-    standardizeRecentDaysData(2);
-    // גם אם לא היו שינויים במיזוג, אל תשאיר טבלת DAILY_DATA עם seed/0 בימים אחרונים
-    reconcileRecentDailyStatsFromAlerts(2);
+    // פיוס גלובלי: כל יום עם אזעקות מסונכרנות → טבלה יומית, שעות, עוצמה, כרטיסי איום
+    syncAllDerivedDataFromAlerts();
 
     if (changedDays.length > 0) {
       saveDynamicAlertsBatch(changedDays);
@@ -5239,6 +5315,7 @@ async function fullDaySync() {
     saveAlerts();
     renderAlertLog();
     updateLiveDayData(todayKey, null, null);
+    syncAllDerivedDataFromAlerts();
     renderTimeline();
     recalculate();
   } catch(e) {}
@@ -5422,11 +5499,9 @@ function init() {
   renderTimeline();
   renderIntensityTabs();
   showIntensityForDate(selectedIntensityDate);
-  // מונע מצב שבו DAILY_DATA נשאר עם seed חלקי למרות שקיימות התראות ב-ALERTS_BY_DAY
-  // חל רק על ימים אחרונים בזמן אמת כדי לא לעוות ימים היסטוריים
-  standardizeRecentDaysData(2);
-  reconcileRecentDailyStatsFromAlerts(2);
   seedTodayAlerts();
+  // כל יום עם נתונים ב-ALERTS_BY_DAY → מיושר ל-DAILY_DATA, HOURLY, WAR_DAYS, טבלה, איומים, ציר
+  syncAllDerivedDataFromAlerts();
   try {
     liveCasualtyByDay = JSON.parse(localStorage.getItem('safetime_live_casualty_by_day') || '{}');
     Object.keys(liveCasualtyByDay).forEach(function(dk) {
@@ -5502,6 +5577,7 @@ function init() {
   // ריענון תדיר יותר כדי להשלים אתמול/היום מהר ולצמצם פערים גלויים למשתמש
   setInterval(function() {
     syncHistoricalDaysFromApi(30);
+    syncAllDerivedDataFromAlerts();
     renderTimeline();
     recalculate();
   }, 2 * 60 * 1000);
