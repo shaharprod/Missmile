@@ -3791,7 +3791,23 @@ var wsConnection = null;
 var wsReconnectTimer = null;
 var wsConnected = false;
 var runBackupAPI = false; // כמו בצבע אדום — מפעיל backup polling כשה-WS מתנתק
-var rcvNotificationIds = []; // דדופליקציה לפי notificationId — בדיוק כמו צבע אדום
+// דדופליקציה לפי notificationId — נשמר ב-localStorage למניעת כפילויות אחרי רענון דף
+var rcvNotificationIds = (function() {
+  try {
+    var stored = JSON.parse(localStorage.getItem('safetime_rcv_ids') || '[]');
+    return Array.isArray(stored) ? stored : [];
+  } catch(e) { return []; }
+})();
+function persistNotificationIds() {
+  try { localStorage.setItem('safetime_rcv_ids', JSON.stringify(rcvNotificationIds.slice(-500))); } catch(e) {}
+}
+// בדיקת עדכניות: רק התראות מ-3 דקות אחרונות מפעילות באנר/סירנה
+function isRecentAlert(alertDate) {
+  if (!alertDate) return false;
+  var ts = (alertDate instanceof Date) ? alertDate.getTime() : Date.parse(alertDate);
+  if (isNaN(ts)) return false;
+  return (Date.now() - ts) < 180000; // 3 דקות
+}
 
 function updateConnectionUI(connected, sourceName) {
   var dot = $('connDot');
@@ -4229,10 +4245,11 @@ function processTzevaadomAlert(data, source) {
   if (!data.isDrill) data.isDrill = false;
   if (typeof data.threat === 'undefined') data.threat = 8;
 
-  // דדופליקציה לפי notificationId — מנגנון צבע אדום
+  // דדופליקציה לפי notificationId — מנגנון צבע אדום + localStorage
   if (rcvNotificationIds.indexOf(data.notificationId) !== -1) return;
   rcvNotificationIds.push(data.notificationId);
   if (rcvNotificationIds.length > 500) rcvNotificationIds.shift();
+  persistNotificationIds();
 
   // דלג על תרגילים
   if (data.isDrill) return;
@@ -4265,8 +4282,11 @@ function processTzevaadomAlert(data, source) {
       area: areas, type: type, title: title, source: alertSource, live: true
     });
     todayAlertCount++;
-    flashScreen();
-    showEarlyWarning(type, areas, title);
+    // רק התראות עדכניות (< 3 דקות) מפעילות באנר+סירנה — למנוע קפיצות כפולות מנתונים ישנים
+    if (isRecentAlert(alertDate)) {
+      flashScreen();
+      showEarlyWarning(type, areas, title);
+    }
     if (alertsLog.length > 200) alertsLog.length = 200;
     $('todayCount').textContent = todayAlertCount;
     saveAlerts();
@@ -4883,7 +4903,11 @@ function processOrefAlerts(alertsData) {
       });
       todayAlertCount++;
       newAlerts = true;
-      showEarlyWarning(type, area, title);
+      // רק התראות עדכניות (< 3 דקות) מפעילות באנר+סירנה — למנוע קפיצות מנתונים ישנים
+      if (isRecentAlert(fullDate)) {
+        flashScreen();
+        showEarlyWarning(type, area, title);
+      }
 
       // שמירה דינמית ל-ALERTS_BY_DAY
       upsertAlertInDay(dateKey, timeStr.substring(0, 5), area, type, title);
@@ -4957,7 +4981,7 @@ async function tryFetchLiveAlerts() {
         updateConnectionUI(true, 'מחובר לפיקוד העורף — זמן אמת');
         var newAlerts = processOrefAlerts(directParsed);
         if (newAlerts) {
-          flashScreen();
+          // flashScreen כבר מופעל מתוך processOrefAlerts עם בדיקת עדכניות
           if (alertsLog.length > 200) alertsLog.length = 200;
           $('todayCount').textContent = todayAlertCount;
           saveAlerts(); renderAlertLog(); recalculate();
@@ -4980,7 +5004,7 @@ async function tryFetchLiveAlerts() {
 
     var newAlerts = processOrefAlerts(parsed);
     if (newAlerts) {
-      flashScreen();
+      // flashScreen כבר מופעל מתוך processOrefAlerts עם בדיקת עדכניות
       if (alertsLog.length > 200) alertsLog.length = 200;
       $('todayCount').textContent = todayAlertCount;
       saveAlerts();
@@ -5002,7 +5026,7 @@ async function tryFetchLiveAlerts() {
 
     var newAlerts = processOrefAlerts(histParsed);
     if (newAlerts) {
-      flashScreen();
+      // flashScreen כבר מופעל מתוך processOrefAlerts עם בדיקת עדכניות
       if (alertsLog.length > 200) alertsLog.length = 200;
       $('todayCount').textContent = todayAlertCount;
       saveAlerts();
@@ -5255,9 +5279,11 @@ function createNewDay() {
   autoSetSelectors();
   recalculate();
 
-  // איפוס ספירת אזעקות יומית
+  // איפוס ספירת אזעקות יומית + ניקוי notification IDs ישנים
   todayAlertCount = 0;
   alertsLog = [];
+  rcvNotificationIds = [];
+  persistNotificationIds();
   $('todayCount').textContent = '0';
   renderAlertLog();
 }
