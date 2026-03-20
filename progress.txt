@@ -52,7 +52,7 @@
   - `remotion-missile/src/scenes/MissileTravel.tsx` (added defense layers overlay)
 - **Learnings for future iterations:**
   - Can use `interpolate` inline in JSX style props for animation values
-  - Defense altitude ranges: Arrow-3 (100+ km), Arrow-2 (50-100 km), David's Sling (15-50 km), Iron Dome (0-15 km)
+  - Defense altitude ranges: Arrow-3 (100+ km), Arrow-2 (50-100 km), David's Sling (15-50 km), Iron Dome (0-10 km altitude, up to 70 km range)
 ---
 
 ## 2026-03-06 - MISSILE-05
