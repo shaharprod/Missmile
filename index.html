@@ -3495,49 +3495,49 @@ function updateDayHeatmap(currentDateKey) {
 
   // Build lookup for Iran/Lebanon wave counts per day
   var waveLookup = {};
+  var maxWaves = 1;
   DAILY_DATA.forEach(function(d) {
-    waveLookup[d.date] = { iran: d.iranWaves || 0, leb: d.lebWaves || 0 };
+    var total = (d.iranWaves || 0) + (d.lebWaves || 0);
+    waveLookup[d.date] = { iran: d.iranWaves || 0, leb: d.lebWaves || 0, total: total };
+    if (total > maxWaves) maxWaves = total;
   });
 
   WAR_DAYS.forEach(function(wd) {
     var alerts = alertCounts[wd.date] || 0;
-    var ratio = Math.min(alerts / maxAlerts, 1.0);
-    var waves = waveLookup[wd.date] || { iran: 0, leb: 0 };
-    var totalWaves = waves.iran + waves.leb;
+    var waves = waveLookup[wd.date] || { iran: 0, leb: 0, total: 0 };
 
-    // Colors from THREAT_SOURCES: Iran=#AB47BC (purple), Lebanon=#FFCA28 (yellow)
-    var iranPct = totalWaves > 0 ? (waves.iran / totalWaves) * 100 : 100;
-    var iranColor = 'rgba(171,71,188,' + (0.15 + ratio * 0.35) + ')';
-    var lebColor = 'rgba(255,202,40,' + (0.15 + ratio * 0.35) + ')';
-    var bgStyle, textColor;
-    if (waves.leb === 0) {
-      // Iran only
-      bgStyle = iranColor;
-      textColor = 'rgb(200,150,220)';
-    } else if (waves.iran === 0) {
-      // Lebanon only
-      bgStyle = lebColor;
-      textColor = 'rgb(255,215,100)';
+    // Heat color by total wave count: green (low) → yellow (mid) → red (high)
+    var t = Math.min(waves.total / maxWaves, 1.0);
+    var r, g, b;
+    if (t < 0.5) {
+      // green → yellow
+      var t2 = t * 2;
+      r = Math.round(40 + t2 * 215);   // 40→255
+      g = Math.round(180 + t2 * 20);    // 180→200
+      b = Math.round(80 - t2 * 50);     // 80→30
     } else {
-      // Both — gradient proportional to wave ratio
-      bgStyle = 'linear-gradient(135deg, ' + iranColor + ' ' + iranPct + '%, ' + lebColor + ' ' + (iranPct + 0.1) + '%)';
-      textColor = iranPct >= 50 ? 'rgb(200,150,220)' : 'rgb(255,215,100)';
+      // yellow → red
+      var t2 = (t - 0.5) * 2;
+      r = Math.round(255);               // 255
+      g = Math.round(200 - t2 * 170);   // 200→30
+      b = Math.round(30 - t2 * 10);     // 30→20
     }
+    var alpha = 0.15 + t * 0.4;
 
     var cell = document.createElement('div');
     cell.className = 'day-cell' + (wd.date === currentDateKey ? ' active' : '');
-    cell.style.background = bgStyle;
-    cell.style.color = textColor;
+    cell.style.background = 'rgba(' + r + ',' + g + ',' + b + ',' + alpha.toFixed(2) + ')';
+    cell.style.color = 'rgb(' + Math.min(r + 30, 255) + ',' + Math.min(g + 30, 255) + ',' + Math.min(b + 30, 255) + ')';
     // Show wave breakdown below alert count
     var waveInfo = '';
-    if (totalWaves > 0) {
+    if (waves.total > 0) {
       var parts = [];
       if (waves.iran > 0) parts.push('🇮🇷' + waves.iran);
       if (waves.leb > 0) parts.push('🇱🇧' + waves.leb);
       waveInfo = '<div style="font-size:0.55rem;opacity:0.7;margin-top:2px">' + parts.join(' ') + '</div>';
     }
     cell.innerHTML = '<div class="day-name">' + wd.dayName + '</div>' +
-      '<div class="day-val">' + (alerts > 0 ? alerts : '—') + '</div>' +
+      '<div class="day-val">' + (waves.total > 0 ? waves.total : '—') + '</div>' +
       waveInfo +
       '<div style="font-size:0.6rem;opacity:0.6">' + wd.label + '</div>';
     cell.addEventListener('click', (function(date) {
