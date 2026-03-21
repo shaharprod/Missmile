@@ -8,31 +8,35 @@ import {
 import { C } from "../lib/constants";
 
 const STATS = [
-  { label: "DAYS OF ALERTS", value: "17", icon: ">" },
-  { label: "TOTAL ALERTS", value: "2,709", icon: "#" },
+  { label: "DAYS OF ATTACKS", value: "20", icon: ">" },
+  { label: "TOTAL ATTACK WAVES", value: "977", icon: "#" },
   { label: "INTERCEPTION RESULT", value: "SUCCESS", icon: "+" },
   { label: "THREAT LEVEL", value: "NEUTRALIZED", icon: "=" },
 ];
 
-// Alert data per day (28.02.2026 - 16.03.2026)
+// Combined attack waves per day (Iran + Hezbollah) — Source: Alma Research Center
+// 28.02.2026 - 19.03.2026
 const DAILY_ALERTS = [
-  { date: "28.02", alerts: 12 },
-  { date: "01.03", alerts: 12 },
-  { date: "02.03", alerts: 9 },
-  { date: "03.03", alerts: 8 },
-  { date: "04.03", alerts: 53 },
-  { date: "05.03", alerts: 227 },
-  { date: "06.03", alerts: 202 },
-  { date: "07.03", alerts: 274 },
-  { date: "08.03", alerts: 282 },
-  { date: "09.03", alerts: 189 },
-  { date: "10.03", alerts: 200 },
-  { date: "11.03", alerts: 338 },
-  { date: "12.03", alerts: 198 },
-  { date: "13.03", alerts: 146 },
-  { date: "14.03", alerts: 203 },
-  { date: "15.03", alerts: 172 },
-  { date: "16.03", alerts: 184 },
+  { date: "28.02", alerts: 25 },  // Iran 25 (initial barrage)
+  { date: "01.03", alerts: 62 },  // Iran 62 (peak Iranian day)
+  { date: "02.03", alerts: 36 },  // Iran 24 + Hez enters: 12
+  { date: "03.03", alerts: 33 },  // Iran ~10 + Hez 23
+  { date: "04.03", alerts: 55 },  // Iran ~8 + Hez 47
+  { date: "05.03", alerts: 33 },  // Iran ~12 + Hez 21
+  { date: "06.03", alerts: 50 },  // Iran 7 + Hez 43
+  { date: "07.03", alerts: 58 },  // Iran 12 + Hez 46
+  { date: "08.03", alerts: 55 },  // Iran 9 + Hez 46
+  { date: "09.03", alerts: 43 },  // Iran 12 + Hez 31
+  { date: "10.03", alerts: 29 },  // Iran 9 + Hez 20
+  { date: "11.03", alerts: 47 },  // Iran 11 + Hez 36
+  { date: "12.03", alerts: 54 },  // Iran 11 + Hez 43
+  { date: "13.03", alerts: 50 },  // Iran ~9 + Hez ~41
+  { date: "14.03", alerts: 65 },  // Iran ~9 + Hez 56 (Hez peak)
+  { date: "15.03", alerts: 44 },  // Iran 10 + Hez 34
+  { date: "16.03", alerts: 49 },  // Iran 12 + Hez 37
+  { date: "17.03", alerts: 54 },  // Iran 11 + Hez 43
+  { date: "18.03", alerts: 62 },  // Iran 13 + Hez 49
+  { date: "19.03", alerts: 73 },  // Iran 19 + Hez 54 (exceptional)
 ];
 
 const MAX_ALERTS = Math.max(...DAILY_ALERTS.map((d) => d.alerts));
@@ -212,7 +216,7 @@ export const EndCard = () => {
           return (
             <div style={{ opacity: chartReveal, marginBottom: 20 }}>
               <div style={{ fontSize: 14, color: C.hudGreen, opacity: 0.5, marginBottom: 10, letterSpacing: 3 }}>
-                DAILY ALERTS — 28.02.2026 → 16.03.2026
+                DAILY ATTACK WAVES — 28.02.2026 → 19.03.2026
               </div>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 4, height: 60 }}>
                 {DAILY_ALERTS.map((day, i) => {
