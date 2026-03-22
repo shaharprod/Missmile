@@ -8,14 +8,14 @@ import {
 import { C } from "../lib/constants";
 
 const STATS = [
-  { label: "DAYS OF ALERTS", value: "21", icon: ">" },
-  { label: "TOTAL ALERTS", value: "67,890", icon: "#" },
+  { label: "DAYS OF ALERTS", value: "22", icon: ">" },
+  { label: "TOTAL ALERTS", value: "68,845", icon: "#" },
   { label: "INTERCEPTION RESULT", value: "SUCCESS", icon: "+" },
   { label: "THREAT LEVEL", value: "NEUTRALIZED", icon: "=" },
 ];
 
 // Red alert siren activations per day — Source: OREF (Pikud HaOref) via Tzofar
-// 28.02.2026 - 20.03.2026
+// 28.02.2026 - 21.03.2026
 const DAILY_ALERTS = [
   { date: "28.02", alerts: 13185 },
   { date: "01.03", alerts: 9093 },
@@ -38,6 +38,7 @@ const DAILY_ALERTS = [
   { date: "18.03", alerts: 1835 },
   { date: "19.03", alerts: 2735 },
   { date: "20.03", alerts: 3264 },
+  { date: "21.03", alerts: 955 },
 ];
 
 const MAX_ALERTS = Math.max(...DAILY_ALERTS.map((d) => d.alerts));
@@ -217,7 +218,7 @@ export const EndCard = () => {
           return (
             <div style={{ opacity: chartReveal, marginBottom: 20 }}>
               <div style={{ fontSize: 14, color: C.hudGreen, opacity: 0.5, marginBottom: 10, letterSpacing: 3 }}>
-                DAILY ALERTS — 28.02.2026 → 20.03.2026
+                DAILY ALERTS — 28.02.2026 → 21.03.2026
               </div>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 4, height: 60 }}>
                 {DAILY_ALERTS.map((day, i) => {
